@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Ambiente / IDE
+.env
+.idea/
+.vscode/
+*.swp
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos antigos da pasta (não fazem parte do site)
+*.TTF
+*.ttf
+*.dll
+*.reg
+instrucoes.txt

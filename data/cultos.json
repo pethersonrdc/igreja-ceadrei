@@ -1,0 +1,32 @@
+{
+  "cultos": [
+    {
+      "id": 1,
+      "titulo": "Culto de Celebração",
+      "dia": "Domingo",
+      "horario": "09:00",
+      "descricao": "Louvor, Palavra e ceia da comunhão."
+    },
+    {
+      "id": 2,
+      "titulo": "Culto da Família",
+      "dia": "Domingo",
+      "horario": "18:00",
+      "descricao": "Um encontro para toda a família crescer na fé."
+    },
+    {
+      "id": 3,
+      "titulo": "Culto de Oração",
+      "dia": "Quarta-feira",
+      "horario": "19:30",
+      "descricao": "Tempo de intercessão e busca pela presença de Deus."
+    },
+    {
+      "id": 4,
+      "titulo": "Escola Bíblica",
+      "dia": "Domingo",
+      "horario": "08:00",
+      "descricao": "Estudo bíblico para crianças, jovens e adultos."
+    }
+  ]
+}

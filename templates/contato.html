@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Contato — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Fale conosco</p>
+  <h1>Estamos de portas abertas</h1>
+  <p>Tire dúvidas, peça oração ou planeje sua visita.</p>
+</section>
+
+<section class="section contact-block">
+  <div>
+    <h2>Endereço</h2>
+    <p>
+      {{ igreja.endereco.rua }}<br>
+      {{ igreja.endereco.bairro }} — {{ igreja.endereco.cidade }}/{{ igreja.endereco.estado }}<br>
+      CEP {{ igreja.endereco.cep }}
+    </p>
+  </div>
+  <div>
+    <h2>Contato</h2>
+    <p>
+      Telefone: {{ igreja.contato.telefone }}<br>
+      E-mail: <a href="mailto:{{ igreja.contato.email }}">{{ igreja.contato.email }}</a><br>
+      Instagram: {{ igreja.contato.instagram }}
+    </p>
+  </div>
+</section>
+{% endblock %}

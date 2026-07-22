@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Eventos — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Agenda</p>
+  <h1>Próximos eventos</h1>
+  <p>Acompanhe os encontros especiais da nossa comunidade.</p>
+</section>
+
+<section class="section">
+  <ul class="event-list" id="lista-eventos">
+    {% for evento in eventos %}
+    <li>
+      <time datetime="{{ evento.data }}">{{ evento.data }}</time>
+      <div>
+        <strong>{{ evento.titulo }}</strong>
+        <p>{{ evento.horario }} · {{ evento.local }}</p>
+        <p>{{ evento.descricao }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.querySelectorAll('#lista-eventos time').forEach((el) => {
+    const raw = el.getAttribute('datetime');
+    if (!raw) return;
+    const date = new Date(raw + 'T12:00:00');
+    el.textContent = date.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+  });
+</script>
+{% endblock %}

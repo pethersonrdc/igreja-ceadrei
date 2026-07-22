@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ igreja.nome }} — Bem-vindo{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-media" role="img" aria-label="Ambiente de culto e comunhão"></div>
+  <div class="hero-content">
+    <p class="hero-brand">{{ igreja.nome }}</p>
+    <h1>{{ igreja.lema }}</h1>
+    <p class="hero-lead">Venha adorar, crescer na Palavra e caminhar em comunhão conosco.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('cultos_page') }}">Horários de culto</a>
+      <a class="btn btn-ghost" href="{{ url_for('contato') }}">Como chegar</a>
+    </div>
+  </div>
+</section>
+
+<section class="section verse-section">
+  <blockquote>
+    <p>“{{ igreja.versiculo.texto }}”</p>
+    <cite>{{ igreja.versiculo.referencia }}</cite>
+  </blockquote>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Próximos encontros</h2>
+    <p>Participe dos nossos momentos de adoração e comunhão.</p>
+  </div>
+  <ul class="schedule-list" id="cultos-destaque">
+    {% for culto in cultos %}
+    <li>
+      <span class="schedule-day">{{ culto.dia }}</span>
+      <div>
+        <strong>{{ culto.titulo }}</strong>
+        <p>{{ culto.horario }} — {{ culto.descricao }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="section-link"><a href="{{ url_for('cultos_page') }}">Ver todos os cultos</a></p>
+</section>
+{% endblock %}

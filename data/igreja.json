@@ -1,0 +1,29 @@
+{
+  "nome": "Igreja CEADREI",
+  "nome_completo": "Comunidade Evangélica Assembleia de Deus CEADREI",
+  "lema": "Uma casa de oração, comunhão e esperança",
+  "versiculo": {
+    "texto": "Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.",
+    "referencia": "Mateus 18:20"
+  },
+  "endereco": {
+    "rua": "Atualize o endereço da igreja",
+    "bairro": "Centro",
+    "cidade": "Sua cidade",
+    "estado": "UF",
+    "cep": "00000-000"
+  },
+  "contato": {
+    "telefone": "(00) 00000-0000",
+    "whatsapp": "5500000000000",
+    "email": "contato@ceadrei.org",
+    "instagram": "@igreja.ceadrei",
+    "youtube": "Igreja CEADREI"
+  },
+  "sobre": {
+    "resumo": "A CEADREI é uma comunidade cristã que vive a Palavra, acolhe famílias e serve a cidade com fé, amor e esperança.",
+    "missao": "Anunciar o Evangelho de Jesus Cristo e formar discípulos que amam a Deus e ao próximo.",
+    "visao": "Ser uma igreja relevante, acolhedora e comprometida com a transformação de vidas.",
+    "valores": ["Fé", "Comunhão", "Serviço", "Integridade", "Família"]
+  }
+}

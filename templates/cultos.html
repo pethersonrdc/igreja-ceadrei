@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Cultos — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Programação</p>
+  <h1>Horários de culto</h1>
+  <p>Venha adorar conosco. Todos são bem-vindos.</p>
+</section>
+
+<section class="section">
+  <ul class="schedule-list schedule-list--full" id="lista-cultos">
+    {% for culto in cultos %}
+    <li>
+      <span class="schedule-day">{{ culto.dia }}</span>
+      <div>
+        <strong>{{ culto.titulo }}</strong>
+        <p>{{ culto.horario }} — {{ culto.descricao }}</p>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}
