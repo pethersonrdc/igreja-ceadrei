@@ -1,0 +1,167 @@
+"""
+Galeria de cultos — armazenamento, expiração em 2 dias e limpeza.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from datetime import datetime, timedelta
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "galeria"
+DB_PATH = DATA_DIR / "galeria.db"
+
+DIAS_EXPIRACAO = 2
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+def _connect() -> sqlite3.Connection:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def init_db() -> None:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    with _connect() as conn:
+        conn.executescript(
+            """
+            CREATE TABLE IF NOT EXISTS posts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                culto_titulo TEXT NOT NULL,
+                culto_dia TEXT NOT NULL,
+                titulo TEXT NOT NULL,
+                criado_em TEXT NOT NULL,
+                expira_em TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS fotos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                arquivo TEXT NOT NULL,
+                FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+            );
+            """
+        )
+
+
+def agora() -> datetime:
+    return datetime.now()
+
+
+def limpar_expirados() -> int:
+    """Remove posts/fotos vencidos (após 2 dias). Retorna quantos posts apagou."""
+    init_db()
+    agora_iso = agora().isoformat(timespec="seconds")
+    removidos = 0
+
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT id FROM posts WHERE expira_em <= ?",
+            (agora_iso,),
+        ).fetchall()
+        post_ids = [row["id"] for row in rows]
+
+        for post_id in post_ids:
+            fotos = conn.execute(
+                "SELECT arquivo FROM fotos WHERE post_id = ?",
+                (post_id,),
+            ).fetchall()
+            for foto in fotos:
+                caminho = UPLOAD_DIR / foto["arquivo"]
+                if caminho.exists():
+                    caminho.unlink()
+            conn.execute("DELETE FROM fotos WHERE post_id = ?", (post_id,))
+            conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
+            removidos += 1
+
+    return removidos
+
+
+def listar_posts_ativos() -> list[dict]:
+    limpar_expirados()
+    agora_iso = agora().isoformat(timespec="seconds")
+    with _connect() as conn:
+        posts = conn.execute(
+            """
+            SELECT * FROM posts
+            WHERE expira_em > ?
+            ORDER BY criado_em DESC
+            """,
+            (agora_iso,),
+        ).fetchall()
+
+        resultado = []
+        for post in posts:
+            fotos = conn.execute(
+                "SELECT id, arquivo FROM fotos WHERE post_id = ? ORDER BY id",
+                (post["id"],),
+            ).fetchall()
+            item = dict(post)
+            item["fotos"] = [dict(f) for f in fotos]
+            resultado.append(item)
+        return resultado
+
+
+def obter_post(post_id: int) -> dict | None:
+    limpar_expirados()
+    with _connect() as conn:
+        post = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+        if not post:
+            return None
+        fotos = conn.execute(
+            "SELECT id, arquivo FROM fotos WHERE post_id = ? ORDER BY id",
+            (post_id,),
+        ).fetchall()
+        item = dict(post)
+        item["fotos"] = [dict(f) for f in fotos]
+        return item
+
+
+def criar_post(culto_titulo: str, culto_dia: str, titulo: str, arquivos: list[str]) -> int:
+    init_db()
+    criado = agora()
+    expira = criado + timedelta(days=DIAS_EXPIRACAO)
+    with _connect() as conn:
+        cur = conn.execute(
+            """
+            INSERT INTO posts (culto_titulo, culto_dia, titulo, criado_em, expira_em)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                culto_titulo.strip(),
+                culto_dia.strip(),
+                titulo.strip(),
+                criado.isoformat(timespec="seconds"),
+                expira.isoformat(timespec="seconds"),
+            ),
+        )
+        post_id = cur.lastrowid
+        for arquivo in arquivos:
+            conn.execute(
+                "INSERT INTO fotos (post_id, arquivo) VALUES (?, ?)",
+                (post_id, arquivo),
+            )
+        return post_id
+
+
+def apagar_post(post_id: int) -> bool:
+    post = obter_post(post_id)
+    if not post:
+        return False
+    for foto in post["fotos"]:
+        caminho = UPLOAD_DIR / foto["arquivo"]
+        if caminho.exists():
+            caminho.unlink()
+    with _connect() as conn:
+        conn.execute("DELETE FROM fotos WHERE post_id = ?", (post_id,))
+        conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
+    return True
+
+
+def extensao_ok(nome: str) -> bool:
+    return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS

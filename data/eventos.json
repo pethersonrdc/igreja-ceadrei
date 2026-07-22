@@ -2,27 +2,28 @@
   "eventos": [
     {
       "id": 1,
-      "titulo": "Noite de Louvor",
-      "data": "2026-08-09",
-      "horario": "19:00",
+      "titulo": "Arraial Gospel",
+      "data": "25/07/2026",
+      "horario": "19:30",
       "local": "Templo principal",
-      "descricao": "Uma noite especial de adoração e gratidão."
+      "descricao": "Uma noite especial DE Festa."
     },
     {
       "id": 2,
       "titulo": "Encontro de Casais",
-      "data": "2026-08-23",
-      "horario": "16:00",
-      "local": "Salão de convivência",
+      "data": "Sem data",
+      "horario": "19:00",
+      "responsaveis": "Diac. Robson & Diac. Luana",
+      "local": "Igreja Comunidade a Serviço do Rei Jesus",
       "descricao": "Fortalecendo famílias com a Palavra e comunhão."
     },
     {
       "id": 3,
       "titulo": "Ação Social",
-      "data": "2026-09-06",
-      "horario": "09:00",
+      "data": "18/07/2026",
+      "horario": "20:00",
       "local": "Comunidade local",
-      "descricao": "Distribuição de alimentos e oração pelas famílias."
+      "descricao": "Distribuição de alimentos e oração pelas famílias e Roupas."
     }
   ]
 }

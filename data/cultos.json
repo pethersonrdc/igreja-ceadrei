@@ -4,28 +4,28 @@
       "id": 1,
       "titulo": "Culto de Celebração",
       "dia": "Domingo",
-      "horario": "09:00",
+      "horario": "18:00",
       "descricao": "Louvor, Palavra e ceia da comunhão."
     },
     {
       "id": 2,
-      "titulo": "Culto da Família",
-      "dia": "Domingo",
-      "horario": "18:00",
-      "descricao": "Um encontro para toda a família crescer na fé."
+      "titulo": "Culto De Cura e Libertção",
+      "dia": "Sexta-feira",
+      "horario": "20:00",
+      "descricao": "Culto de Cura e Libertação e Busca do Espirito Santo."
     },
     {
       "id": 3,
-      "titulo": "Culto de Oração",
+      "titulo": "Culto da Fé",
       "dia": "Quarta-feira",
-      "horario": "19:30",
-      "descricao": "Tempo de intercessão e busca pela presença de Deus."
+      "horario": "20:00",
+      "descricao": "Culto em Busca do Reino"
     },
     {
       "id": 4,
       "titulo": "Escola Bíblica",
       "dia": "Domingo",
-      "horario": "08:00",
+      "horario": "08:00 á 11:00" ,
       "descricao": "Estudo bíblico para crianças, jovens e adultos."
     }
   ]

@@ -1,24 +1,22 @@
 {
-  "nome": "Igreja CEADREI",
-  "nome_completo": "Comunidade Evangélica Assembleia de Deus CEADREI",
+  "nome": "IGREJA CEADREI",
+  "nome_completo": "Igreja Comunidade Evangelica a Serviço do Rei Jesus ",
   "lema": "Uma casa de oração, comunhão e esperança",
   "versiculo": {
     "texto": "Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.",
     "referencia": "Mateus 18:20"
   },
   "endereco": {
-    "rua": "Atualize o endereço da igreja",
-    "bairro": "Centro",
-    "cidade": "Sua cidade",
-    "estado": "UF",
-    "cep": "00000-000"
+    "rua": "Rua Ico,17",
+    "bairro": "Vila Matilde",
+    "cidade": "São Paulo",
+    "estado": "SP",
+    "cep": "03564-030"
   },
   "contato": {
-    "telefone": "(00) 00000-0000",
-    "whatsapp": "5500000000000",
-    "email": "contato@ceadrei.org",
-    "instagram": "@igreja.ceadrei",
-    "youtube": "Igreja CEADREI"
+    "telefone": "(11) - 95352-3862",
+    "whatsapp": "(55) - 1195352-3862",
+    "instagram": "https://www.instagram.com/c.e.a.s.drei_jesus?igsh=djdzcG9jZzN2eDg="
   },
   "sobre": {
     "resumo": "A CEADREI é uma comunidade cristã que vive a Palavra, acolhe famílias e serve a cidade com fé, amor e esperança.",

@@ -41,4 +41,43 @@
   </ul>
   <p class="section-link"><a href="{{ url_for('cultos_page') }}">Ver todos os cultos</a></p>
 </section>
+
+{% if galeria_destaque and galeria_destaque.fotos %}
+<section class="section gallery-home">
+  <div class="section-head">
+    <h2>Do culto desta semana</h2>
+    <p>
+      {{ galeria_destaque.culto_dia }} · {{ galeria_destaque.culto_titulo }} —
+      {{ galeria_destaque.titulo }}
+    </p>
+  </div>
+
+  <div class="carousel" data-carousel>
+    <div class="carousel-track">
+      {% for foto in galeria_destaque.fotos %}
+      <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        <img
+          src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}"
+          alt="{{ galeria_destaque.titulo }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+        >
+      </figure>
+      {% endfor %}
+    </div>
+    {% if galeria_destaque.fotos|length > 1 %}
+    <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
+    <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
+    <div class="carousel-dots" data-carousel-dots></div>
+    {% endif %}
+  </div>
+
+  <p class="section-link"><a href="{{ url_for('galeria_publica') }}">Ver toda a galeria</a></p>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if galeria_destaque and galeria_destaque.fotos and galeria_destaque.fotos|length > 1 %}
+<script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+{% endif %}
 {% endblock %}

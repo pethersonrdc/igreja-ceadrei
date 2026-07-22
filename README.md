@@ -43,7 +43,30 @@ Abra no navegador: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 | `/sobre` | Missão, visão e valores |
 | `/cultos` | Horários de culto |
 | `/eventos` | Agenda de eventos |
+| `/galeria` | Fotos recentes dos cultos (públicas) |
 | `/contato` | Endereço e contatos |
+| `/admin/login` | Login da mídia (restrito) |
+| `/admin/galeria` | Publicar/apagar fotos dos cultos |
+
+---
+
+## Galeria da mídia (admin)
+
+A equipe de mídia acessa o painel, escolhe o culto da semana e envia as fotos.
+
+- **URL:** http://127.0.0.1:5000/admin/login
+- **Senha padrão (local):** `ceasdrei`
+- As fotos aparecem na **página inicial** (carrossel) e em `/galeria`
+- Cada postagem **expira em 2 dias** e é apagada automaticamente (arquivos + registro)
+- Também dá para apagar manualmente no painel
+
+Para mudar a senha em produção:
+
+```bash
+set ADMIN_PASSWORD=sua_senha_forte
+set SECRET_KEY=chave_secreta_longa
+python app.py
+```
 
 ---
 
@@ -55,6 +78,7 @@ Abra no navegador: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 | `GET /api/cultos` | Lista de cultos |
 | `GET /api/eventos` | Lista de eventos |
 | `GET /api/contato` | Endereço e contatos |
+| `GET /api/galeria` | Postagens ativas da galeria |
 | `GET /data/<arquivo>.json` | Arquivos JSON brutos |
 
 Exemplo:
@@ -93,20 +117,23 @@ Reinicie o servidor Flask (se estiver rodando) para ver as mudanças.
 
 ---
 
-## Hospedagem no GitHub
+## Hospedagem (Render)
 
-O **código** fica neste repositório.
+O código fica no GitHub e o site completo (com painel da mídia) roda no **Render**.
 
-> **Importante:** o GitHub Pages hospeda sites **estáticos** (HTML/CSS/JS). Ele **não executa Python/Flask**.  
-> Para o site completo com API Python online, use um serviço gratuito como [Render](https://render.com), [Railway](https://railway.app) ou [PythonAnywhere](https://www.pythonanywhere.com), apontando para `app.py` / `gunicorn app:app`.
+1. Abra o deploy: [Criar no Render com este repositório](https://dashboard.render.com/blueprint/new?repo=https://github.com/pethersonrdc/igreja-ceadrei)
+2. Faça login no Render com a conta do GitHub
+3. Confirme o Blueprint `igreja-ceadrei` e clique em **Apply**
+4. Aguarde o deploy (pode levar alguns minutos na primeira vez)
 
-### Publicar o código
+Senha do painel em produção (padrão do `render.yaml`): `ceasdrei`
 
-```bash
-git add .
-git commit -m "Atualiza o site da Igreja CEADREI"
-git push
-```
+> No plano gratuito do Render, o site pode “dormir” após inatividade e demorar ~30s para acordar.  
+> Uploads da galeria ficam no disco do servidor (efêmero): em um redeploy as fotos podem sumir antes dos 2 dias.
+
+Arquivos de deploy:
+- `Procfile` — inicia com Gunicorn
+- `render.yaml` — configuração do serviço
 
 ---
 

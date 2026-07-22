@@ -12,6 +12,11 @@ env/
 .vscode/
 *.swp
 
+# Galeria (uploads e banco local)
+static/uploads/galeria/*
+!static/uploads/galeria/.gitkeep
+data/galeria.db
+
 # Sistema
 .DS_Store
 Thumbs.db

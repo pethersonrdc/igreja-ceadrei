@@ -3,32 +3,37 @@
 {% block title %}Sobre — {{ igreja.nome }}{% endblock %}
 
 {% block content %}
-<section class="page-hero">
-  <p class="eyebrow">Quem somos</p>
-  <h1>{{ igreja.nome_completo }}</h1>
-  <p>{{ igreja.sobre.resumo }}</p>
-</section>
+<div class="sobre-page">
+  <div class="sobre-bg" role="img" aria-label="Decoração do aniversário dos pastores"></div>
+  <div class="sobre-content">
+    <section class="page-hero">
+      <p class="eyebrow">Quem somos</p>
+      <h1>{{ igreja.nome_completo }}</h1>
+      <p>{{ igreja.sobre.resumo }}</p>
+    </section>
 
-<section class="section about-grid">
-  <article>
-    <h2>Missão</h2>
-    <p>{{ igreja.sobre.missao }}</p>
-  </article>
-  <article>
-    <h2>Visão</h2>
-    <p>{{ igreja.sobre.visao }}</p>
-  </article>
-</section>
+    <section class="section about-grid">
+      <article>
+        <h2>Missão</h2>
+        <p>{{ igreja.sobre.missao }}</p>
+      </article>
+      <article>
+        <h2>Visão</h2>
+        <p>{{ igreja.sobre.visao }}</p>
+      </article>
+    </section>
 
-<section class="section">
-  <div class="section-head">
-    <h2>Nossos valores</h2>
-    <p>O que guia nossa caminhada em comunidade.</p>
+    <section class="section">
+      <div class="section-head">
+        <h2>Nossos valores</h2>
+        <p>O que guia nossa caminhada em comunidade.</p>
+      </div>
+      <ul class="values-list">
+        {% for valor in igreja.sobre.valores %}
+        <li>{{ valor }}</li>
+        {% endfor %}
+      </ul>
+    </section>
   </div>
-  <ul class="values-list">
-    {% for valor in igreja.sobre.valores %}
-    <li>{{ valor }}</li>
-    {% endfor %}
-  </ul>
-</section>
+</div>
 {% endblock %}

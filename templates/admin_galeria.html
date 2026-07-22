@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Galeria — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Painel da mídia</p>
+  <h1>Galeria dos cultos</h1>
+  <p>
+    Publique as fotos do culto. Elas aparecem na página inicial e são apagadas
+    automaticamente após <strong>{{ dias_expiracao }} dias</strong>.
+  </p>
+  <p class="section-link">
+    <a href="{{ url_for('galeria_publica') }}">Ver galeria pública</a>
+    ·
+    <a href="{{ url_for('admin_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
+    <h2>Nova postagem</h2>
+
+    <label for="culto_titulo">Culto</label>
+    <select id="culto_titulo" name="culto_titulo" required>
+      <option value="">Selecione o culto</option>
+      {% for culto in cultos %}
+      <option value="{{ culto.titulo }}" data-dia="{{ culto.dia }}">
+        {{ culto.dia }} — {{ culto.titulo }}
+      </option>
+      {% endfor %}
+    </select>
+
+    <label for="culto_dia">Dia</label>
+    <input id="culto_dia" name="culto_dia" type="text" required placeholder="Ex.: Domingo">
+
+    <label for="titulo">Título da postagem</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Culto de Celebração — 20/07">
+
+    <label for="fotos">Fotos do culto</label>
+    <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+
+    <button class="btn btn-primary" type="submit">Publicar fotos</button>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Postagens ativas</h2>
+    <p>Somente o que ainda está no ar (antes de expirar).</p>
+  </div>
+
+  {% if posts %}
+  <ul class="admin-posts">
+    {% for post in posts %}
+    <li class="admin-card">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ post.titulo }}</strong>
+          <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
+          <p class="admin-meta">
+            Publicado: {{ post.criado_em.replace('T', ' ') }} ·
+            Expira: {{ post.expira_em.replace('T', ' ') }}
+          </p>
+        </div>
+        <form method="post" action="{{ url_for('admin_apagar_post', post_id=post.id) }}" onsubmit="return confirm('Apagar esta postagem agora?');">
+          <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+        </form>
+      </div>
+      <div class="admin-thumbs">
+        {% for foto in post.fotos %}
+        <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="">
+        {% endfor %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nenhuma postagem ativa no momento.</p>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const select = document.getElementById('culto_titulo');
+  const dia = document.getElementById('culto_dia');
+  if (select && dia) {
+    select.addEventListener('change', () => {
+      const opt = select.selectedOptions[0];
+      dia.value = opt && opt.dataset.dia ? opt.dataset.dia : '';
+    });
+  }
+</script>
+{% endblock %}

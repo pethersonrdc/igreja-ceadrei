@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Galeria — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Memórias do culto</p>
+  <h1>Galeria da semana</h1>
+  <p>Fotos recentes dos nossos encontros. Cada álbum fica disponível por 2 dias.</p>
+  <div class="hero-actions" style="margin-top: 1.25rem;">
+    {% if admin_logado %}
+    <a class="btn btn-primary" href="{{ url_for('admin_galeria') }}">Abrir painel da mídia</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('admin_logout') }}">Sair</a>
+    {% else %}
+    <a class="btn btn-primary" href="{{ url_for('admin_login') }}">Área da mídia</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  {% if posts %}
+    {% for post in posts %}
+    <article class="gallery-post">
+      <div class="section-head">
+        <h2>{{ post.titulo }}</h2>
+        <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
+      </div>
+      <div class="gallery-grid">
+        {% for foto in post.fotos %}
+        <figure>
+          <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="{{ post.titulo }}" loading="lazy">
+        </figure>
+        {% endfor %}
+      </div>
+    </article>
+    {% endfor %}
+  {% else %}
+    <p>Ainda não há fotos publicadas nesta semana.</p>
+  {% endif %}
+</section>
+{% endblock %}

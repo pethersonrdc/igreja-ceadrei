@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar — Mídia {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Área restrita</p>
+  <h1>Painel da mídia</h1>
+  <p>Acesso apenas para a equipe autorizada da igreja.</p>
+</section>
+
+<section class="section admin-login-wrap">
+  <form class="admin-card" method="post" action="{{ url_for('admin_login', next=request.args.get('next', '')) }}">
+    <label for="senha">Senha de acesso</label>
+    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+    <button class="btn btn-primary" type="submit">Entrar</button>
+  </form>
+</section>
+{% endblock %}
