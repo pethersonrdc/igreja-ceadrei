@@ -12,6 +12,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "galeria"
+SEED_DIR = BASE_DIR / "static" / "images" / "galeria"
 DB_PATH = DATA_DIR / "galeria.db"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -133,3 +134,37 @@ def apagar_post(post_id: int) -> bool:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def seed_fotos_iniciais() -> int | None:
+    """
+    Se a galeria estiver vazia, publica as fotos versionadas em static/images/galeria/.
+    Assim o site no Render já sobe com as fotos do culto.
+    """
+    import shutil
+
+    init_db()
+    if listar_posts_ativos():
+        return None
+    if not SEED_DIR.exists():
+        return None
+
+    arquivos_seed = sorted(
+        p for p in SEED_DIR.iterdir() if p.is_file() and extensao_ok(p.name)
+    )
+    if not arquivos_seed:
+        return None
+
+    salvos: list[str] = []
+    for origem in arquivos_seed:
+        destino = UPLOAD_DIR / origem.name
+        if not destino.exists():
+            shutil.copy2(origem, destino)
+        salvos.append(origem.name)
+
+    return criar_post(
+        culto_titulo="Culto da igreja",
+        culto_dia="Recente",
+        titulo="Fotos do culto",
+        arquivos=salvos,
+    )

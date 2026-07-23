@@ -93,8 +93,10 @@ Estrutura local de armazenamento (já em uso):
 | `static/uploads/mocidade/` | Posts do culto dos jovens |
 | `static/images/` | Fotos fixas dos líderes/login (versionadas no Git) |
 
-Uploads e bancos **não vão para o Git** (ficam só no disco do servidor).
-No Render gratuito o disco é temporário: em redeploy os uploads podem sumir.
+Uploads e bancos **não vão para o Git** (ficam só no disco do servidor),
+exceto as **fotos iniciais da galeria** em `static/images/galeria/`, que sobem com o deploy.
+No Render gratuito o disco é temporário: em redeploy uploads novos podem sumir,
+mas as fotos seed voltam se a galeria estiver vazia.
 Para produção definitiva, use disco persistente ou armazenamento em nuvem (S3 etc.).
 
 Para mudar a senha em produção:

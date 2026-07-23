@@ -1389,6 +1389,7 @@ def data_files(filename: str):
 
 # Garante pastas/banco mesmo com Gunicorn (produção)
 gallery.init_db()
+gallery.seed_fotos_iniciais()
 batismo.init_db()
 casais.init_db()
 pastores.init_db()
