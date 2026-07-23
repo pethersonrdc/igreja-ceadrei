@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-arraial{% endblock %}
+
+{% block title %}Arraiá Gospel — Acesso{% endblock %}
+
+{% block content %}
+<section class="page-hero arraial-hero">
+  <p class="eyebrow">Departamento · Cantina</p>
+  <h1>{{ h1_responsavel }}</h1>
+  <p>Acesso da Diac. Cássia para cantina e Arraiá Gospel.</p>
+</section>
+
+<section class="section arraial-login-layout">
+  <form class="admin-card arraial-card" method="post" action="{{ url_for('arraial_login', next=request.args.get('next', '')) }}">
+    <label for="senha">Senha de acesso</label>
+    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+    <button class="btn btn-primary btn-arraial" type="submit">Entrar</button>
+  </form>
+
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=info.foto_lider) }}" alt="Diac. Cássia">
+    <figcaption>Diac. Cássia</figcaption>
+  </figure>
+</section>
+{% endblock %}

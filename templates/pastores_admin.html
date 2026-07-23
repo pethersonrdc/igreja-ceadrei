@@ -1,0 +1,241 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-pastores{% endblock %}
+
+{% block title %}Admin Pastores — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero pastores-hero pastores-hero--com-foto">
+  <div class="pastores-hero-copy">
+    <p class="eyebrow">Pastoral CEADREI</p>
+    <h1>{{ h1_pastores }}</h1>
+    <p class="section-link">
+      <a href="{{ url_for('comunicado_obreiros') }}">Ver comunicado público</a>
+      ·
+      <a href="{{ url_for('calendario_lideres') }}">Ver calendário dos líderes</a>
+      ·
+      <a href="{{ url_for('pastores_logout') }}">Sair</a>
+    </p>
+  </div>
+  <figure class="pastores-hero-foto">
+    <img src="{{ url_for('static', filename='images/pastores-casal.png') }}" alt="Casal da liderança">
+  </figure>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <nav class="pastores-tabs" aria-label="Seções do painel">
+    <a class="pastores-tab{% if aba == 'escala' %} is-active{% endif %}" href="{{ url_for('pastores_admin', aba='escala', ano=ano, mes=mes) }}">Escala de Obreiros</a>
+    <a class="pastores-tab{% if aba == 'destaque' %} is-active{% endif %}" href="{{ url_for('pastores_admin', aba='destaque', ano=ano, mes=mes) }}">Destaque do Culto</a>
+    <a class="pastores-tab{% if aba == 'calendario' %} is-active{% endif %}" href="{{ url_for('pastores_admin', aba='calendario', ano=ano, mes=mes) }}">Calendário dos Líderes</a>
+  </nav>
+</section>
+
+{% if aba == 'escala' %}
+<section class="section">
+  <form class="admin-card pastores-card" method="post">
+    <input type="hidden" name="acao" value="escala">
+    {% if editar_escala %}
+    <input type="hidden" name="escala_id" value="{{ editar_escala.id }}">
+    <h2>Editar dia da escala</h2>
+    {% else %}
+    <h2>Incluir obreiros do mês</h2>
+    {% endif %}
+    <p class="admin-help">Como na escala impressa: data, porta vidro, abertura e porta escada.</p>
+
+    <div class="pessoa-row">
+      <div>
+        <label for="data">Data</label>
+        <input id="data" name="data" type="date" required value="{{ editar_escala.data if editar_escala else '' }}">
+      </div>
+      <div>
+        <label for="abertura">Abertura do culto</label>
+        <input id="abertura" name="abertura" type="text" placeholder="Ex.: Obreiro Eder" value="{{ editar_escala.abertura if editar_escala else '' }}">
+      </div>
+    </div>
+
+    <label for="porta_vidro">Porta vidro</label>
+    <input id="porta_vidro" name="porta_vidro" type="text" placeholder="Ex.: Diac. Cássia e Diac. Petherson" value="{{ editar_escala.porta_vidro if editar_escala else '' }}">
+
+    <label for="porta_escada">Porta escada</label>
+    <input id="porta_escada" name="porta_escada" type="text" placeholder="Ex.: Vinicius" value="{{ editar_escala.porta_escada if editar_escala else '' }}">
+
+    <button class="btn btn-primary btn-pastores" type="submit">
+      {% if editar_escala %}Salvar alteração{% else %}Adicionar à escala{% endif %}
+    </button>
+    {% if editar_escala %}
+    <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='escala', ano=ano, mes=mes) }}">Cancelar edição</a>
+    {% endif %}
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Escala — {{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('pastores_admin', aba='escala', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('pastores_admin', aba='escala', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+
+  {% if escala %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table escala-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Porta vidro</th>
+          <th>Abertura</th>
+          <th>Porta escada</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in escala %}
+        <tr class="{% if item.eh_hoje %}is-hoje{% elif item.eh_proximo %}is-proximo{% endif %}{% if item.eh_domingo %} is-domingo{% endif %}">
+          <td>
+            <strong>{{ item.data_br }}</strong>
+            <span class="admin-meta">{{ item.dia_semana }}</span>
+            {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
+          </td>
+          <td>{{ item.porta_vidro or '—' }}</td>
+          <td>{{ item.abertura or '—' }}</td>
+          <td>{{ item.porta_escada or '—' }}</td>
+          <td>
+            <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='escala', ano=ano, mes=mes, editar_escala=item.id) }}">Editar</a>
+            <form method="post" action="{{ url_for('pastores_apagar_escala', escala_id=item.id) }}" onsubmit="return confirm('Apagar este dia da escala?');" style="display:inline">
+              <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>Nenhum dia cadastrado neste mês ainda.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if aba == 'destaque' %}
+<section class="section">
+  <form class="admin-card pastores-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="destaque">
+    <h2>Destaque do culto</h2>
+    <p class="admin-help">Porta, abertura, pregador (com foto) e mensagem da campanha. O pregador ganha destaque na home e no comunicado.</p>
+
+    <label for="data_destaque">Data do culto</label>
+    <input id="data_destaque" name="data" type="date" value="{{ destaque.data or '' }}">
+
+    <label for="porta">Porta</label>
+    <input id="porta" name="porta" type="text" placeholder="Ex.: Diac. Cássia e Diac. Petherson" value="{{ destaque.porta or '' }}">
+
+    <label for="abertura_culto">Abertura do culto</label>
+    <input id="abertura_culto" name="abertura_culto" type="text" placeholder="Ex.: Obreiro Eder" value="{{ destaque.abertura_culto or '' }}">
+
+    <label for="pregador_nome">Responsável por ministrar a palavra</label>
+    <input id="pregador_nome" name="pregador_nome" type="text" placeholder="Nome do pregador (opcional)" value="{{ destaque.pregador_nome or '' }}">
+
+    <label for="pregador_foto">Foto do pregador</label>
+    <input id="pregador_foto" name="pregador_foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    {% if destaque.pregador_foto %}
+    <p class="admin-help">Foto atual:
+      <img class="pregador-thumb" src="{{ url_for('static', filename='uploads/pastores/' + destaque.pregador_foto) }}" alt="">
+    </p>
+    {% endif %}
+
+    <label for="mensagem_campanha">Mensagem da campanha</label>
+    <input id="mensagem_campanha" name="mensagem_campanha" type="text" placeholder="Ex.: Jesus logo vem" value="{{ destaque.mensagem_campanha or '' }}">
+
+    <label for="referencia">Referência bíblica</label>
+    <input id="referencia" name="referencia" type="text" placeholder="Ex.: Salmos 20:2" value="{{ destaque.referencia or '' }}">
+
+    <button class="btn btn-primary btn-pastores" type="submit">Salvar destaque</button>
+  </form>
+</section>
+{% endif %}
+
+{% if aba == 'calendario' %}
+<section class="section">
+  <article class="admin-card pastores-card">
+    <h2>Calendário compartilhado</h2>
+    <p class="admin-help">
+      Cada responsável registra o próprio evento na área dele
+      (Batismo → Evangelista Sueli · Casais → Diac. Robson e Diac. Luana).
+      Aqui os pastores só acompanham a visão geral e os avisos.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-ghost-dark" href="{{ url_for('calendario_lideres') }}">Abrir calendário público</a>
+    </div>
+  </article>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Calendário — {{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('pastores_admin', aba='calendario', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('pastores_admin', aba='calendario', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+
+  {% include 'partials/calendario_grid.html' %}
+
+  {% if avisos %}
+  <div class="avisos-lista">
+    <h3>Avisos próximos</h3>
+    {% for ev in avisos %}
+    <article class="aviso-card">
+      <strong>{{ ev.titulo }}</strong>
+      <span>{{ ev.data_br }}{% if ev.lider %} · {{ ev.lider }}{% endif %}</span>
+      <p>{{ ev.aviso_texto }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if eventos %}
+  <div class="batismo-table-wrap" style="margin-top:1.5rem">
+    <table class="batismo-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Evento</th>
+          <th>Líder</th>
+          <th>Aviso</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in eventos %}
+        <tr class="{% if ev.aviso_ativo %}is-proximo{% endif %}">
+          <td>{{ ev.data_br }}{% if ev.horario %}<span class="admin-meta">{{ ev.horario }}</span>{% endif %}</td>
+          <td><strong>{{ ev.titulo }}</strong><span class="admin-meta">{{ ev.local }}</span></td>
+          <td>{{ ev.lider or '—' }}</td>
+          <td>{{ ev.aviso_texto }}</td>
+          <td>
+            <form method="post" action="{{ url_for('pastores_apagar_evento', evento_id=ev.id) }}" onsubmit="return confirm('Apagar este evento do calendário?');" style="display:inline">
+              <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>Nenhum evento cadastrado pelos responsáveis ainda.</p>
+  {% endif %}
+</section>
+{% endif %}
+{% endblock %}

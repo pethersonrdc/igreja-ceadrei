@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-mocidade{% endblock %}
+
+{% block title %}Mocidade — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero mocidade-hero">
+  <p class="eyebrow">Geração eleita</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Espaço da juventude CEADREI — culto dos jovens e comunhão.</p>
+</section>
+
+{% if post_ativo %}
+<section class="section">
+  <article class="mocidade-post-card">
+    <p class="eyebrow">Culto dos jovens</p>
+    <h2>{{ post_ativo.titulo }}</h2>
+    <p>{{ post_ativo.texto }}</p>
+    {% if post_ativo.foto %}
+    <img src="{{ url_for('static', filename='uploads/mocidade/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}">
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+<section class="section arraial-login-layout">
+  <article class="mocidade-cta-card">
+    <h2>Líderes da Mocidade</h2>
+    <p>Diác. Natan e Diác. Ana Beatriz</p>
+    <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos líderes</a>
+  </article>
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=foto_lideres) }}" alt="Diác. Natan e Diác. Ana Beatriz">
+    <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
+  </figure>
+</section>
+{% endblock %}

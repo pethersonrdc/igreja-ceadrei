@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-casais{% endblock %}
+
+{% block title %}Encontro de Casais — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="casais-invite">
+  <div class="casais-invite-inner">
+    <p class="eyebrow">Um tempo para dois</p>
+    <h1>{{ h1_responsaveis }}</h1>
+    <p class="casais-lead">
+      Uma noite especial para fortalecer o casamento com a Palavra, comunhão e carinho.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-casais" href="{{ url_for('casais_inscricao') }}">Reservar nosso lugar</a>
+      <a class="btn btn-ghost-dark" href="{{ url_for('eventos_page') }}">Voltar aos eventos</a>
+    </div>
+  </div>
+</section>
+
+{% if fotos %}
+<section class="section">
+  <div class="section-head">
+    <h2>Ambiente do encontro</h2>
+    <p>Confira as imagens preparadas para este dia especial.</p>
+  </div>
+  <div class="carousel casais-carousel" data-carousel>
+    <div class="carousel-track">
+      {% for foto in fotos %}
+      <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        <img
+          src="{{ url_for('static', filename='uploads/casais/' + foto.arquivo) }}"
+          alt="{{ foto.titulo or 'Encontro de Casais' }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+        >
+      </figure>
+      {% endfor %}
+    </div>
+    {% if fotos|length > 1 %}
+    <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
+    <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
+    <div class="carousel-dots" data-carousel-dots></div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+{% if programacao %}
+<section class="section">
+  <article class="casais-programacao">
+    <h2>O que vai ter neste dia</h2>
+    <div class="casais-programacao-texto">{{ programacao }}</div>
+  </article>
+</section>
+{% endif %}
+
+<section class="section arraial-login-layout">
+  <article class="casais-cta-card">
+    <h2>Casais, este espaço é de vocês</h2>
+    <p>Responsáveis: Diac. Robson e Diac. Luana. Façam a inscrição juntos e confirmem a presença.</p>
+    <a class="btn btn-primary btn-casais" href="{{ url_for('casais_inscricao') }}">Ir para a inscrição</a>
+  </article>
+  <figure class="arraial-lider-foto casais-lider-foto">
+    <img src="{{ url_for('static', filename='images/casais/robson-luana.png') }}" alt="Diac. Robson e Diac. Luana">
+    <figcaption>Diac. Robson &amp; Diac. Luana</figcaption>
+  </figure>
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if fotos and fotos|length > 1 %}
+<script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+{% endif %}
+{% endblock %}

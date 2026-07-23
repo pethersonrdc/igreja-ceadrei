@@ -1,0 +1,94 @@
+{# Formulario para cada responsavel registrar o proprio evento no calendario #}
+<section class="section">
+  <form class="admin-card {{ card_class|default('') }}" method="post">
+    <input type="hidden" name="acao" value="evento">
+    {% if editar_evento %}
+    <input type="hidden" name="evento_id" value="{{ editar_evento.id }}">
+    <h2>Editar meu evento no calendário</h2>
+    {% else %}
+    <h2>Registrar meu evento no calendário</h2>
+    {% endif %}
+    <p class="admin-help">
+      Responsável: <strong>{{ info_evento.lider }}</strong>.
+      A data aparece no calendário compartilhado para todos os líderes.
+    </p>
+
+    <label for="titulo_evento">Título</label>
+    <input
+      id="titulo_evento"
+      name="titulo"
+      type="text"
+      value="{{ editar_evento.titulo if editar_evento else info_evento.titulo }}"
+      placeholder="{{ info_evento.titulo }}"
+    >
+
+    <div class="pessoa-row">
+      <div>
+        <label for="data_evento">Data do evento</label>
+        <input id="data_evento" name="data" type="date" required value="{{ editar_evento.data if editar_evento else '' }}">
+      </div>
+      <div>
+        <label for="horario_evento">Horário</label>
+        <input id="horario_evento" name="horario" type="text" placeholder="Ex.: 19:30" value="{{ editar_evento.horario if editar_evento else '' }}">
+      </div>
+    </div>
+
+    <label for="local_evento">Local</label>
+    <input id="local_evento" name="local" type="text" placeholder="Ex.: Sítio / Templo" value="{{ editar_evento.local if editar_evento else '' }}">
+
+    <label for="descricao_evento">Descrição</label>
+    <textarea id="descricao_evento" name="descricao" rows="3" placeholder="Detalhes do evento">{{ editar_evento.descricao if editar_evento else '' }}</textarea>
+
+    <label for="aviso_evento">Aviso perto da data</label>
+    <input id="aviso_evento" name="aviso" type="text" placeholder="Ex.: Confirmar lista até sexta" value="{{ editar_evento.aviso if editar_evento else '' }}">
+
+    <button class="btn btn-primary {{ btn_class|default('') }}" type="submit">
+      {% if editar_evento %}Salvar alteração{% else %}Publicar no calendário{% endif %}
+    </button>
+    {% if editar_evento %}
+    <a class="btn btn-ghost-dark" href="{{ cancel_url }}">Cancelar edição</a>
+    {% endif %}
+  </form>
+</section>
+
+{% if eventos_calendario %}
+<section class="section">
+  <div class="section-head">
+    <h2>Meus eventos no calendário</h2>
+    <p><a href="{{ url_for('calendario_lideres') }}">Ver calendário completo dos líderes</a></p>
+  </div>
+  <div class="batismo-table-wrap">
+    <table class="batismo-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Evento</th>
+          <th>Aviso</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in eventos_calendario %}
+        <tr class="{% if ev.aviso_ativo %}is-proximo{% endif %}">
+          <td>
+            {{ ev.data_br }}
+            {% if ev.horario %}<span class="admin-meta">{{ ev.horario }}</span>{% endif %}
+          </td>
+          <td>
+            <strong>{{ ev.titulo }}</strong>
+            <span class="admin-meta">{{ ev.local or '—' }}</span>
+          </td>
+          <td>{{ ev.aviso_texto }}</td>
+          <td>
+            <a class="btn btn-ghost-dark" href="{{ edit_url_base }}{{ ev.id }}">Editar</a>
+            <form method="post" action="{{ delete_url_base }}{{ ev.id }}/apagar" onsubmit="return confirm('Apagar este evento do calendário?');" style="display:inline">
+              <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-casais{% endblock %}
+
+{% block title %}Confirmação Casais — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero casais-hero">
+  <p class="eyebrow">Inscrição recebida</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Obrigado! O casal foi registrado no encontro.</p>
+</section>
+
+<section class="section admin-login-wrap">
+  <article class="admin-card casais-card batismo-resumo">
+    <h2>{{ inscricao.casal }}</h2>
+    <p><strong>Marido:</strong> {{ inscricao.nome_marido }} — {{ inscricao.telefone_marido or '—' }}</p>
+    <p><strong>Mulher:</strong> {{ inscricao.nome_mulher }} — {{ inscricao.telefone_mulher or '—' }}</p>
+    <p>
+      <strong>Situação:</strong>
+      <span class="status-pill status-pill--{{ inscricao.status }}">{{ inscricao.status_texto }}</span>
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary btn-casais" href="{{ url_for('casais_page') }}">Ver página do encontro</a>
+      <a class="btn btn-ghost-dark" href="{{ url_for('home') }}">Ir para o início</a>
+    </div>
+  </article>
+</section>
+{% endblock %}

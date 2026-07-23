@@ -7,12 +7,12 @@
   <meta name="description" content="{{ igreja.lema }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <header class="site-header">
     <a class="brand" href="{{ url_for('home') }}">
       <img class="brand-emblem" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="40" height="40">
@@ -31,6 +31,21 @@
       {% if admin_logado %}
       <a href="{{ url_for('admin_galeria') }}">Painel</a>
       <a class="nav-sair" href="{{ url_for('admin_logout') }}">Sair</a>
+      {% endif %}
+      {% if batismo_logado %}
+      <a href="{{ url_for('batismo_admin') }}">Batismo</a>
+      {% endif %}
+      {% if casais_logado %}
+      <a href="{{ url_for('casais_admin') }}">Casais</a>
+      {% endif %}
+      {% if pastores_logado %}
+      <a href="{{ url_for('pastores_admin') }}">Pastores</a>
+      {% endif %}
+      {% if arraial_logado %}
+      <a href="{{ url_for('arraial_admin') }}">Arraiá</a>
+      {% endif %}
+      {% if mocidade_logado %}
+      <a href="{{ url_for('mocidade_admin') }}">Mocidade</a>
       {% endif %}
     </nav>
   </header>

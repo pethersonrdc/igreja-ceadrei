@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-casais{% endblock %}
+
+{% block title %}Encontro de Casais — Acesso{% endblock %}
+
+{% block content %}
+<section class="page-hero casais-hero">
+  <p class="eyebrow">Área restrita</p>
+  <h1>Diac. Robson e Diac. Luana são os responsáveis pelo encontro de casais, por favor entre em contato com os mesmos para mais detalhes ou dúvidas.</h1>
+  <p>Acesso dos responsáveis pelo encontro.</p>
+</section>
+
+<section class="section arraial-login-layout">
+  <form class="admin-card casais-card" method="post" action="{{ url_for('casais_login', next=request.args.get('next', '')) }}">
+    <label for="senha">Senha de acesso</label>
+    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+    <button class="btn btn-primary btn-casais" type="submit">Entrar</button>
+  </form>
+
+  <figure class="arraial-lider-foto casais-lider-foto">
+    <img src="{{ url_for('static', filename='images/casais/robson-luana.png') }}" alt="Diac. Robson e Diac. Luana">
+    <figcaption>Diac. Robson &amp; Diac. Luana</figcaption>
+  </figure>
+</section>
+{% endblock %}

@@ -7,8 +7,8 @@
   <p class="eyebrow">Painel da mídia</p>
   <h1>Galeria dos cultos</h1>
   <p>
-    Publique as fotos do culto. Elas aparecem na página inicial e são apagadas
-    automaticamente após <strong>{{ dias_expiracao }} dias</strong>.
+    Publique as fotos do culto. Elas aparecem na página inicial e na galeria
+    até você apagar manualmente neste painel.
   </p>
   <p class="section-link">
     <a href="{{ url_for('galeria_publica') }}">Ver galeria pública</a>
@@ -54,8 +54,8 @@
 
 <section class="section">
   <div class="section-head">
-    <h2>Postagens ativas</h2>
-    <p>Somente o que ainda está no ar (antes de expirar).</p>
+    <h2>Postagens publicadas</h2>
+    <p>Ficam no ar até alguém da mídia apagar.</p>
   </div>
 
   {% if posts %}
@@ -67,8 +67,7 @@
           <strong>{{ post.titulo }}</strong>
           <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
           <p class="admin-meta">
-            Publicado: {{ post.criado_em.replace('T', ' ') }} ·
-            Expira: {{ post.expira_em.replace('T', ' ') }}
+            Publicado: {{ post.criado_em.replace('T', ' ') }}
           </p>
         </div>
         <form method="post" action="{{ url_for('admin_apagar_post', post_id=post.id) }}" onsubmit="return confirm('Apagar esta postagem agora?');">

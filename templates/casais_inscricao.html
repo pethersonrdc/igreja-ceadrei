@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-casais{% endblock %}
+
+{% block title %}Inscrição Casais — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero casais-hero">
+  <p class="eyebrow">Inscrição do casal</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Preencham juntos. É rápido e fica registrado para os responsáveis.</p>
+</section>
+
+{% if fotos %}
+<section class="section">
+  <div class="gallery-grid casais-mini-grid">
+    {% for foto in fotos[:3] %}
+    <figure>
+      <img
+        src="{{ url_for('static', filename='uploads/casais/' + foto.arquivo) }}"
+        alt="{{ foto.titulo or 'Encontro de Casais' }}"
+        loading="{{ 'eager' if loop.first else 'lazy' }}"
+      >
+    </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if programacao %}
+<section class="section">
+  <article class="casais-programacao">
+    <h2>Neste dia</h2>
+    <div class="casais-programacao-texto">{{ programacao }}</div>
+  </article>
+</section>
+{% endif %}
+
+<section class="section">
+  {% if erro %}
+  <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+  {% endif %}
+
+  <form class="admin-card casais-card casais-form" method="post">
+    <div class="casais-duo">
+      <div class="casais-pessoa">
+        <h3>Marido</h3>
+        <label for="nome_marido">Nome</label>
+        <input id="nome_marido" name="nome_marido" type="text" required placeholder="Nome do marido">
+        <label for="telefone_marido">Telefone</label>
+        <input id="telefone_marido" name="telefone_marido" type="tel" placeholder="(00) 00000-0000">
+      </div>
+      <div class="casais-pessoa">
+        <h3>Mulher</h3>
+        <label for="nome_mulher">Nome</label>
+        <input id="nome_mulher" name="nome_mulher" type="text" required placeholder="Nome da mulher">
+        <label for="telefone_mulher">Telefone</label>
+        <input id="telefone_mulher" name="telefone_mulher" type="tel" placeholder="(00) 00000-0000">
+      </div>
+    </div>
+
+    <fieldset class="batismo-fieldset">
+      <legend>Confirmação do casal</legend>
+      {% for chave, rotulo in status_opcoes.items() %}
+      <label class="check-line">
+        <input type="radio" name="status" value="{{ chave }}" {% if chave == 'vou' %}checked{% endif %} required>
+        <span>{{ rotulo }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <button class="btn btn-primary btn-casais" type="submit">Confirmar inscrição</button>
+  </form>
+</section>
+{% endblock %}

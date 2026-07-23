@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-pastores{% endblock %}
+
+{% block title %}Calendário dos Líderes — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero pastores-hero">
+  <p class="eyebrow">Agenda compartilhada</p>
+  <h1>Calendário dos líderes</h1>
+  <p>Veja a data de cada evento e a relação entre os ministérios da igreja.</p>
+</section>
+
+{% if avisos %}
+<section class="section">
+  <div class="avisos-lista">
+    {% for ev in avisos %}
+    <article class="aviso-card {% if ev.eh_hoje %}is-hoje{% endif %}">
+      <strong>{{ ev.titulo }}</strong>
+      <span>{{ ev.data_br }}{% if ev.horario %} · {{ ev.horario }}{% endif %}{% if ev.lider %} · {{ ev.lider }}{% endif %}</span>
+      <p>{{ ev.aviso_texto }}</p>
+      {% if ev.descricao %}<p class="admin-meta">{{ ev.descricao }}</p>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>{{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('calendario_lideres', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('calendario_lideres', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+  {% include 'partials/calendario_grid.html' %}
+  <p class="admin-help" style="margin-top:1rem">
+    <span class="cal-chip cal-chip--escala">Obreiros</span> = escala do culto ·
+    <span class="cal-chip cal-chip--evento">Evento</span> = agenda dos líderes
+  </p>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Todos os eventos</h2>
+  </div>
+  {% if eventos %}
+  <ul class="event-list">
+    {% for ev in eventos %}
+    <li class="{% if ev.aviso_ativo %}is-proximo{% endif %}">
+      <time datetime="{{ ev.data }}">{{ ev.data_br }}</time>
+      <div>
+        <strong>{{ ev.titulo }}</strong>
+        <p>{% if ev.horario %}{{ ev.horario }} · {% endif %}{{ ev.local or 'Local a confirmar' }}</p>
+        {% if ev.lider %}<p>Líder: {{ ev.lider }}</p>{% endif %}
+        {% if ev.descricao %}<p>{{ ev.descricao }}</p>{% endif %}
+        {% if ev.aviso_ativo %}<p class="aviso-inline">{{ ev.aviso_texto }}</p>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nenhum evento cadastrado ainda.</p>
+  {% endif %}
+  <p class="section-link"><a href="{{ url_for('comunicado_obreiros') }}">Voltar ao comunicado dos obreiros</a></p>
+</section>
+{% endblock %}

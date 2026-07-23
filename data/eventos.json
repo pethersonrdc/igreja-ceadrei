@@ -2,11 +2,12 @@
   "eventos": [
     {
       "id": 1,
-      "titulo": "Arraial Gospel",
+      "titulo": "Arraiá Gospel",
       "data": "25/07/2026",
-      "horario": "19:30",
-      "local": "Templo principal",
-      "descricao": "Uma noite especial DE Festa."
+      "horario": "18:00",
+      "responsaveis": "Diac. Cássia",
+      "local": "C.E.A.S.D.R.E.I — Rua Icó 17, Cidade Patriarca",
+      "descricao": "Você é nosso convidado especial! Traga um prato típico. Adulto R$ 20 · Criança R$ 10."
     },
     {
       "id": 2,
@@ -24,6 +25,15 @@
       "horario": "20:00",
       "local": "Comunidade local",
       "descricao": "Distribuição de alimentos e oração pelas famílias e Roupas."
+    },
+    {
+      "id": 4,
+      "titulo": "Evento Batismo",
+      "data": "Sem data",
+      "horario": "A confirmar",
+      "responsaveis": "Evangelista Sueli",
+      "local": "Sítio alugado",
+      "descricao": "Batismo nas águas. Dúvidas: fale com a Evangelista Sueli."
     }
   ]
 }

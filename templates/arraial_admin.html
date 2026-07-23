@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-arraial{% endblock %}
+
+{% block title %}Admin Arraiá / Cantina — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero arraial-hero">
+  <p class="eyebrow">Arraiá Gospel · Cantina</p>
+  <h1>{{ info.h1 }}</h1>
+  <p>Edite a mensagem, data, preços, flyer e o que vai ter na cantina.</p>
+  <p class="section-link">
+    <a href="{{ url_for('arraial_page') }}">Ver página do Arraiá</a>
+    ·
+    <a href="{{ url_for('arraial_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card arraial-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="convite">
+    <h2>Editar convite do Arraiá</h2>
+    <p class="admin-help">
+      Esses textos e a imagem aparecem na página do Arraiá e no aviso da página inicial.
+      Quando houver outro Arraiá, basta alterar aqui.
+    </p>
+
+    <label for="h1">Mensagem principal (H1)</label>
+    <textarea id="h1" name="h1" rows="3" required>{{ info.h1 }}</textarea>
+
+    <label for="convite">Frase de convite</label>
+    <input id="convite" name="convite" type="text" value="{{ info.convite }}">
+
+    <div class="pessoa-row">
+      <div>
+        <label for="data_convite">Data do Arraiá</label>
+        <input id="data_convite" name="data" type="date" required value="{{ info.data_iso }}">
+      </div>
+      <div>
+        <label for="horario_convite">Horário</label>
+        <input id="horario_convite" name="horario" type="text" value="{{ info.horario }}">
+      </div>
+    </div>
+
+    <label for="local_convite">Local</label>
+    <input id="local_convite" name="local" type="text" value="{{ info.local }}">
+
+    <div class="pessoa-row">
+      <div>
+        <label for="adulto">Preço adulto</label>
+        <input id="adulto" name="adulto" type="text" value="{{ info.adulto }}">
+      </div>
+      <div>
+        <label for="crianca">Preço criança</label>
+        <input id="crianca" name="crianca" type="text" value="{{ info.crianca }}">
+      </div>
+    </div>
+
+    <label for="pedido">Pedido especial</label>
+    <input id="pedido" name="pedido" type="text" value="{{ info.pedido }}" placeholder="Ex.: Traga um prato típico">
+
+    <label for="flyer">Imagem do convite (flyer)</label>
+    <input id="flyer" name="flyer" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    <p class="admin-help">Deixe em branco para manter a imagem atual.</p>
+    <img class="arraial-flyer-preview" src="{{ url_for('static', filename=info.flyer) }}" alt="Flyer atual">
+
+    <button class="btn btn-primary btn-arraial" type="submit">Salvar convite</button>
+  </form>
+</section>
+
+<section class="section">
+  <form class="admin-card arraial-card" method="post">
+    <input type="hidden" name="acao" value="cantina">
+    <h2>O que vai ter na cantina</h2>
+    <p class="admin-help">Texto simples — aparece na página do Arraiá e no aviso da página inicial.</p>
+    <label for="cantina">Cardápio / avisos</label>
+    <textarea id="cantina" name="cantina" rows="7" placeholder="Ex.:&#10;- Pastel&#10;- Caldo de cana&#10;- Milho cozido&#10;- Quentão (sem álcool)">{{ cantina }}</textarea>
+    <button class="btn btn-primary btn-arraial" type="submit">Salvar cantina</button>
+  </form>
+</section>
+
+<section class="section arraial-login-layout">
+  <article class="admin-card arraial-card">
+    <h2>Prévia do convite</h2>
+    <p><strong>Data:</strong> {{ info.data_br }} · {{ info.horario }}</p>
+    <p><strong>Local:</strong> {{ info.local }}</p>
+    <p><strong>Adulto:</strong> {{ info.adulto }} · <strong>Criança:</strong> {{ info.crianca }}</p>
+    <p>{{ info.pedido }}</p>
+  </article>
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=info.foto_lider) }}" alt="Diac. Cássia">
+    <figcaption>Diac. Cássia</figcaption>
+  </figure>
+</section>
+
+{% with
+  card_class='arraial-card',
+  btn_class='btn-arraial',
+  cancel_url=url_for('arraial_admin'),
+  edit_url_base=url_for('arraial_admin') + '?editar_evento=',
+  delete_url_base=url_for('arraial_admin') + '/evento/'
+%}
+  {% include 'partials/evento_responsavel_form.html' %}
+{% endwith %}
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-mocidade{% endblock %}
+
+{% block title %}Admin Mocidade — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero mocidade-hero">
+  <p class="eyebrow">Líderes da Mocidade</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Publique um post simples (foto + texto) do culto dos jovens na página inicial.</p>
+  <p class="section-link">
+    <a href="{{ url_for('mocidade_page') }}">Ver página da mocidade</a>
+    ·
+    <a href="{{ url_for('mocidade_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card mocidade-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="post">
+    <h2>Novo post — culto dos jovens</h2>
+    <p class="admin-help">Texto + uma foto. O post ativo aparece na página inicial.</p>
+
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Culto dos jovens — esta semana">
+
+    <label for="texto">Mensagem</label>
+    <textarea id="texto" name="texto" rows="5" required placeholder="Escreva o recado para a juventude..."></textarea>
+
+    <label for="foto">Foto</label>
+    <input id="foto" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" required>
+
+    <button class="btn btn-primary btn-mocidade" type="submit">Publicar na inicial</button>
+  </form>
+</section>
+
+<section class="section arraial-login-layout">
+  <article class="admin-card mocidade-card">
+    <h2>Post ativo na home</h2>
+    {% if post_ativo %}
+    <strong>{{ post_ativo.titulo }}</strong>
+    <p class="admin-meta">{{ post_ativo.criado_em.replace('T', ' ') }}</p>
+    <p>{{ post_ativo.texto }}</p>
+    {% if post_ativo.foto %}
+    <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/mocidade/' + post_ativo.foto) }}" alt="">
+    {% endif %}
+    {% else %}
+    <p>Nenhum post ativo no momento.</p>
+    {% endif %}
+  </article>
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=foto_lideres) }}" alt="Diác. Natan e Diác. Ana Beatriz">
+    <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
+  </figure>
+</section>
+
+{% if posts %}
+<section class="section">
+  <div class="section-head">
+    <h2>Posts publicados</h2>
+  </div>
+  <ul class="admin-posts">
+    {% for post in posts %}
+    <li class="admin-card mocidade-card">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ post.titulo }}</strong>
+          {% if post.ativo %}<span class="status-pill status-pill--vou">Na home</span>{% endif %}
+          <p class="admin-meta">{{ post.criado_em.replace('T', ' ') }}</p>
+          <p>{{ post.texto }}</p>
+        </div>
+        <div>
+          {% if post.ativo %}
+          <form method="post" action="{{ url_for('mocidade_desativar_post', post_id=post.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Tirar da home</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('mocidade_apagar_post', post_id=post.id) }}" onsubmit="return confirm('Apagar este post?');" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </div>
+      </div>
+      {% if post.foto %}
+      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/mocidade/' + post.foto) }}" alt="">
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% with
+  card_class='mocidade-card',
+  btn_class='btn-mocidade',
+  cancel_url=url_for('mocidade_admin'),
+  edit_url_base=url_for('mocidade_admin') + '?editar_evento=',
+  delete_url_base=url_for('mocidade_admin') + '/evento/'
+%}
+  {% include 'partials/evento_responsavel_form.html' %}
+{% endwith %}
+{% endblock %}

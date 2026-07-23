@@ -23,6 +23,172 @@
   </blockquote>
 </section>
 
+<section class="section home-casal">
+  <figure class="home-casal-foto">
+    <img src="{{ url_for('static', filename='images/pastores-casal.png') }}" alt="Casal da liderança CEADREI">
+  </figure>
+  <div>
+    <p class="eyebrow">Nossa liderança</p>
+    <h2>Servindo juntos com amor</h2>
+    <p>Uma igreja que caminha em família, fé e comunhão.</p>
+  </div>
+</section>
+
+{% if galeria_destaque and galeria_destaque.fotos %}
+<section class="section gallery-home gallery-home--destaque">
+  <div class="section-head">
+    <p class="eyebrow">Mídia da igreja</p>
+    <h2>Do culto desta semana</h2>
+    <p>
+      {{ galeria_destaque.culto_dia }} · {{ galeria_destaque.culto_titulo }} —
+      {{ galeria_destaque.titulo }}
+    </p>
+  </div>
+
+  <div class="carousel carousel--destaque" data-carousel data-carousel-interval="3200">
+    <div class="carousel-track">
+      {% for foto in galeria_destaque.fotos %}
+      <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        <img
+          src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}"
+          alt="{{ galeria_destaque.titulo }} — foto {{ loop.index }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+        >
+      </figure>
+      {% endfor %}
+    </div>
+    {% if galeria_destaque.fotos|length > 1 %}
+    <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
+    <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
+    <div class="carousel-dots" data-carousel-dots></div>
+    <p class="carousel-counter" data-carousel-counter>1 / {{ galeria_destaque.fotos|length }}</p>
+    {% endif %}
+  </div>
+
+  <p class="section-link"><a href="{{ url_for('galeria_publica') }}">Ver toda a galeria</a></p>
+</section>
+{% endif %}
+
+{% if post_mocidade %}
+<section class="section">
+  <article class="mocidade-home-post">
+    <div class="mocidade-home-copy">
+      <p class="eyebrow">Culto dos jovens</p>
+      <h2>{{ post_mocidade.titulo }}</h2>
+      <p>{{ post_mocidade.texto }}</p>
+      <p class="admin-meta">Líderes: Diác. Natan e Diác. Ana Beatriz</p>
+      <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_page') }}">Ver mocidade</a>
+    </div>
+    {% if post_mocidade.foto %}
+    <figure class="mocidade-home-foto">
+      <img src="{{ url_for('static', filename='uploads/mocidade/' + post_mocidade.foto) }}" alt="{{ post_mocidade.titulo }}">
+    </figure>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+{% if arraial and arraial.mostrar_destaque %}
+<section class="section">
+  <article class="arraial-home-aviso{% if arraial.mostrar_aviso %} is-urgente{% endif %}">
+    <div class="arraial-home-copy">
+      <p class="eyebrow">{% if arraial.mostrar_aviso %}Recado especial · falta pouco!{% else %}Destaque do evento{% endif %}</p>
+      <h2>Arraiá Gospel — {{ arraial.data_br }}</h2>
+      <p>{{ arraial.horario }} · {{ arraial.local }}</p>
+      <p>{{ arraial.pedido }} · Adulto {{ arraial.adulto }} · Criança {{ arraial.crianca }}</p>
+      {% if cantina_texto %}
+      <div class="cantina-texto cantina-texto--home">
+        <strong>Na cantina:</strong>
+        <div>{{ cantina_texto }}</div>
+      </div>
+      {% endif %}
+      <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_page') }}">Ver página do Arraiá</a>
+    </div>
+    <figure class="arraial-home-flyer">
+      <img src="{{ url_for('static', filename=arraial.flyer) }}" alt="Convite Arraiá Gospel">
+    </figure>
+  </article>
+</section>
+{% endif %}
+
+{% set msg_campanha = (destaque_culto.mensagem_campanha or '')|trim if destaque_culto else '' %}
+{% if msg_campanha %}
+<section class="section">
+  <article class="campanha-banner campanha-banner--home">
+    <p class="eyebrow">Mensagem da campanha</p>
+    <h2>{{ msg_campanha }}</h2>
+    {% if destaque_culto.referencia %}<cite>{{ destaque_culto.referencia }}</cite>{% endif %}
+  </article>
+</section>
+{% endif %}
+
+{% if escala_hoje or (destaque_culto and (destaque_culto.porta or destaque_culto.tem_pregador)) %}
+<section class="section">
+  <div class="section-head">
+    <h2>Comunidade dos obreiros</h2>
+    <p>Quem está servindo neste culto — porta, abertura e palavra.</p>
+  </div>
+
+  {% if escala_hoje %}
+  <article class="obreiros-hoje {% if escala_hoje.eh_hoje %}is-hoje{% endif %}">
+    <p class="eyebrow">{% if escala_hoje.eh_hoje %}Hoje na porta{% else %}Próxima escala{% endif %}</p>
+    <h3>{{ escala_hoje.data_br }} · {{ escala_hoje.dia_semana }}</h3>
+    <div class="obreiros-hoje-grid">
+      <div>
+        <span>Porta vidro</span>
+        <strong>{{ escala_hoje.porta_vidro or '—' }}</strong>
+      </div>
+      <div>
+        <span>Abertura</span>
+        <strong>{{ escala_hoje.abertura or '—' }}</strong>
+      </div>
+      <div>
+        <span>Porta escada</span>
+        <strong>{{ escala_hoje.porta_escada or '—' }}</strong>
+      </div>
+    </div>
+  </article>
+  {% endif %}
+
+  {% if destaque_culto and destaque_culto.tem_pregador %}
+  <article class="pregador-destaque pregador-destaque--home">
+    {% if destaque_culto.pregador_foto %}
+    <img src="{{ url_for('static', filename='uploads/pastores/' + destaque_culto.pregador_foto) }}" alt="{{ destaque_culto.pregador_nome }}">
+    {% endif %}
+    <div>
+      <p class="eyebrow">Ministra a palavra</p>
+      <strong>{{ destaque_culto.pregador_nome }}</strong>
+      {% if destaque_culto.porta %}<span>Porta: {{ destaque_culto.porta }}</span>{% endif %}
+      {% if destaque_culto.abertura_culto %}<span>Abertura: {{ destaque_culto.abertura_culto }}</span>{% endif %}
+    </div>
+  </article>
+  {% endif %}
+
+  <div class="hero-actions" style="margin-top:1.25rem">
+    <a class="btn btn-primary" href="{{ url_for('comunicado_obreiros') }}">Ver comunicado completo</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('calendario_lideres') }}">Calendário dos líderes</a>
+  </div>
+</section>
+{% endif %}
+
+{% if avisos_lideres %}
+<section class="section">
+  <div class="section-head">
+    <h2>Avisos dos líderes</h2>
+    <p>Eventos próximos — fiquem atentos às datas.</p>
+  </div>
+  <div class="avisos-lista">
+    {% for ev in avisos_lideres %}
+    <article class="aviso-card">
+      <strong>{{ ev.titulo }}</strong>
+      <span>{{ ev.data_br }}{% if ev.lider %} · {{ ev.lider }}{% endif %}</span>
+      <p>{{ ev.aviso_texto }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="section">
   <div class="section-head">
     <h2>Próximos encontros</h2>
@@ -42,42 +208,85 @@
   <p class="section-link"><a href="{{ url_for('cultos_page') }}">Ver todos os cultos</a></p>
 </section>
 
-{% if galeria_destaque and galeria_destaque.fotos %}
-<section class="section gallery-home">
+{% if batismo_fotos %}
+<section class="section gallery-home batismo-home">
   <div class="section-head">
-    <h2>Do culto desta semana</h2>
-    <p>
-      {{ galeria_destaque.culto_dia }} · {{ galeria_destaque.culto_titulo }} —
-      {{ galeria_destaque.titulo }}
-    </p>
+    <h2>Destaque — Evento Batismo</h2>
+    <p>Evangelista Sueli é a Responsável pelo evento. Confira o local e confirme sua participação.</p>
   </div>
 
   <div class="carousel" data-carousel>
     <div class="carousel-track">
-      {% for foto in galeria_destaque.fotos %}
+      {% for foto in batismo_fotos %}
       <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
         <img
-          src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}"
-          alt="{{ galeria_destaque.titulo }}"
+          src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
+          alt="{{ foto.titulo or 'Local do batismo' }}"
           loading="{{ 'eager' if loop.first else 'lazy' }}"
         >
       </figure>
       {% endfor %}
     </div>
-    {% if galeria_destaque.fotos|length > 1 %}
+    {% if batismo_fotos|length > 1 %}
     <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
     <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
     <div class="carousel-dots" data-carousel-dots></div>
     {% endif %}
   </div>
 
-  <p class="section-link"><a href="{{ url_for('galeria_publica') }}">Ver toda a galeria</a></p>
+  <p class="section-link">
+    <a href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo, acesse aqui</a>
+  </p>
+</section>
+{% endif %}
+
+{% if casais_fotos or casais_programacao %}
+<section class="section gallery-home casais-home">
+  <div class="section-head">
+    <h2>Destaque — Encontro de Casais</h2>
+    <p>Diac. Robson e Diac. Luana são os responsáveis. Confira o ambiente e confirme a presença.</p>
+  </div>
+
+  {% if casais_fotos %}
+  <div class="carousel casais-carousel" data-carousel>
+    <div class="carousel-track">
+      {% for foto in casais_fotos %}
+      <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        <img
+          src="{{ url_for('static', filename='uploads/casais/' + foto.arquivo) }}"
+          alt="{{ foto.titulo or 'Encontro de Casais' }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+        >
+      </figure>
+      {% endfor %}
+    </div>
+    {% if casais_fotos|length > 1 %}
+    <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
+    <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
+    <div class="carousel-dots" data-carousel-dots></div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if casais_programacao %}
+  <article class="casais-programacao casais-programacao--home">
+    <h3>Neste dia</h3>
+    <div class="casais-programacao-texto">{{ casais_programacao }}</div>
+  </article>
+  {% endif %}
+
+  <p class="section-link">
+    <a href="{{ url_for('casais_page') }}">Abrir página do Encontro de Casais</a>
+  </p>
 </section>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
-{% if galeria_destaque and galeria_destaque.fotos and galeria_destaque.fotos|length > 1 %}
+{% set tem_carousel_culto = galeria_destaque and galeria_destaque.fotos and galeria_destaque.fotos|length > 1 %}
+{% set tem_carousel_batismo = batismo_fotos and batismo_fotos|length > 1 %}
+{% set tem_carousel_casais = casais_fotos and casais_fotos|length > 1 %}
+{% if tem_carousel_culto or tem_carousel_batismo or tem_carousel_casais %}
 <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
 {% endif %}
 {% endblock %}

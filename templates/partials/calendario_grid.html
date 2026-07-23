@@ -1,0 +1,27 @@
+<div class="cal-grid" aria-label="Calendário do mês">
+  <div class="cal-head">Seg</div>
+  <div class="cal-head">Ter</div>
+  <div class="cal-head">Qua</div>
+  <div class="cal-head">Qui</div>
+  <div class="cal-head">Sex</div>
+  <div class="cal-head">Sáb</div>
+  <div class="cal-head">Dom</div>
+  {% for dia in calendario.dias %}
+    {% if dia is none %}
+    <div class="cal-day is-empty"></div>
+    {% else %}
+    <div class="cal-day{% if dia.eh_hoje %} is-hoje{% endif %}{% if dia.escala %} has-escala{% endif %}{% if dia.eventos %} has-evento{% endif %}">
+      <span class="cal-num">{{ dia.dia }}</span>
+      {% if dia.escala %}
+      <span class="cal-chip cal-chip--escala" title="{{ dia.escala.porta_vidro }}">Obreiros</span>
+      {% endif %}
+      {% for ev in dia.eventos[:2] %}
+      <span class="cal-chip cal-chip--evento" title="{{ ev.lider }}">{{ ev.titulo }}</span>
+      {% endfor %}
+      {% if dia.eventos|length > 2 %}
+      <span class="cal-chip">+{{ dia.eventos|length - 2 }}</span>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% endfor %}
+</div>

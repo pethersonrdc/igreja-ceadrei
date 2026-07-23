@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-casais{% endblock %}
+
+{% block title %}Admin Casais — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero casais-hero">
+  <p class="eyebrow">Encontro de Casais</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Publique fotos, monte a programação do dia e acompanhe os casais inscritos.</p>
+  <p class="section-link">
+    <a href="{{ url_for('casais_page') }}">Ver página do encontro</a>
+    ·
+    <a href="{{ url_for('casais_inscricao') }}">Abrir inscrição dos casais</a>
+    ·
+    <a href="{{ url_for('casais_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card casais-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="fotos">
+    <h2>Fotos do encontro</h2>
+    <p class="admin-help">As imagens aparecem na página especial do encontro e no destaque da página inicial.</p>
+
+    <label for="titulo">Título / legenda</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Noite de comunhão do casal">
+
+    <label for="fotos">Fotos</label>
+    <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+
+    <button class="btn btn-primary btn-casais" type="submit">Publicar fotos</button>
+  </form>
+</section>
+
+<section class="section">
+  <form class="admin-card casais-card" method="post">
+    <input type="hidden" name="acao" value="programacao">
+    <h2>O que vai ter neste dia</h2>
+    <p class="admin-help">Escreva livremente: comida, bebida, programação, horários — o que quiser informar aos casais.</p>
+    <label for="programacao">Programação / detalhes</label>
+    <textarea id="programacao" name="programacao" rows="6" placeholder="Ex.:&#10;- Jantar às 19h&#10;- Suco e refrigerante&#10;- Dinâmica para casais&#10;- Louvor e palavra">{{ programacao }}</textarea>
+    <button class="btn btn-primary btn-casais" type="submit">Salvar programação</button>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Fotos publicadas</h2>
+  </div>
+  {% if fotos %}
+  <ul class="admin-posts">
+    <li class="admin-card casais-card">
+      <div class="admin-thumbs admin-thumbs--batismo">
+        {% for foto in fotos %}
+        <figure>
+          <img src="{{ url_for('static', filename='uploads/casais/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+          <figcaption>{{ foto.titulo }}</figcaption>
+          <form method="post" action="{{ url_for('casais_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </figure>
+        {% endfor %}
+      </div>
+    </li>
+  </ul>
+  {% else %}
+  <p>Nenhuma foto publicada ainda.</p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Casais inscritos</h2>
+    <p>Exporte a lista em Excel ou PDF.</p>
+  </div>
+
+  <div class="hero-actions batismo-export">
+    <a class="btn btn-primary btn-casais" href="{{ url_for('casais_exportar_excel') }}">Exportar Excel</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('casais_exportar_pdf') }}">Exportar PDF</a>
+  </div>
+
+  {% if inscricoes %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table">
+      <thead>
+        <tr>
+          <th>Casal</th>
+          <th>Contatos</th>
+          <th>Status</th>
+          <th>Atualizar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in inscricoes %}
+        <tr>
+          <td>
+            <strong>{{ item.casal }}</strong>
+            <span class="admin-meta">{{ item.criado_em.replace('T', ' ') }}</span>
+          </td>
+          <td>
+            <span>Marido: {{ item.nome_marido }} — {{ item.telefone_marido or '—' }}</span>
+            <span>Mulher: {{ item.nome_mulher }} — {{ item.telefone_mulher or '—' }}</span>
+          </td>
+          <td><span class="status-pill status-pill--{{ item.status }}">{{ item.status_texto }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('casais_atualizar_status', inscricao_id=item.id) }}" class="status-form">
+              <select name="status" aria-label="Status da inscrição">
+                {% for chave, rotulo in status_opcoes.items() %}
+                <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>Nenhum casal inscrito ainda.</p>
+  {% endif %}
+</section>
+
+{% with
+  card_class='casais-card',
+  btn_class='btn-casais',
+  cancel_url=url_for('casais_admin'),
+  edit_url_base=url_for('casais_admin') + '?editar_evento=',
+  delete_url_base=url_for('casais_admin') + '/evento/'
+%}
+  {% include 'partials/evento_responsavel_form.html' %}
+{% endwith %}
+{% endblock %}

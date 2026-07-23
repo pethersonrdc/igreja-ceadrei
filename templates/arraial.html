@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-arraial{% endblock %}
+
+{% block title %}Arraiá Gospel — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="arraial-festa">
+  <div class="arraial-festa-inner">
+    <p class="eyebrow">Vem aí</p>
+    <h1>{{ info.h1 }}</h1>
+    <p class="arraial-convite">{{ info.convite }}</p>
+    <p class="arraial-data">{{ info.data_br }} · {{ info.horario }}</p>
+    <p class="arraial-local">{{ info.local }}</p>
+    <div class="arraial-precos">
+      <span>Adulto {{ info.adulto }}</span>
+      <span>Criança {{ info.crianca }}</span>
+    </div>
+    <p class="arraial-pedido">{{ info.pedido }}</p>
+  </div>
+</section>
+
+<section class="section">
+  <figure class="arraial-flyer">
+    <img src="{{ url_for('static', filename=info.flyer) }}" alt="Convite Arraiá Gospel">
+  </figure>
+</section>
+
+{% if cantina %}
+<section class="section">
+  <article class="cantina-aviso">
+    <h2>Na cantina</h2>
+    <div class="cantina-texto">{{ cantina }}</div>
+  </article>
+</section>
+{% endif %}
+
+<section class="section arraial-login-layout">
+  <article class="arraial-cta-card">
+    <h2>Departamento da Diac. Cássia</h2>
+    <p>Cantina e organização do Arraiá Gospel.</p>
+    <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_login') }}">Acesso do departamento</a>
+  </article>
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=info.foto_lider) }}" alt="Diac. Cássia">
+    <figcaption>Diac. Cássia</figcaption>
+  </figure>
+</section>
+{% endblock %}

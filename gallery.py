@@ -1,11 +1,12 @@
 """
-Galeria de cultos — armazenamento, expiração em 2 dias e limpeza.
+Galeria de cultos — armazenamento local (SQLite + arquivos).
+As fotos só são apagadas manualmente pelo usuário no painel.
 """
 
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -13,7 +14,6 @@ DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "galeria"
 DB_PATH = DATA_DIR / "galeria.db"
 
-DIAS_EXPIRACAO = 2
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
@@ -36,7 +36,7 @@ def init_db() -> None:
                 culto_dia TEXT NOT NULL,
                 titulo TEXT NOT NULL,
                 criado_em TEXT NOT NULL,
-                expira_em TEXT NOT NULL
+                expira_em TEXT
             );
 
             CREATE TABLE IF NOT EXISTS fotos (
@@ -53,46 +53,15 @@ def agora() -> datetime:
     return datetime.now()
 
 
-def limpar_expirados() -> int:
-    """Remove posts/fotos vencidos (após 2 dias). Retorna quantos posts apagou."""
-    init_db()
-    agora_iso = agora().isoformat(timespec="seconds")
-    removidos = 0
-
-    with _connect() as conn:
-        rows = conn.execute(
-            "SELECT id FROM posts WHERE expira_em <= ?",
-            (agora_iso,),
-        ).fetchall()
-        post_ids = [row["id"] for row in rows]
-
-        for post_id in post_ids:
-            fotos = conn.execute(
-                "SELECT arquivo FROM fotos WHERE post_id = ?",
-                (post_id,),
-            ).fetchall()
-            for foto in fotos:
-                caminho = UPLOAD_DIR / foto["arquivo"]
-                if caminho.exists():
-                    caminho.unlink()
-            conn.execute("DELETE FROM fotos WHERE post_id = ?", (post_id,))
-            conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
-            removidos += 1
-
-    return removidos
-
-
 def listar_posts_ativos() -> list[dict]:
-    limpar_expirados()
-    agora_iso = agora().isoformat(timespec="seconds")
+    """Lista todas as postagens (permanentes até o usuário apagar)."""
+    init_db()
     with _connect() as conn:
         posts = conn.execute(
             """
             SELECT * FROM posts
-            WHERE expira_em > ?
             ORDER BY criado_em DESC
-            """,
-            (agora_iso,),
+            """
         ).fetchall()
 
         resultado = []
@@ -108,7 +77,7 @@ def listar_posts_ativos() -> list[dict]:
 
 
 def obter_post(post_id: int) -> dict | None:
-    limpar_expirados()
+    init_db()
     with _connect() as conn:
         post = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
         if not post:
@@ -125,7 +94,6 @@ def obter_post(post_id: int) -> dict | None:
 def criar_post(culto_titulo: str, culto_dia: str, titulo: str, arquivos: list[str]) -> int:
     init_db()
     criado = agora()
-    expira = criado + timedelta(days=DIAS_EXPIRACAO)
     with _connect() as conn:
         cur = conn.execute(
             """
@@ -137,7 +105,7 @@ def criar_post(culto_titulo: str, culto_dia: str, titulo: str, arquivos: list[st
                 culto_dia.strip(),
                 titulo.strip(),
                 criado.isoformat(timespec="seconds"),
-                expira.isoformat(timespec="seconds"),
+                None,
             ),
         )
         post_id = cur.lastrowid

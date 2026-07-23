@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Evento Batismo</p>
+  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
+  <p>Publique fotos do sítio alugado e acompanhe as famílias inscritas.</p>
+  <p class="section-link">
+    <a href="{{ url_for('batismo_inscricao') }}">Abrir página de inscrição</a>
+    ·
+    <a href="{{ url_for('home') }}">Ver destaque no início</a>
+    ·
+    <a href="{{ url_for('batismo_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="fotos">
+    <h2>Fotos do sítio</h2>
+    <p class="admin-help">As imagens aparecem na página inicial com destaque do Evento Batismo.</p>
+
+    <label for="titulo">Título / legenda</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Sítio Esperança — área da piscina">
+
+    <label for="fotos">Fotos do local</label>
+    <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+
+    <button class="btn btn-primary" type="submit">Publicar fotos</button>
+  </form>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Fotos publicadas</h2>
+    <p>Essas imagens ficam visíveis no início e na inscrição.</p>
+  </div>
+
+  {% if fotos %}
+  <ul class="admin-posts">
+    <li class="admin-card">
+      <div class="admin-thumbs admin-thumbs--batismo">
+        {% for foto in fotos %}
+        <figure>
+          <img src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+          <figcaption>{{ foto.titulo }}</figcaption>
+          <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </figure>
+        {% endfor %}
+      </div>
+    </li>
+  </ul>
+  {% else %}
+  <p>Nenhuma foto publicada ainda.</p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <h2>Inscrições das famílias</h2>
+    <p>Exporte a lista em Excel ou PDF para acompanhar o evento.</p>
+  </div>
+
+  <div class="hero-actions batismo-export">
+    <a class="btn btn-primary" href="{{ url_for('batismo_exportar_excel') }}">Exportar Excel</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('batismo_exportar_pdf') }}">Exportar PDF</a>
+  </div>
+
+  {% if inscricoes %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Família</th>
+          <th>Contato</th>
+          <th>Quem vai</th>
+          <th>Status</th>
+          <th>Atualizar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in inscricoes %}
+        <tr>
+          <td>
+            <strong>{{ item.nome_marido or item.nome_mulher or 'Família' }}</strong>
+            {% if item.nome_marido and item.nome_mulher %}
+            <span class="admin-meta">{{ item.nome_mulher }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <span>
+              Marido: {{ item.nome_marido or '—' }}
+              {% if item.rg_marido %} ({{ item.rg_marido }}){% endif %}
+            </span>
+            <span>
+              Mulher: {{ item.nome_mulher or '—' }}
+              {% if item.rg_mulher %} ({{ item.rg_mulher }}){% endif %}
+            </span>
+            <span>
+              Filhos:
+              {% if item.filhos_texto %}
+                {{ item.filhos_texto }}
+              {% else %}
+                —
+              {% endif %}
+            </span>
+          </td>
+          <td>{{ item.telefone }}</td>
+          <td>{{ item.participantes_texto or '—' }}</td>
+          <td><span class="status-pill status-pill--{{ item.status }}">{{ item.status_texto }}</span></td>
+          <td>
+            <form method="post" action="{{ url_for('batismo_atualizar_status', inscricao_id=item.id) }}" class="status-form">
+              <select name="status" aria-label="Status da inscrição">
+                {% for chave, rotulo in status_opcoes.items() %}
+                <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+                {% endfor %}
+              </select>
+              <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+            </form>
+            <form
+              method="post"
+              action="{{ url_for('batismo_apagar_inscricao', inscricao_id=item.id) }}"
+              class="status-form"
+              onsubmit="return confirm('Remover esta família da lista de batismo?');"
+            >
+              <button class="btn btn-ghost-dark" type="submit">Remover família</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>Nenhuma inscrição recebida ainda. Compartilhe a página de inscrição com as famílias.</p>
+  {% endif %}
+</section>
+
+{% with
+  card_class='',
+  btn_class='',
+  cancel_url=url_for('batismo_admin'),
+  edit_url_base=url_for('batismo_admin') + '?editar_evento=',
+  delete_url_base=url_for('batismo_admin') + '/evento/'
+%}
+  {% include 'partials/evento_responsavel_form.html' %}
+{% endwith %}
+{% endblock %}

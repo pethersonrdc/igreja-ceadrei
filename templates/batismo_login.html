@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Entrar — Mídia {{ igreja.nome }}{% endblock %}
+{% block title %}Evento Batismo — Acesso{% endblock %}
 
 {% block content %}
 <section class="page-hero">
   <p class="eyebrow">Área restrita</p>
-  <h1>Painel da mídia</h1>
-  <p>Acesso apenas para a equipe autorizada da igreja.</p>
+  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
+  <p>Acesso da responsável pelo Evento Batismo.</p>
 </section>
 
 <section class="section arraial-login-layout">
-  <form class="admin-card" method="post" action="{{ url_for('admin_login', next=request.args.get('next', '')) }}">
+  <form class="admin-card" method="post" action="{{ url_for('batismo_login', next=request.args.get('next', '')) }}">
     <label for="senha">Senha de acesso</label>
     <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
     {% if erro %}
@@ -20,7 +20,8 @@
   </form>
 
   <figure class="arraial-lider-foto">
-    <img src="{{ url_for('static', filename='images/midia/responsavel.png') }}" alt="Responsável da mídia">
+    <img src="{{ url_for('static', filename='images/batismo/sueli.png') }}" alt="Evangelista Sueli">
+    <figcaption>Evangelista Sueli</figcaption>
   </figure>
 </section>
 {% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-mocidade{% endblock %}
+
+{% block title %}Líderes da Mocidade — Acesso{% endblock %}
+
+{% block content %}
+<section class="page-hero mocidade-hero">
+  <p class="eyebrow">Geração eleita</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Acesso dos líderes da mocidade.</p>
+</section>
+
+<section class="section arraial-login-layout">
+  <form class="admin-card mocidade-card" method="post" action="{{ url_for('mocidade_login', next=request.args.get('next', '')) }}">
+    <label for="senha">Senha de acesso</label>
+    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+    <button class="btn btn-primary btn-mocidade" type="submit">Entrar</button>
+  </form>
+
+  <figure class="arraial-lider-foto">
+    <img src="{{ url_for('static', filename=foto_lideres) }}" alt="Diác. Natan e Diác. Ana Beatriz">
+    <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
+  </figure>
+</section>
+{% endblock %}

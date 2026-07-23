@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Inscrição Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Evento Batismo</p>
+  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
+  <p>Confira o local e confirme a participação da sua família.</p>
+</section>
+
+{% if fotos %}
+<section class="section">
+  <div class="section-head">
+    <h2>Local do batismo</h2>
+    <p>Fotos do sítio alugado para o evento.</p>
+  </div>
+  <div class="gallery-grid">
+    {% for foto in fotos %}
+    <figure>
+      <img
+        src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
+        alt="{{ foto.titulo or 'Local do batismo' }}"
+        loading="{{ 'eager' if loop.first else 'lazy' }}"
+      >
+    </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>Quem for para o batismo, acesse e preencha</h2>
+    <p>Envie os dados da família e a confirmação de participação.</p>
+  </div>
+
+  {% if erro %}
+  <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+  {% endif %}
+
+  <form class="admin-card batismo-form" method="post">
+    <div class="pessoa-row">
+      <div>
+        <label for="nome_marido">Nome do marido</label>
+        <input id="nome_marido" name="nome_marido" type="text" placeholder="Nome do marido">
+      </div>
+      <div>
+        <label for="rg_marido">RG ou CPF</label>
+        <input id="rg_marido" name="rg_marido" type="text" placeholder="RG ou CPF do marido">
+      </div>
+    </div>
+
+    <div class="pessoa-row">
+      <div>
+        <label for="nome_mulher">Nome da mulher</label>
+        <input id="nome_mulher" name="nome_mulher" type="text" placeholder="Nome da mulher">
+      </div>
+      <div>
+        <label for="rg_mulher">RG ou CPF</label>
+        <input id="rg_mulher" name="rg_mulher" type="text" placeholder="RG ou CPF da mulher">
+      </div>
+    </div>
+
+    <div class="filhos-block">
+      <label>Filhos</label>
+      <p class="admin-help">Digite o nome e o RG/CPF. Use Adicionar para incluir mais filhos.</p>
+      <div id="filhos-lista" class="filhos-lista">
+        <div class="filho-row">
+          <input name="filhos" type="text" placeholder="Nome do 1º filho" aria-label="Nome do filho 1">
+          <input name="filhos_doc" type="text" placeholder="RG ou CPF" aria-label="RG ou CPF do filho 1">
+        </div>
+      </div>
+      <button class="btn btn-ghost-dark filhos-add" type="button" id="btn-add-filho">Adicionar filho</button>
+    </div>
+
+    <label for="telefone">Telefone de contato</label>
+    <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000">
+
+    <fieldset class="batismo-fieldset">
+      <legend>Quem vai ao batismo?</legend>
+      {% for chave, rotulo in participante_opcoes.items() %}
+      <label class="check-line">
+        <input type="checkbox" name="participantes" value="{{ chave }}">
+        <span>{{ rotulo }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <fieldset class="batismo-fieldset">
+      <legend>Confirmação</legend>
+      {% for chave, rotulo in status_opcoes.items() %}
+      <label class="check-line">
+        <input type="radio" name="status" value="{{ chave }}" {% if chave == 'vou' %}checked{% endif %} required>
+        <span>{{ rotulo }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <button class="btn btn-primary" type="submit">Enviar inscrição</button>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    const lista = document.getElementById('filhos-lista');
+    const btn = document.getElementById('btn-add-filho');
+    if (!lista || !btn) return;
+
+    function renumerar() {
+      lista.querySelectorAll('.filho-row').forEach((row, index) => {
+        const nome = row.querySelector('input[name="filhos"]');
+        const doc = row.querySelector('input[name="filhos_doc"]');
+        if (nome) {
+          nome.placeholder = `Nome do ${index + 1}º filho`;
+          nome.setAttribute('aria-label', `Nome do filho ${index + 1}`);
+        }
+        if (doc) {
+          doc.placeholder = 'RG ou CPF';
+          doc.setAttribute('aria-label', `RG ou CPF do filho ${index + 1}`);
+        }
+      });
+    }
+
+    function adicionarFilho() {
+      const row = document.createElement('div');
+      row.className = 'filho-row filho-row--com-remover';
+      row.innerHTML = `
+        <input name="filhos" type="text" placeholder="Nome do filho">
+        <input name="filhos_doc" type="text" placeholder="RG ou CPF">
+        <button class="btn btn-ghost-dark filho-remove" type="button" aria-label="Remover filho">Remover</button>
+      `;
+      row.querySelector('.filho-remove').addEventListener('click', () => {
+        row.remove();
+        renumerar();
+      });
+      lista.appendChild(row);
+      renumerar();
+      row.querySelector('input[name="filhos"]')?.focus();
+    }
+
+    btn.addEventListener('click', adicionarFilho);
+  })();
+</script>
+{% endblock %}

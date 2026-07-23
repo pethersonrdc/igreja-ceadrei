@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-pastores{% endblock %}
+
+{% block title %}Comunicado dos Obreiros — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero pastores-hero">
+  <p class="eyebrow">Comunicado dos obreiros</p>
+  <h1>Quem serve neste culto</h1>
+  <p>Confira a escala do mês. O dia de hoje (ou o próximo culto) aparece em destaque.</p>
+</section>
+
+{% if destaque.tem_campanha or destaque.tem_pregador %}
+<section class="section">
+  <article class="campanha-banner">
+    {% if destaque.tem_campanha %}
+    <p class="eyebrow">Mensagem da campanha</p>
+    <h2>{{ destaque.mensagem_campanha }}</h2>
+    {% if destaque.referencia %}<cite>{{ destaque.referencia }}</cite>{% endif %}
+    {% endif %}
+
+    {% if destaque.tem_pregador %}
+    <div class="pregador-destaque">
+      {% if destaque.pregador_foto %}
+      <img src="{{ url_for('static', filename='uploads/pastores/' + destaque.pregador_foto) }}" alt="{{ destaque.pregador_nome }}">
+      {% endif %}
+      <div>
+        <p class="eyebrow">Ministra a palavra</p>
+        <strong>{{ destaque.pregador_nome }}</strong>
+        {% if destaque.data_br %}<span>{{ destaque.data_br }}</span>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+{% if escala_destaque %}
+<section class="section">
+  <article class="obreiros-hoje {% if escala_destaque.eh_hoje %}is-hoje{% endif %}">
+    <p class="eyebrow">{% if escala_destaque.eh_hoje %}Hoje na porta{% else %}Próximo culto na escala{% endif %}</p>
+    <h2>{{ escala_destaque.data_br }} · {{ escala_destaque.dia_semana }}</h2>
+    <div class="obreiros-hoje-grid">
+      <div>
+        <span>Porta vidro</span>
+        <strong>{{ escala_destaque.porta_vidro or '—' }}</strong>
+      </div>
+      <div>
+        <span>Abertura do culto</span>
+        <strong>{{ escala_destaque.abertura or '—' }}</strong>
+      </div>
+      <div>
+        <span>Porta escada</span>
+        <strong>{{ escala_destaque.porta_escada or '—' }}</strong>
+      </div>
+    </div>
+    {% if destaque.porta or destaque.abertura_culto %}
+    <p class="admin-help" style="margin-top:1rem">
+      {% if destaque.porta %}Destaque pastoral — Porta: {{ destaque.porta }}. {% endif %}
+      {% if destaque.abertura_culto %}Abertura: {{ destaque.abertura_culto }}.{% endif %}
+    </p>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+{% if avisos %}
+<section class="section">
+  <div class="section-head">
+    <h2>Avisos próximos</h2>
+    <p>Eventos dos líderes que estão chegando.</p>
+  </div>
+  <div class="avisos-lista">
+    {% for ev in avisos %}
+    <article class="aviso-card">
+      <strong>{{ ev.titulo }}</strong>
+      <span>{{ ev.data_br }}{% if ev.lider %} · {{ ev.lider }}{% endif %}</span>
+      <p>{{ ev.aviso_texto }}</p>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="section-link"><a href="{{ url_for('calendario_lideres') }}">Ver calendário completo dos líderes</a></p>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section-head">
+    <h2>Escala completa — {{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('comunicado_obreiros', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('comunicado_obreiros', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+
+  {% if escala %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table escala-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Porta vidro</th>
+          <th>Abertura</th>
+          <th>Porta escada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in escala %}
+        <tr class="{% if item.eh_hoje %}is-hoje{% elif item.eh_proximo %}is-proximo{% endif %}{% if item.eh_domingo %} is-domingo{% endif %}">
+          <td>
+            <strong>{{ item.data_br }}</strong>
+            <span class="admin-meta">{{ item.dia_semana }}</span>
+            {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
+          </td>
+          <td>{{ item.porta_vidro or '—' }}</td>
+          <td>{{ item.abertura or '—' }}</td>
+          <td>{{ item.porta_escada or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>A escala deste mês ainda não foi publicada pelos pastores.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -47,6 +47,23 @@ Abra no navegador: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 | `/contato` | Endereço e contatos |
 | `/admin/login` | Login da mídia (restrito) |
 | `/admin/galeria` | Publicar/apagar fotos dos cultos |
+| `/batismo/login` | Login do Evento Batismo (restrito) |
+| `/batismo/admin` | Fotos do sítio + lista de inscritos |
+| `/batismo/inscricao` | Formulário público das famílias |
+| `/casais/login` | Login do Encontro de Casais (restrito) |
+| `/casais/admin` | Fotos + programação + inscritos |
+| `/casais` | Página especial do encontro |
+| `/casais/inscricao` | Formulário dos casais |
+| `/pastores/login` | Login dos pastores (restrito) |
+| `/pastores/admin` | Escala, destaque do culto e calendário |
+| `/comunicado` | Comunicado público dos obreiros |
+| `/calendario-lideres` | Calendário compartilhado dos líderes |
+| `/arraial/login` | Login Arraiá / Cantina (Diac. Cássia) |
+| `/arraial/admin` | Cantina + calendário do Arraiá |
+| `/arraial` | Página decorativa do Arraiá Gospel |
+| `/mocidade/login` | Login Líderes da Mocidade |
+| `/mocidade/admin` | Posts do culto dos jovens |
+| `/mocidade` | Página da mocidade |
 
 ---
 
@@ -57,8 +74,28 @@ A equipe de mídia acessa o painel, escolhe o culto da semana e envia as fotos.
 - **URL:** http://127.0.0.1:5000/admin/login
 - **Senha padrão (local):** `ceasdrei`
 - As fotos aparecem na **página inicial** (carrossel) e em `/galeria`
-- Cada postagem **expira em 2 dias** e é apagada automaticamente (arquivos + registro)
-- Também dá para apagar manualmente no painel
+- As postagens **permanecem** até a equipe apagar manualmente no painel
+
+---
+
+## Onde ficam imagens e dados
+
+Estrutura local de armazenamento (já em uso):
+
+| Pasta / arquivo | Conteúdo |
+|-----------------|----------|
+| `data/*.db` | Bancos SQLite (galeria, batismo, casais, pastores, arraial, mocidade) |
+| `static/uploads/galeria/` | Fotos enviadas pela mídia |
+| `static/uploads/batismo/` | Fotos do sítio / batismo |
+| `static/uploads/casais/` | Fotos do encontro de casais |
+| `static/uploads/pastores/` | Foto do pregador etc. |
+| `static/uploads/arraial/` | Flyer do arraiá |
+| `static/uploads/mocidade/` | Posts do culto dos jovens |
+| `static/images/` | Fotos fixas dos líderes/login (versionadas no Git) |
+
+Uploads e bancos **não vão para o Git** (ficam só no disco do servidor).
+No Render gratuito o disco é temporário: em redeploy os uploads podem sumir.
+Para produção definitiva, use disco persistente ou armazenamento em nuvem (S3 etc.).
 
 Para mudar a senha em produção:
 
@@ -66,6 +103,86 @@ Para mudar a senha em produção:
 set ADMIN_PASSWORD=sua_senha_forte
 set SECRET_KEY=chave_secreta_longa
 python app.py
+```
+
+---
+
+## Evento Batismo
+
+Área da **Evangelista Sueli** para publicar fotos do sítio e acompanhar as famílias.
+
+- **Acesso responsável:** http://127.0.0.1:5000/batismo/login
+- **Senha padrão (local):** `Sueli`
+- **Inscrição das famílias:** http://127.0.0.1:5000/batismo/inscricao
+- Fotos do sítio aparecem na **página inicial**, abaixo da galeria dos cultos
+- No painel dá para exportar inscritos em **Excel** ou **PDF**
+
+Para mudar a senha do batismo em produção:
+
+```bash
+set BATISMO_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Encontro de Casais
+
+Área dos **Diac. Robson e Diac. Luana**.
+
+- **Acesso responsáveis:** http://127.0.0.1:5000/casais/login
+- **Senha padrão (local):** `Robson&Luana`
+- **Página do encontro:** http://127.0.0.1:5000/casais
+- **Inscrição dos casais:** http://127.0.0.1:5000/casais/inscricao
+- No painel: fotos, texto livre do que vai ter no dia, export Excel/PDF
+
+```bash
+set CASAIS_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Pastores / Obreiros
+
+Painel pastoral com:
+
+- **Escala do mês** (porta vidro, abertura, porta escada)
+- **Destaque do culto** (porta, abertura, pregador + foto, mensagem da campanha)
+- **Calendário dos líderes** (cada evento com data e aviso próximo)
+
+- **Acesso:** http://127.0.0.1:5000/pastores/login
+- **Senha padrão (local):** `Solange123`
+- **Comunicado público:** http://127.0.0.1:5000/comunicado
+- Na **página inicial**, o dia de hoje/próximo culto aparece em destaque; o botão abre o comunicado completo
+
+```bash
+set PASTORES_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Arraiá Gospel / Cantina (Diac. Cássia)
+
+- **Acesso:** http://127.0.0.1:5000/arraial/login
+- **Senha padrão (local):** `Cassia`
+- **Página do Arraiá:** http://127.0.0.1:5000/arraial
+- Aviso animado na home aparece **2 dias antes** do evento (25/07/2026)
+- No painel: texto da cantina + registro no calendário dos líderes
+
+```bash
+set ARRAIAL_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Líderes da Mocidade
+
+- **Acesso:** http://127.0.0.1:5000/mocidade/login
+- **Senha padrão (local):** `Mocidade`
+- **Responsáveis:** Diác. Natan e Diác. Ana Beatriz
+- Post simples (foto + texto) do culto dos jovens na página inicial
+
+```bash
+set MOCIDADE_PASSWORD=sua_senha_forte
 ```
 
 ---
@@ -128,8 +245,8 @@ O código fica no GitHub e o site completo (com painel da mídia) roda no **Rend
 
 Senha do painel em produção (padrão do `render.yaml`): `ceasdrei`
 
-> No plano gratuito do Render, o site pode “dormir” após inatividade e demorar ~30s para acordar.  
-> Uploads da galeria ficam no disco do servidor (efêmero): em um redeploy as fotos podem sumir antes dos 2 dias.
+> No plano gratuito do Render, o site pode “dormir” após inatividade e demorar ~30s para acordar.
+> Uploads ficam no disco do servidor (efêmero): em um redeploy as fotos/dados podem sumir. Use disco persistente se precisar manter.
 
 Arquivos de deploy:
 - `Procfile` — inicia com Gunicorn

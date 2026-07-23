@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Confirmação Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Inscrição recebida</p>
+  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
+  <p>Obrigado! Suas informações foram registradas.</p>
+</section>
+
+<section class="section admin-login-wrap">
+  <article class="admin-card batismo-resumo">
+    <h2>Resumo da sua inscrição</h2>
+    <p>
+      <strong>Marido:</strong> {{ inscricao.nome_marido or '—' }}
+      {% if inscricao.rg_marido %}<span class="admin-meta">RG/CPF: {{ inscricao.rg_marido }}</span>{% endif %}
+    </p>
+    <p>
+      <strong>Mulher:</strong> {{ inscricao.nome_mulher or '—' }}
+      {% if inscricao.rg_mulher %}<span class="admin-meta">RG/CPF: {{ inscricao.rg_mulher }}</span>{% endif %}
+    </p>
+    <p><strong>Filhos:</strong></p>
+    {% if inscricao.filhos_objs %}
+    <ul class="batismo-filhos-resumo">
+      {% for filho in inscricao.filhos_objs %}
+      <li>
+        {{ filho.nome }}
+        {% if filho.documento %} — RG/CPF: {{ filho.documento }}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>—</p>
+    {% endif %}
+    <p><strong>Telefone:</strong> {{ inscricao.telefone }}</p>
+    <p><strong>Quem vai:</strong> {{ inscricao.participantes_texto or '—' }}</p>
+    <p>
+      <strong>Situação:</strong>
+      <span class="status-pill status-pill--{{ inscricao.status }}">{{ inscricao.status_texto }}</span>
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('home') }}">Ir para o início</a>
+      <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Nova inscrição</a>
+    </div>
+  </article>
+</section>
+{% endblock %}

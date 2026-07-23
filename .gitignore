@@ -17,6 +17,31 @@ static/uploads/galeria/*
 !static/uploads/galeria/.gitkeep
 data/galeria.db
 
+# Batismo (uploads e banco local)
+static/uploads/batismo/*
+!static/uploads/batismo/.gitkeep
+data/batismo.db
+
+# Encontro de Casais (uploads e banco local)
+static/uploads/casais/*
+!static/uploads/casais/.gitkeep
+data/casais.db
+
+# Pastores / obreiros
+static/uploads/pastores/*
+!static/uploads/pastores/.gitkeep
+data/pastores.db
+
+# Arraiá / Cantina
+static/uploads/arraial/*
+!static/uploads/arraial/.gitkeep
+data/arraial.db
+
+# Mocidade
+static/uploads/mocidade/*
+!static/uploads/mocidade/.gitkeep
+data/mocidade.db
+
 # Sistema
 .DS_Store
 Thumbs.db

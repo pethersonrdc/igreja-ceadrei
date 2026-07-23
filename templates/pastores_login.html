@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-pastores{% endblock %}
+
+{% block title %}Pastores — Acesso{% endblock %}
+
+{% block content %}
+<section class="page-hero pastores-hero">
+  <p class="eyebrow">Área restrita</p>
+  <h1>Painel dos Pastores</h1>
+  <p>Escala de obreiros, destaque do culto e calendário dos líderes.</p>
+</section>
+
+<section class="section admin-login-wrap">
+  <form class="admin-card pastores-card" method="post" action="{{ url_for('pastores_login', next=request.args.get('next', '')) }}">
+    <label for="senha">Senha de acesso</label>
+    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+    <button class="btn btn-primary btn-pastores" type="submit">Entrar</button>
+  </form>
+</section>
+{% endblock %}

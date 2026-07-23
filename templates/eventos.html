@@ -9,6 +9,71 @@
   <p>Acompanhe os encontros especiais da nossa comunidade.</p>
 </section>
 
+<section class="section batismo-access">
+  <div class="eventos-acessos">
+    <article class="admin-card batismo-access-card">
+      <h2>Evento Batismo</h2>
+      <p>Departamento da Evangelista Sueli — inscrição das famílias e fotos do batismo.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="{{ url_for('batismo_login') }}">Evento Batismo</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename='images/batismo/sueli.png') }}" alt="Evangelista Sueli">
+        <figcaption>Evangelista Sueli</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card casais-access-card">
+      <h2>Encontro de Casais</h2>
+      <p>Departamento do Diac. Robson e Diac. Luana — inscrição e página do encontro.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-casais" href="{{ url_for('casais_login') }}">Acesso dos responsáveis</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('casais_page') }}">Página do encontro</a>
+      </div>
+      <figure class="arraial-card-foto casais-card-foto">
+        <img src="{{ url_for('static', filename='images/casais/robson-luana.png') }}" alt="Diac. Robson e Diac. Luana">
+        <figcaption>Diac. Robson &amp; Diac. Luana</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card pastores-access-card">
+      <h2>Pastores / Obreiros</h2>
+      <p>Escala da porta, destaque do culto, campanha e calendário dos líderes.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-pastores" href="{{ url_for('pastores_login') }}">Acesso dos pastores</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('comunicado_obreiros') }}">Comunicado dos obreiros</a>
+      </div>
+    </article>
+
+    <article class="admin-card batismo-access-card arraial-access-card">
+      <h2>Arraiá Gospel / Cantina</h2>
+      <p>Departamento da Diac. Cássia — cantina e página do Arraiá.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_login') }}">Acesso da Diac. Cássia</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('arraial_page') }}">Página do Arraiá</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename='images/arraial/cassia.png') }}" alt="Diac. Cássia">
+        <figcaption>Diac. Cássia</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card mocidade-access-card">
+      <h2>Líderes da Mocidade</h2>
+      <p>Departamento do Diác. Natan e Diác. Ana Beatriz — culto dos jovens.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos líderes</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página da mocidade</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename='images/mocidade/natan-ana.png') }}" alt="Diác. Natan e Diác. Ana Beatriz">
+        <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
+      </figure>
+    </article>
+  </div>
+</section>
+
 <section class="section">
   <ul class="event-list" id="lista-eventos">
     {% for evento in eventos %}
