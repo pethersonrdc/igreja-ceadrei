@@ -15,7 +15,7 @@
       <h2>Evento Batismo</h2>
       <p>Departamento da Evangelista Sueli — inscrição das famílias e fotos do batismo.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="{{ url_for('batismo_login') }}">Evento Batismo</a>
+        <a class="btn btn-primary" href="{{ url_for('batismo_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo</a>
       </div>
       <figure class="arraial-card-foto">
@@ -28,7 +28,7 @@
       <h2>Encontro de Casais</h2>
       <p>Departamento do Diac. Robson e Diac. Luana — inscrição e página do encontro.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-casais" href="{{ url_for('casais_login') }}">Acesso dos responsáveis</a>
+        <a class="btn btn-primary btn-casais" href="{{ url_for('casais_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('casais_page') }}">Página do encontro</a>
       </div>
       <figure class="arraial-card-foto casais-card-foto">
@@ -41,16 +41,20 @@
       <h2>Pastores / Obreiros</h2>
       <p>Escala da porta, destaque do culto, campanha e calendário dos líderes.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-pastores" href="{{ url_for('pastores_login') }}">Acesso dos pastores</a>
+        <a class="btn btn-primary btn-pastores" href="{{ url_for('pastores_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('comunicado_obreiros') }}">Comunicado dos obreiros</a>
       </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename='images/pastores/solange-jose.png') }}" alt="Pas. Solange e Pas. Jose Luiz">
+        <figcaption>Pas. Solange &amp; Pas. Jose Luiz</figcaption>
+      </figure>
     </article>
 
     <article class="admin-card batismo-access-card arraial-access-card">
       <h2>Arraiá Gospel / Cantina</h2>
       <p>Departamento da Diac. Cássia — cantina e página do Arraiá.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_login') }}">Acesso da Diac. Cássia</a>
+        <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('arraial_page') }}">Página do Arraiá</a>
       </div>
       <figure class="arraial-card-foto">
@@ -63,13 +67,35 @@
       <h2>Líderes da Mocidade</h2>
       <p>Departamento do Diác. Natan e Diác. Ana Beatriz — culto dos jovens.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos líderes</a>
+        <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página da mocidade</a>
       </div>
       <figure class="arraial-card-foto">
         <img src="{{ url_for('static', filename='images/mocidade/natan-ana.png') }}" alt="Diác. Natan e Diác. Ana Beatriz">
         <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
       </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card leoas-access-card">
+      <h2>Evento Leoas da Fé</h2>
+      <p>Campanha do culto — aniversário ou culto normal — e calendário.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-leoas" href="{{ url_for('campanha_login', slug='leoas') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leoas') }}">Página Leoas da Fé</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename='images/leoas/lideres.png') }}" alt="Líderes Leoas da Fé">
+        <figcaption>Leoas da Fé</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card leaodejuda-access-card">
+      <h2>Evento Leão de Judá</h2>
+      <p>Campanha do culto — aniversário ou culto normal — e calendário.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-leaodejuda" href="{{ url_for('campanha_login', slug='leaodejuda') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leaodejuda') }}">Página Leão de Judá</a>
+      </div>
     </article>
   </div>
 </section>

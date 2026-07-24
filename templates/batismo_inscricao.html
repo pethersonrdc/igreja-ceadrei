@@ -1,16 +1,28 @@
 {% extends "base.html" %}
 
+{% block body_class %}pagina-fundo tema-batismo-cadastro{% endblock %}
+
 {% block title %}Inscrição Batismo — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
+<section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Evento Batismo</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
   <p>Confira o local e confirme a participação da sua família.</p>
 </section>
 
 {% if fotos %}
-<section class="section">
+<section class="section pagina-fundo-content">
   <div class="section-head">
     <h2>Local do batismo</h2>
     <p>Fotos do sítio alugado para o evento.</p>
@@ -29,7 +41,7 @@
 </section>
 {% endif %}
 
-<section class="section">
+<section class="section pagina-fundo-content">
   <div class="section-head">
     <h2>Quem for para o batismo, acesse e preencha</h2>
     <p>Envie os dados da família e a confirmação de participação.</p>

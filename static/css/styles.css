@@ -2312,3 +2312,544 @@ body.tema-mocidade .btn-primary:hover {
     transition: none !important;
   }
 }
+
+/* ---------- Fundos de página (batismo, cultos, campanhas) ---------- */
+
+body.pagina-fundo {
+  background: #050505;
+}
+
+.fundo-pagina {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #050505;
+}
+
+.fundo-pagina-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.fundo-pagina::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(8, 16, 28, 0.4) 0%, rgba(8, 16, 28, 0.2) 45%, rgba(8, 16, 28, 0.5) 100%);
+}
+
+/* Quando ainda usa CSS variable (Leoas / Cultos) */
+.fundo-pagina[style*="--fundo-img"] {
+  background-image:
+    linear-gradient(180deg, rgba(8, 16, 28, 0.45) 0%, rgba(8, 16, 28, 0.22) 45%, rgba(8, 16, 28, 0.55) 100%),
+    var(--fundo-img);
+  background-size: auto, cover;
+  background-position: center, center;
+  background-repeat: no-repeat;
+}
+
+.fundo-pagina[style*="--fundo-img"]::after {
+  display: none;
+}
+
+/* Leoas / Leão / Cultos — imagem inteira (menos zoom) */
+.fundo-pagina.fundo-pagina--arte[style*="--fundo-img"],
+.fundo-pagina--arte {
+  background-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.08) 42%, rgba(0, 0, 0, 0.35) 100%),
+    var(--fundo-img);
+  background-size: auto, contain;
+  background-position: center, center;
+  background-repeat: no-repeat;
+  background-color: #050505;
+}
+
+.fundo-pagina--arte::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.05) 45%, rgba(0, 0, 0, 0.32) 100%);
+  display: block;
+}
+
+.fundo-pagina--arte .fundo-pagina-img {
+  object-fit: contain;
+  object-position: center center;
+}
+
+body.pagina-fundo .site-header,
+body.pagina-fundo main,
+body.pagina-fundo .site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.pagina-fundo-content {
+  position: relative;
+}
+
+body.tema-batismo-cadastro .pagina-fundo-content .page-hero h1,
+body.tema-batismo-cadastro .pagina-fundo-content .section-head h2,
+body.tema-batismo-login .pagina-fundo-content .page-hero h1,
+body.tema-batismo-painel .pagina-fundo-content .page-hero h1,
+body.tema-batismo-painel .pagina-fundo-content .section-head h2 {
+  color: #fff8ee;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-batismo-cadastro .pagina-fundo-content .page-hero p,
+body.tema-batismo-cadastro .pagina-fundo-content .section-head p,
+body.tema-batismo-login .pagina-fundo-content .page-hero p,
+body.tema-batismo-painel .pagina-fundo-content .page-hero p,
+body.tema-batismo-painel .pagina-fundo-content .section-head p,
+body.tema-batismo-painel .section-link,
+body.tema-batismo-painel .section-link a,
+body.tema-batismo-login .section-link,
+body.tema-batismo-login .section-link a {
+  color: rgba(255, 248, 238, 0.92);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-batismo-cadastro .pagina-fundo-content .eyebrow,
+body.tema-batismo-login .pagina-fundo-content .eyebrow,
+body.tema-batismo-painel .pagina-fundo-content .eyebrow {
+  color: #f0c75e;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-batismo-login,
+body.tema-batismo-painel,
+body.tema-batismo-cadastro {
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+  background: #050505;
+}
+
+body.tema-batismo-login .site-footer,
+body.tema-batismo-painel .site-footer,
+body.tema-batismo-cadastro .site-footer,
+body.tema-batismo-login .footer-brand,
+body.tema-batismo-painel .footer-brand,
+body.tema-batismo-cadastro .footer-brand,
+body.tema-batismo-login .footer-lema,
+body.tema-batismo-painel .footer-lema,
+body.tema-batismo-cadastro .footer-lema,
+body.tema-batismo-login .footer-copy,
+body.tema-batismo-painel .footer-copy,
+body.tema-batismo-cadastro .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Cards claros no estilo Leoas */
+body.tema-batismo-login .admin-card,
+body.tema-batismo-painel .admin-card,
+body.tema-batismo-cadastro .admin-card,
+body.tema-batismo-cadastro .batismo-form {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #1a1208;
+  --ink: #1a1208;
+  --ink-soft: #4a4034;
+  backdrop-filter: blur(8px);
+  border-radius: 1.1rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+body.tema-batismo-login .admin-card label,
+body.tema-batismo-painel .admin-card label,
+body.tema-batismo-cadastro .admin-card label,
+body.tema-batismo-cadastro .batismo-form label,
+body.tema-batismo-painel .admin-card h2,
+body.tema-batismo-painel .admin-card p,
+body.tema-batismo-painel .admin-help,
+body.tema-batismo-cadastro .admin-help {
+  color: #1a1208;
+  text-shadow: none;
+}
+
+body.tema-batismo-login .arraial-lider-foto figcaption {
+  color: #fff8ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-batismo-login .admin-login-wrap {
+  display: grid;
+  gap: 1.5rem;
+  justify-items: center;
+}
+
+@media (min-width: 800px) {
+  body.tema-batismo-login .admin-login-wrap {
+    grid-template-columns: minmax(280px, 380px) auto;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Tabela de inscrições — cores mais fortes e legíveis */
+body.tema-batismo-painel .batismo-table-wrap {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(18, 32, 51, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+body.tema-batismo-painel .batismo-table th {
+  background: #0d3b66;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+body.tema-batismo-painel .batismo-table td {
+  color: #0f1c2e;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+body.tema-batismo-painel .batismo-table td strong {
+  color: #071525;
+  font-weight: 700;
+}
+
+body.tema-batismo-painel .batismo-table td span,
+body.tema-batismo-painel .batismo-table .admin-meta {
+  color: #243447;
+  font-weight: 500;
+}
+
+body.tema-batismo-painel .batismo-table tr:nth-child(even) td {
+  background: #eef4fb;
+}
+
+body.tema-batismo-painel .status-pill {
+  font-weight: 700;
+}
+
+body.tema-batismo-painel .status-pill--vou {
+  background: #1b7a2f;
+  color: #ffffff;
+}
+
+body.tema-batismo-painel .status-pill--analise {
+  background: #c99214;
+  color: #ffffff;
+}
+
+body.tema-batismo-painel .status-pill--desistir {
+  background: #b71c1c;
+  color: #ffffff;
+}
+
+body.tema-batismo-painel .status-form select {
+  border: 2px solid #0d3b66;
+  color: #0f1c2e;
+  font-weight: 600;
+  background: #fff;
+}
+
+body.tema-batismo-painel .status-form .btn-ghost-dark {
+  border: 2px solid #0d3b66;
+  color: #0d3b66;
+  font-weight: 700;
+  background: #ffffff;
+}
+
+body.tema-batismo-painel .status-form .btn-ghost-dark:hover {
+  background: #0d3b66;
+  color: #ffffff;
+}
+
+/* Login pastores — texto claro sobre a imagem */
+body.tema-pastores-login {
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+  background: #050505;
+}
+
+body.tema-pastores-login .page-hero h1,
+body.tema-pastores-login .page-hero p {
+  color: #fff8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-pastores-login .eyebrow {
+  color: #f0c75e;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-pastores-login .site-footer,
+body.tema-pastores-login .footer-brand,
+body.tema-pastores-login .footer-lema,
+body.tema-pastores-login .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-pastores-login .admin-login-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+body.tema-pastores-login .pastores-login-card,
+body.tema-pastores-login .admin-card {
+  width: min(100%, 380px);
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #1a1208;
+  --ink: #1a1208;
+  --ink-soft: #4a4034;
+  backdrop-filter: blur(8px);
+  border-radius: 1.1rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+body.tema-pastores-login .admin-card label {
+  color: #1a1208;
+  text-shadow: none;
+}
+
+/* Login mídia — mesma lógica das Leoas */
+body.tema-midia-login {
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+  background: #050505;
+}
+
+body.tema-midia-login .page-hero h1,
+body.tema-midia-login .page-hero p {
+  color: #fff8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-midia-login .eyebrow {
+  color: #f0c75e;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-midia-login .site-footer,
+body.tema-midia-login .footer-brand,
+body.tema-midia-login .footer-lema,
+body.tema-midia-login .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-midia-login .admin-login-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+body.tema-midia-login .midia-login-card,
+body.tema-midia-login .admin-card {
+  width: min(100%, 380px);
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #1a1208;
+  --ink: #1a1208;
+  --ink-soft: #4a4034;
+  backdrop-filter: blur(8px);
+  border-radius: 1.1rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+body.tema-midia-login .admin-card label {
+  color: #1a1208;
+  text-shadow: none;
+}
+
+/* Cultos — mesmo estilo visual das Leoas */
+body.tema-cultos {
+  --gold: #e0a030;
+  --gold-deep: #b8731a;
+  --sea: #1a1208;
+  --sea-deep: #0d0a05;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
+body.tema-leoas {
+  --gold: #c9a227;
+  --gold-deep: #8a6a12;
+  --sea: #1a1208;
+  --sea-deep: #0d0a05;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
+body.tema-leaodejuda {
+  --gold: #d4af37;
+  --gold-deep: #9a7b18;
+  --sea: #14110c;
+  --sea-deep: #0a0805;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
+body.tema-cultos .site-header,
+body.tema-leoas .site-header,
+body.tema-leaodejuda .site-header {
+  background: rgba(8, 8, 8, 0.78);
+}
+
+body.tema-cultos .page-hero h1,
+body.tema-leoas .page-hero h1,
+body.tema-leaodejuda .page-hero h1,
+body.tema-cultos .page-hero p,
+body.tema-leoas .page-hero p,
+body.tema-leaodejuda .page-hero p,
+body.tema-cultos .section-head h2,
+body.tema-leoas .section-head h2,
+body.tema-leaodejuda .section-head h2,
+body.tema-cultos .section-head p,
+body.tema-leoas .section-head p,
+body.tema-leaodejuda .section-head p,
+body.tema-cultos .section-link,
+body.tema-leoas .section-link,
+body.tema-leaodejuda .section-link,
+body.tema-cultos .section-link a,
+body.tema-leoas .section-link a,
+body.tema-leaodejuda .section-link a {
+  color: #fff8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-cultos .eyebrow,
+body.tema-leoas .eyebrow,
+body.tema-leaodejuda .eyebrow {
+  color: #f0c75e;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-cultos .site-footer,
+body.tema-leoas .site-footer,
+body.tema-leaodejuda .site-footer {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55));
+  border-top-color: rgba(255, 248, 238, 0.18);
+}
+
+body.tema-cultos .footer-brand,
+body.tema-leoas .footer-brand,
+body.tema-leaodejuda .footer-brand,
+body.tema-cultos .footer-lema,
+body.tema-leoas .footer-lema,
+body.tema-leaodejuda .footer-lema,
+body.tema-cultos .footer-copy,
+body.tema-leoas .footer-copy,
+body.tema-leaodejuda .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-cultos .schedule-list--full {
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  color: #fff8ee;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  border: none;
+  box-shadow: none;
+}
+
+body.tema-cultos .schedule-list--full li {
+  border-color: rgba(255, 248, 238, 0.22);
+}
+
+body.tema-cultos .schedule-list--full .schedule-day,
+body.tema-cultos .schedule-list--full strong {
+  color: #fff8ee;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-cultos .schedule-list--full p {
+  color: rgba(255, 248, 238, 0.9);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Cards claros com texto escuro */
+body.tema-leoas .admin-card,
+body.tema-leaodejuda .admin-card,
+body.tema-leoas .campanha-post-card,
+body.tema-leaodejuda .campanha-post-card,
+body.tema-leoas .leoas-card,
+body.tema-leaodejuda .leaodejuda-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #1a1208;
+  --ink: #1a1208;
+  --ink-soft: #4a4034;
+}
+
+body.tema-leoas .admin-card h2,
+body.tema-leaodejuda .admin-card h2,
+body.tema-leoas .campanha-post-card h2,
+body.tema-leaodejuda .campanha-post-card h2,
+body.tema-leoas .admin-card p,
+body.tema-leaodejuda .admin-card p,
+body.tema-leoas .campanha-post-card p,
+body.tema-leaodejuda .campanha-post-card p,
+body.tema-leoas .admin-card label,
+body.tema-leaodejuda .admin-card label,
+body.tema-leoas .admin-card strong,
+body.tema-leaodejuda .admin-card strong {
+  color: #1a1208;
+  text-shadow: none;
+}
+
+.btn-leoas,
+body.tema-leoas .btn-primary {
+  background: linear-gradient(135deg, #c9a227, #8a6a12);
+  border-color: transparent;
+  color: #1a1208;
+}
+
+.btn-leaodejuda,
+body.tema-leaodejuda .btn-primary {
+  background: linear-gradient(135deg, #d4af37, #9a7b18);
+  border-color: transparent;
+  color: #14110c;
+}
+
+.leoas-access-card {
+  background:
+    linear-gradient(160deg, rgba(201, 162, 39, 0.14), rgba(255, 255, 255, 0.92)),
+    rgba(255, 255, 255, 0.55);
+  border-color: rgba(138, 106, 18, 0.2);
+}
+
+.leaodejuda-access-card {
+  background:
+    linear-gradient(160deg, rgba(212, 175, 55, 0.14), rgba(255, 255, 255, 0.92)),
+    rgba(255, 255, 255, 0.55);
+  border-color: rgba(154, 123, 24, 0.2);
+}
+
+.leoas-card,
+.leaodejuda-card,
+.campanha-post-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.campanha-post-card {
+  padding: 1.5rem;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.campanha-post-card img,
+.mocidade-preview {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 1rem;
+  border-radius: 0.85rem;
+}

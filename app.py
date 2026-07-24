@@ -1,5 +1,5 @@
 """
-Igreja CEADREI — servidor Flask com páginas HTML, API JSON e galeria admin.
+Igreja CEASDREI — servidor Flask com páginas HTML, API JSON e galeria admin.
 """
 
 from __future__ import annotations
@@ -27,6 +27,7 @@ from werkzeug.utils import secure_filename
 
 import arraial
 import batismo
+import campanha_eventos
 import casais
 import gallery
 import mocidade
@@ -36,7 +37,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceadrei-dev-secret-change-me")
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB por upload
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
@@ -62,6 +63,21 @@ ARRAIAL_PASSWORD_HASH = generate_password_hash(ARRAIAL_PASSWORD)
 # Senha dos Líderes da Mocidade (Diác. Natan e Diác. Ana Beatriz)
 MOCIDADE_PASSWORD = os.environ.get("MOCIDADE_PASSWORD", "Mocidade")
 MOCIDADE_PASSWORD_HASH = generate_password_hash(MOCIDADE_PASSWORD)
+
+# Senhas Leoas da Fé / Leão de Judá
+LEOAS_PASSWORD = os.environ.get("LEOAS_PASSWORD", "Leoasdafe")
+LEOAS_PASSWORD_HASH = generate_password_hash(LEOAS_PASSWORD)
+LEAODEJUDA_PASSWORD = os.environ.get("LEAODEJUDA_PASSWORD", "Leaodejuda")
+LEAODEJUDA_PASSWORD_HASH = generate_password_hash(LEAODEJUDA_PASSWORD)
+
+CAMPANHA_PASSWORD_HASH = {
+    "leoas": LEOAS_PASSWORD_HASH,
+    "leaodejuda": LEAODEJUDA_PASSWORD_HASH,
+}
+CAMPANHA_SESSION_KEY = {
+    "leoas": "leoas_ok",
+    "leaodejuda": "leaodejuda_ok",
+}
 
 
 def load_json(name: str) -> dict:
@@ -131,6 +147,18 @@ def mocidade_login_required(view):
     return wrapped
 
 
+def campanha_login_required(view):
+    @wraps(view)
+    def wrapped(slug: str, *args, **kwargs):
+        if slug not in CAMPANHA_SESSION_KEY:
+            return redirect(url_for("eventos_page"))
+        if not session.get(CAMPANHA_SESSION_KEY[slug]):
+            return redirect(url_for("campanha_login", slug=slug, next=request.path))
+        return view(slug, *args, **kwargs)
+
+    return wrapped
+
+
 @app.context_processor
 def inject_admin():
     return {
@@ -140,6 +168,8 @@ def inject_admin():
         "pastores_logado": bool(session.get("pastores_ok")),
         "arraial_logado": bool(session.get("arraial_ok")),
         "mocidade_logado": bool(session.get("mocidade_ok")),
+        "leoas_logado": bool(session.get("leoas_ok")),
+        "leaodejuda_logado": bool(session.get("leaodejuda_ok")),
     }
 
 
@@ -567,7 +597,7 @@ def batismo_exportar_pdf():
     pdf.set_auto_page_break(auto=True, margin=12)
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Evento Batismo CEADREI", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 10, "Inscricoes - Evento Batismo CEASDREI", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 10)
     pdf.cell(
         0,
@@ -859,7 +889,7 @@ def casais_exportar_pdf():
     pdf.set_auto_page_break(auto=True, margin=12)
     pdf.add_page()
     pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Encontro de Casais CEADREI", new_x="LMARGIN", new_y="NEXT")
+    pdf.cell(0, 10, "Inscricoes - Encontro de Casais CEASDREI", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font("Helvetica", "", 10)
     pdf.cell(
         0,
@@ -1311,6 +1341,149 @@ def mocidade_page():
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
         foto_lideres=mocidade.FOTO_LIDERES,
         post_ativo=mocidade.obter_post_ativo(),
+    )
+
+
+# ---------- Leoas da Fé / Leão de Judá ----------
+
+@app.route("/evento/<slug>/login", methods=["GET", "POST"])
+def campanha_login(slug: str):
+    if slug not in CAMPANHA_PASSWORD_HASH:
+        return redirect(url_for("eventos_page"))
+    igreja = load_json("igreja.json")
+    info = campanha_eventos.config(slug)
+    erro = None
+    chave = CAMPANHA_SESSION_KEY[slug]
+    if request.method == "POST":
+        senha = request.form.get("senha", "")
+        if check_password_hash(CAMPANHA_PASSWORD_HASH[slug], senha):
+            session[chave] = True
+            destino = request.args.get("next") or url_for("campanha_admin", slug=slug)
+            return redirect(destino)
+        erro = "Senha incorreta. Tente novamente."
+    if session.get(chave):
+        return redirect(url_for("campanha_admin", slug=slug))
+    return render_template(
+        "campanha_login.html",
+        igreja=igreja,
+        erro=erro,
+        slug=slug,
+        info=info,
+    )
+
+
+@app.route("/evento/<slug>/logout")
+def campanha_logout(slug: str):
+    chave = CAMPANHA_SESSION_KEY.get(slug)
+    if chave:
+        session.pop(chave, None)
+    return redirect(url_for("eventos_page"))
+
+
+@app.route("/evento/<slug>/admin", methods=["GET", "POST"])
+@campanha_login_required
+def campanha_admin(slug: str):
+    igreja = load_json("igreja.json")
+    info = campanha_eventos.config(slug)
+
+    if request.method == "POST":
+        acao = request.form.get("acao", "post").strip()
+        if acao == "evento":
+            _processar_evento_responsavel(slug)
+            return redirect(url_for("campanha_admin", slug=slug))
+
+        titulo = request.form.get("titulo", "").strip() or info["titulo"]
+        texto = request.form.get("texto", "").strip()
+        tipo = request.form.get("tipo", "culto_normal").strip()
+        arquivo = request.files.get("foto")
+        if not texto:
+            flash("Escreva a mensagem da campanha.", "erro")
+            return redirect(url_for("campanha_admin", slug=slug))
+
+        nome_final = ""
+        if arquivo and arquivo.filename:
+            if not campanha_eventos.extensao_ok(arquivo.filename):
+                flash("Foto: use JPG, PNG, WEBP ou GIF.", "erro")
+                return redirect(url_for("campanha_admin", slug=slug))
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_final = f"{uuid.uuid4().hex}{extensao}"
+            campanha_eventos.init_db(slug)
+            arquivo.save(info["upload_dir"] / nome_final)
+
+        campanha_eventos.criar_post(
+            slug,
+            titulo=titulo,
+            texto=texto,
+            tipo=tipo,
+            foto=nome_final,
+        )
+        flash("Campanha publicada!", "ok")
+        return redirect(url_for("campanha_admin", slug=slug))
+
+    editar_evento = None
+    if request.args.get("editar_evento"):
+        editar_evento = pastores.obter_evento_lider(
+            request.args.get("editar_evento", type=int),
+            origem=slug,
+        )
+
+    return render_template(
+        "campanha_admin.html",
+        igreja=igreja,
+        slug=slug,
+        info=info,
+        tipos=campanha_eventos.TIPOS_CULTO,
+        posts=campanha_eventos.listar_posts(slug),
+        post_ativo=campanha_eventos.obter_post_ativo(slug),
+        eventos_calendario=pastores.listar_eventos_lideres(origem=slug),
+        editar_evento=editar_evento,
+        info_evento=pastores.RESPONSAVEIS_EVENTO[slug],
+    )
+
+
+@app.route("/evento/<slug>/admin/post/<int:post_id>/apagar", methods=["POST"])
+@campanha_login_required
+def campanha_apagar_post(slug: str, post_id: int):
+    if campanha_eventos.apagar_post(slug, post_id):
+        flash("Post apagado.", "ok")
+    else:
+        flash("Post não encontrado.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
+
+
+@app.route("/evento/<slug>/admin/post/<int:post_id>/desativar", methods=["POST"])
+@campanha_login_required
+def campanha_desativar_post(slug: str, post_id: int):
+    if campanha_eventos.desativar_post(slug, post_id):
+        flash("Post desativado.", "ok")
+    else:
+        flash("Post não encontrado.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
+
+
+@app.route("/evento/<slug>/admin/evento/<int:evento_id>/apagar", methods=["POST"])
+@campanha_login_required
+def campanha_apagar_evento(slug: str, evento_id: int):
+    if pastores.apagar_evento_lider(evento_id, origem=slug):
+        flash("Evento removido do calendário.", "ok")
+    else:
+        flash("Evento não encontrado.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
+
+
+@app.route("/evento/<slug>")
+def campanha_page(slug: str):
+    if slug not in campanha_eventos.EVENTOS:
+        return redirect(url_for("eventos_page"))
+    igreja = load_json("igreja.json")
+    info = campanha_eventos.config(slug)
+    return render_template(
+        "campanha.html",
+        igreja=igreja,
+        slug=slug,
+        info=info,
+        post_ativo=campanha_eventos.obter_post_ativo(slug),
     )
 
 

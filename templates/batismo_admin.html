@@ -1,9 +1,21 @@
 {% extends "base.html" %}
 
+{% block body_class %}pagina-fundo tema-batismo-painel{% endblock %}
+
 {% block title %}Admin Batismo — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
+<section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Evento Batismo</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
   <p>Publique fotos do sítio alugado e acompanhe as famílias inscritas.</p>
@@ -16,7 +28,7 @@
   </p>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for categoria, mensagem in messages %}

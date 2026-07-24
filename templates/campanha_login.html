@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block body_class %}pagina-fundo tema-pastores-login{% endblock %}
+{% block body_class %}{{ info.tema }} pagina-fundo{% endblock %}
 
-{% block title %}Pastores — Acesso{% endblock %}
+{% block title %}{{ info.titulo }} — Acesso{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
   <img
     class="fundo-pagina-img"
-    src="{{ url_for('static', filename='images/pastores/fundo-login.png') }}"
+    src="{{ url_for('static', filename=info.fundo) }}"
     alt=""
   >
 </div>
@@ -17,18 +17,18 @@
 {% block content %}
 <section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Área restrita</p>
-  <h1>Painel dos Pastores</h1>
-  <p>Acesso dos Lideres — escala de obreiros, destaque do culto e calendário.</p>
+  <h1>{{ info.h1 }}</h1>
+  <p>Acesso dos Lideres — {{ info.titulo }}.</p>
 </section>
 
 <section class="section admin-login-wrap pagina-fundo-content">
-  <form class="admin-card pastores-login-card" method="post" action="{{ url_for('pastores_login', next=request.args.get('next', '')) }}">
+  <form class="admin-card {{ info.card }}" method="post" action="{{ url_for('campanha_login', slug=slug, next=request.args.get('next', '')) }}">
     <label for="senha">Senha de acesso</label>
     <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
     {% if erro %}
     <p class="admin-msg admin-msg--erro">{{ erro }}</p>
     {% endif %}
-    <button class="btn btn-primary btn-pastores" type="submit">Entrar</button>
+    <button class="btn btn-primary {{ info.btn }}" type="submit">Entrar</button>
   </form>
 </section>
 {% endblock %}

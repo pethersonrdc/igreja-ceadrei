@@ -17,7 +17,7 @@ DB_PATH = DATA_DIR / "pastores.db"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 H1_PASTORES = (
-    "Área pastoral da CEADREI — organize a escala, a palavra e o calendário dos líderes."
+    "Área pastoral da CEASDREI — organize a escala, a palavra e o calendário dos líderes."
 )
 
 # Cada responsável registra o próprio evento no calendário compartilhado
@@ -37,6 +37,14 @@ RESPONSAVEIS_EVENTO = {
     "mocidade": {
         "titulo": "Culto dos Jovens",
         "lider": "Diác. Natan e Diác. Ana Beatriz",
+    },
+    "leoas": {
+        "titulo": "Leoas da Fé",
+        "lider": "Leoas da Fé",
+    },
+    "leaodejuda": {
+        "titulo": "Leão de Judá",
+        "lider": "Leão de Judá",
     },
 }
 

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block body_class %}{{ info.tema }} pagina-fundo{% endblock %}
+
+{% block title %}{{ info.titulo }} — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename=info.fundo) }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">{{ info.titulo }}</p>
+  <h1>{{ info.h1 }}</h1>
+  <p>{{ info.descricao }}</p>
+</section>
+
+{% if post_ativo %}
+<section class="section pagina-fundo-content">
+  <article class="campanha-post-card {{ info.card }}">
+    <p class="eyebrow">{{ post_ativo.tipo_label }}</p>
+    <h2>{{ post_ativo.titulo }}</h2>
+    <p>{{ post_ativo.texto }}</p>
+    {% if post_ativo.foto %}
+    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}">
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+<section class="section pagina-fundo-content">
+  <article class="admin-card {{ info.card }}">
+    <h2>{{ info.titulo }}</h2>
+    <p>Área dos líderes para publicar a campanha do culto.</p>
+    <a class="btn btn-primary {{ info.btn }}" href="{{ url_for('campanha_login', slug=slug) }}">Acesso dos Lideres</a>
+  </article>
+</section>
+{% endblock %}

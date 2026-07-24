@@ -1,15 +1,25 @@
 {% extends "base.html" %}
 
+{% block body_class %}pagina-fundo tema-cultos{% endblock %}
+
 {% block title %}Cultos — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div
+  class="fundo-pagina fundo-pagina--arte"
+  style="--fundo-img: url('{{ url_for('static', filename='images/cultos/fundo-cultos.png') }}')"
+  aria-hidden="true"
+></div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
+<section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Programação</p>
   <h1>Horários de culto</h1>
   <p>Venha adorar conosco. Todos são bem-vindos.</p>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   <ul class="schedule-list schedule-list--full" id="lista-cultos">
     {% for culto in cultos %}
     <li>

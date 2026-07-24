@@ -47,8 +47,16 @@
       {% if mocidade_logado %}
       <a href="{{ url_for('mocidade_admin') }}">Mocidade</a>
       {% endif %}
+      {% if leoas_logado %}
+      <a href="{{ url_for('campanha_admin', slug='leoas') }}">Leoas</a>
+      {% endif %}
+      {% if leaodejuda_logado %}
+      <a href="{{ url_for('campanha_admin', slug='leaodejuda') }}">Leão</a>
+      {% endif %}
     </nav>
   </header>
+
+  {% block page_bg %}{% endblock %}
 
   <main>
     {% block content %}{% endblock %}

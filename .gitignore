@@ -42,6 +42,14 @@ static/uploads/mocidade/*
 !static/uploads/mocidade/.gitkeep
 data/mocidade.db
 
+# Leoas da Fé / Leão de Judá
+static/uploads/leoas/*
+!static/uploads/leoas/.gitkeep
+data/leoas.db
+static/uploads/leaodejuda/*
+!static/uploads/leaodejuda/.gitkeep
+data/leaodejuda.db
+
 # Sistema
 .DS_Store
 Thumbs.db

@@ -1,16 +1,28 @@
 {% extends "base.html" %}
 
+{% block body_class %}pagina-fundo tema-batismo-login{% endblock %}
+
 {% block title %}Evento Batismo — Acesso{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
+<section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Área restrita</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
-  <p>Acesso da responsável pelo Evento Batismo.</p>
+  <p>Acesso dos Lideres — Evento Batismo.</p>
 </section>
 
-<section class="section arraial-login-layout">
-  <form class="admin-card" method="post" action="{{ url_for('batismo_login', next=request.args.get('next', '')) }}">
+<section class="section admin-login-wrap pagina-fundo-content">
+  <form class="admin-card batismo-login-card" method="post" action="{{ url_for('batismo_login', next=request.args.get('next', '')) }}">
     <label for="senha">Senha de acesso</label>
     <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
     {% if erro %}

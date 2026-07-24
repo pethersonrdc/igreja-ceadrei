@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block body_class %}{{ info.tema }} pagina-fundo{% endblock %}
+
+{% block title %}Admin {{ info.titulo }} — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename=info.fundo) }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">{{ info.titulo }}</p>
+  <h1>{{ info.h1 }}</h1>
+  <p>Publique um post da campanha (aniversário ou culto normal) e registre no calendário.</p>
+  <p class="section-link">
+    <a href="{{ url_for('campanha_page', slug=slug) }}">Ver página pública</a>
+    ·
+    <a href="{{ url_for('campanha_logout', slug=slug) }}">Sair</a>
+  </p>
+</section>
+
+<section class="section pagina-fundo-content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card {{ info.card }}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="post">
+    <h2>Post da campanha do culto</h2>
+    <p class="admin-help">Escolha se é aniversário ou culto normal. O post ativo aparece na página do evento.</p>
+
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Campanha desta semana">
+
+    <label for="tipo">Tipo do culto</label>
+    <select id="tipo" name="tipo" required>
+      {% for chave, rotulo in tipos.items() %}
+      <option value="{{ chave }}">{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="texto">Mensagem da campanha</label>
+    <textarea id="texto" name="texto" rows="5" required placeholder="Escreva o recado da campanha..."></textarea>
+
+    <label for="foto">Foto (opcional)</label>
+    <input id="foto" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+
+    <button class="btn btn-primary {{ info.btn }}" type="submit">Publicar campanha</button>
+  </form>
+</section>
+
+{% if post_ativo %}
+<section class="section pagina-fundo-content">
+  <article class="admin-card {{ info.card }}">
+    <h2>Post ativo</h2>
+    <span class="status-pill status-pill--vou">{{ post_ativo.tipo_label }}</span>
+    <strong>{{ post_ativo.titulo }}</strong>
+    <p class="admin-meta">{{ post_ativo.criado_em.replace('T', ' ') }}</p>
+    <p>{{ post_ativo.texto }}</p>
+    {% if post_ativo.foto %}
+    <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/' + slug + '/' + post_ativo.foto) }}" alt="">
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
+{% if posts %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Posts publicados</h2>
+  </div>
+  <ul class="admin-posts">
+    {% for post in posts %}
+    <li class="admin-card {{ info.card }}">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ post.titulo }}</strong>
+          <span class="status-pill">{{ post.tipo_label }}</span>
+          {% if post.ativo %}<span class="status-pill status-pill--vou">Ativo</span>{% endif %}
+          <p class="admin-meta">{{ post.criado_em.replace('T', ' ') }}</p>
+          <p>{{ post.texto }}</p>
+        </div>
+        <div>
+          {% if post.ativo %}
+          <form method="post" action="{{ url_for('campanha_desativar_post', slug=slug, post_id=post.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Desativar</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('campanha_apagar_post', slug=slug, post_id=post.id) }}" onsubmit="return confirm('Apagar este post?');" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </div>
+      </div>
+      {% if post.foto %}
+      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/' + slug + '/' + post.foto) }}" alt="">
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+{% with
+  card_class=info.card,
+  btn_class=info.btn,
+  cancel_url=url_for('campanha_admin', slug=slug),
+  edit_url_base=url_for('campanha_admin', slug=slug) + '?editar_evento=',
+  delete_url_base=url_for('campanha_admin', slug=slug) + '/evento/'
+%}
+  {% include 'partials/evento_responsavel_form.html' %}
+{% endwith %}
+{% endblock %}
