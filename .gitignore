@@ -50,6 +50,11 @@ static/uploads/leaodejuda/*
 !static/uploads/leaodejuda/.gitkeep
 data/leaodejuda.db
 
+# Papo de Altar
+static/uploads/porta_altar/*
+!static/uploads/porta_altar/.gitkeep
+data/porta_altar.db
+
 # Sistema
 .DS_Store
 Thumbs.db
@@ -60,3 +65,8 @@ Thumbs.db
 *.dll
 *.reg
 instrucoes.txt
+
+# Fotos dos líderes (mídia)
+static/uploads/lideres/*
+!static/uploads/lideres/.gitkeep
+data/lideres_fotos.db

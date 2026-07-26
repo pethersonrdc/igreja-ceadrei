@@ -1,29 +1,50 @@
 {% extends "base.html" %}
 
+{% block body_class %}tema-sobre{% endblock %}
+
 {% block title %}Sobre — {{ igreja.nome }}{% endblock %}
 
 {% block content %}
 <div class="sobre-page">
-  <div class="sobre-bg" role="img" aria-label="Cruz, coroa de espinhos e pregos ao pôr do sol"></div>
+  <div class="sobre-bg" aria-hidden="true">
+    <div class="sobre-bg-frame">
+      <img
+        class="sobre-bg-img"
+        src="{{ url_for('static', filename='images/sobre/fundo.png') }}?v=7"
+        alt=""
+        width="1920"
+        height="1080"
+        decoding="async"
+        fetchpriority="high"
+      >
+    </div>
+    <span class="sobre-glow sobre-glow--1"></span>
+    <span class="sobre-glow sobre-glow--2"></span>
+    <span class="sobre-rays"></span>
+    <span class="sobre-particles sobre-particles--a"></span>
+    <span class="sobre-particles sobre-particles--b"></span>
+    <span class="sobre-veil"></span>
+  </div>
+
   <div class="sobre-content">
-    <section class="page-hero">
+    <section class="page-hero sobre-panel">
       <p class="eyebrow">Quem somos</p>
       <h1>{{ igreja.nome_completo }}</h1>
       <p>{{ igreja.sobre.resumo }}</p>
     </section>
 
     <section class="section about-grid">
-      <article>
+      <article class="sobre-panel">
         <h2>Missão</h2>
         <p>{{ igreja.sobre.missao }}</p>
       </article>
-      <article>
+      <article class="sobre-panel">
         <h2>Visão</h2>
         <p>{{ igreja.sobre.visao }}</p>
       </article>
     </section>
 
-    <section class="section">
+    <section class="section sobre-panel">
       <div class="section-head">
         <h2>Nossos valores</h2>
         <p>O que guia nossa caminhada em comunidade.</p>

@@ -7,6 +7,7 @@ from __future__ import annotations
 import io
 import os
 import uuid
+from datetime import date
 from functools import wraps
 from pathlib import Path
 
@@ -32,13 +33,15 @@ import casais
 import gallery
 import mocidade
 import pastores
+import lideres_midia
+import porta_altar
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
-app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB por upload
+app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ceasdrei")
@@ -173,6 +176,22 @@ def inject_admin():
     }
 
 
+def mensagem_do_dia() -> dict:
+    """Retorna um versículo diferente a cada dia do ano."""
+    lista = load_json("mensagens_dia.json").get("mensagens") or []
+    if not lista:
+        return {
+            "texto": "Porque onde estiverem dois ou três reunidos em meu nome, aí estou eu no meio deles.",
+            "referencia": "Mateus 18:20",
+        }
+    indice = date.today().timetuple().tm_yday % len(lista)
+    item = lista[indice]
+    return {
+        "texto": (item.get("texto") or "").strip(),
+        "referencia": (item.get("referencia") or "").strip(),
+    }
+
+
 @app.route("/")
 def home():
     igreja = load_json("igreja.json")
@@ -184,7 +203,7 @@ def home():
     programacao_casais = casais.obter_programacao()
     escala_hoje = pastores.obter_proxima_escala()
     destaque_culto = pastores.obter_destaque()
-    avisos_lideres = pastores.avisos_proximos(7)[:3]
+    eventos_destaque = pastores.eventos_destaque_home(6)
     info_arraial = arraial.info_evento()
     post_mocidade = mocidade.obter_post_ativo()
     return render_template(
@@ -197,10 +216,20 @@ def home():
         casais_programacao=programacao_casais,
         escala_hoje=escala_hoje,
         destaque_culto=destaque_culto,
-        avisos_lideres=avisos_lideres,
+        eventos_destaque=eventos_destaque,
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
         post_mocidade=post_mocidade,
+    )
+
+
+@app.route("/mensagem-do-dia")
+def mensagem_dia_page():
+    igreja = load_json("igreja.json")
+    return render_template(
+        "mensagem_dia.html",
+        igreja=igreja,
+        mensagem_dia=mensagem_do_dia(),
     )
 
 
@@ -221,7 +250,12 @@ def cultos_page():
 def eventos_page():
     igreja = load_json("igreja.json")
     eventos = load_json("eventos.json").get("eventos", [])
-    return render_template("eventos.html", igreja=igreja, eventos=eventos)
+    return render_template(
+        "eventos.html",
+        igreja=igreja,
+        eventos=eventos,
+        fotos_lideres=lideres_midia.mapa_fotos(),
+    )
 
 
 @app.route("/contato")
@@ -235,6 +269,202 @@ def galeria_publica():
     igreja = load_json("igreja.json")
     posts = gallery.listar_posts_ativos()
     return render_template("galeria.html", igreja=igreja, posts=posts)
+
+
+# ---------- Papo de Altar (mídia — mesmo login do painel) ----------
+
+@app.route("/porta-do-altar")
+def porta_altar_page():
+    igreja = load_json("igreja.json")
+    return render_template(
+        "porta_altar.html",
+        igreja=igreja,
+        videos_culto=porta_altar.listar_videos_publicos(tipo="pos_culto"),
+        videos_papo=porta_altar.listar_videos_publicos(tipo="papo_altar"),
+        perguntas=porta_altar.listar_perguntas(apenas_ativas=True),
+        aguardando=porta_altar.listar_videos_aguardando()[:6],
+    )
+
+
+@app.route("/porta-do-altar/admin", methods=["GET", "POST"])
+@login_required
+def porta_altar_admin():
+    igreja = load_json("igreja.json")
+    edit_video = None
+    edit_pergunta = None
+    edit_video_id = request.args.get("editar_video", type=int)
+    edit_pergunta_id = request.args.get("editar_pergunta", type=int)
+    if edit_video_id:
+        edit_video = porta_altar.obter_video(edit_video_id)
+    if edit_pergunta_id:
+        edit_pergunta = porta_altar.obter_pergunta(edit_pergunta_id)
+
+    if request.method == "POST":
+        acao = request.form.get("acao", "video_criar").strip()
+
+        if acao == "pergunta_salvar":
+            pergunta = request.form.get("pergunta", "").strip()
+            resposta = request.form.get("resposta", "").strip()
+            ordem_raw = request.form.get("ordem", "0").strip() or "0"
+            pergunta_id = request.form.get("pergunta_id", type=int)
+            try:
+                ordem = int(ordem_raw)
+            except ValueError:
+                ordem = 0
+            if not pergunta:
+                flash("Escreva a pergunta.", "erro")
+                return redirect(url_for("porta_altar_admin"))
+            porta_altar.salvar_pergunta(
+                pergunta=pergunta,
+                resposta=resposta,
+                ordem=ordem,
+                pergunta_id=pergunta_id,
+            )
+            flash("Pergunta salva.", "ok")
+            return redirect(url_for("porta_altar_admin") + "#perguntas")
+
+        titulo = request.form.get("titulo", "").strip()
+        descricao = request.form.get("descricao", "").strip()
+        culto_titulo = request.form.get("culto_titulo", "").strip()
+        termino_em = request.form.get("termino_em", "").strip()
+        tipo = request.form.get("tipo", "pos_culto").strip() or "pos_culto"
+        link_instagram = request.form.get("link_instagram", "").strip()
+        link_facebook = request.form.get("link_facebook", "").strip()
+        arquivo = request.files.get("video")
+        capa_file = request.files.get("capa")
+        video_id = request.form.get("video_id", type=int)
+
+        if not titulo or not termino_em:
+            flash("Informe o título e o horário de liberação.", "erro")
+            return redirect(url_for("porta_altar_admin"))
+
+        porta_altar.init_db()
+        nome_video = ""
+        nome_capa = ""
+
+        if arquivo and arquivo.filename:
+            if not porta_altar.extensao_video_ok(arquivo.filename):
+                flash("Vídeo: use MP4, WEBM, OGG ou MOV.", "erro")
+                return redirect(url_for("porta_altar_admin"))
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_video = f"{uuid.uuid4().hex}{extensao}"
+            arquivo.save(porta_altar.UPLOAD_DIR / nome_video)
+
+        if capa_file and capa_file.filename:
+            if not porta_altar.extensao_capa_ok(capa_file.filename):
+                flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
+                return redirect(url_for("porta_altar_admin"))
+            capa_segura = secure_filename(capa_file.filename)
+            capa_ext = Path(capa_segura).suffix.lower()
+            nome_capa = f"{uuid.uuid4().hex}{capa_ext}"
+            capa_file.save(porta_altar.UPLOAD_DIR / nome_capa)
+
+        if acao == "video_editar" and video_id:
+            if porta_altar.atualizar_video(
+                video_id,
+                titulo=titulo,
+                descricao=descricao,
+                culto_titulo=culto_titulo,
+                termino_em=termino_em,
+                tipo=tipo,
+                arquivo=nome_video,
+                capa=nome_capa,
+                link_instagram=link_instagram,
+                link_facebook=link_facebook,
+            ):
+                flash("Vídeo atualizado.", "ok")
+            else:
+                flash("Vídeo não encontrado.", "erro")
+            return redirect(url_for("porta_altar_admin"))
+
+        if not nome_video:
+            flash("Envie o arquivo de vídeo.", "erro")
+            return redirect(url_for("porta_altar_admin"))
+
+        porta_altar.criar_video(
+            titulo=titulo,
+            descricao=descricao,
+            arquivo=nome_video,
+            capa=nome_capa,
+            culto_titulo=culto_titulo,
+            termino_em=termino_em,
+            tipo=tipo,
+            link_instagram=link_instagram,
+            link_facebook=link_facebook,
+        )
+        flash("Vídeo salvo. Ele aparece na página após o horário de liberação.", "ok")
+        return redirect(url_for("porta_altar_admin"))
+
+    return render_template(
+        "porta_altar_admin.html",
+        igreja=igreja,
+        videos=porta_altar.listar_videos(),
+        perguntas=porta_altar.listar_perguntas(),
+        edit_video=edit_video,
+        edit_pergunta=edit_pergunta,
+        tipos_video=porta_altar.TIPOS_VIDEO,
+    )
+
+
+@app.route("/porta-do-altar/admin/video/<int:video_id>/apagar", methods=["POST"])
+@login_required
+def porta_altar_apagar(video_id: int):
+    if porta_altar.apagar_video(video_id):
+        flash("Vídeo apagado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
+    return redirect(url_for("porta_altar_admin"))
+
+
+@app.route("/porta-do-altar/admin/video/<int:video_id>/desativar", methods=["POST"])
+@login_required
+def porta_altar_desativar(video_id: int):
+    if porta_altar.desativar_video(video_id):
+        flash("Vídeo desativado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
+    return redirect(url_for("porta_altar_admin"))
+
+
+@app.route("/porta-do-altar/admin/video/<int:video_id>/ativar", methods=["POST"])
+@login_required
+def porta_altar_ativar(video_id: int):
+    if porta_altar.ativar_video(video_id):
+        flash("Vídeo ativado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
+    return redirect(url_for("porta_altar_admin"))
+
+
+@app.route("/porta-do-altar/admin/pergunta/<int:pergunta_id>/apagar", methods=["POST"])
+@login_required
+def porta_altar_pergunta_apagar(pergunta_id: int):
+    if porta_altar.apagar_pergunta(pergunta_id):
+        flash("Pergunta apagada.", "ok")
+    else:
+        flash("Pergunta não encontrada.", "erro")
+    return redirect(url_for("porta_altar_admin") + "#perguntas")
+
+
+@app.route("/porta-do-altar/admin/pergunta/<int:pergunta_id>/desativar", methods=["POST"])
+@login_required
+def porta_altar_pergunta_desativar(pergunta_id: int):
+    if porta_altar.desativar_pergunta(pergunta_id):
+        flash("Pergunta desativada.", "ok")
+    else:
+        flash("Pergunta não encontrada.", "erro")
+    return redirect(url_for("porta_altar_admin") + "#perguntas")
+
+
+@app.route("/porta-do-altar/admin/pergunta/<int:pergunta_id>/ativar", methods=["POST"])
+@login_required
+def porta_altar_pergunta_ativar(pergunta_id: int):
+    if porta_altar.ativar_pergunta(pergunta_id):
+        flash("Pergunta ativada.", "ok")
+    else:
+        flash("Pergunta não encontrada.", "erro")
+    return redirect(url_for("porta_altar_admin") + "#perguntas")
 
 
 # ---------- Admin (mídia da igreja) ----------
@@ -251,7 +481,8 @@ def admin_login():
             return redirect(destino)
         erro = "Senha incorreta. Tente novamente."
     if session.get("admin_ok"):
-        return redirect(url_for("admin_galeria"))
+        next_url = request.args.get("next")
+        return redirect(next_url or url_for("admin_galeria"))
     return render_template("admin_login.html", igreja=igreja, erro=erro)
 
 
@@ -268,6 +499,39 @@ def admin_galeria():
     cultos = load_json("cultos.json").get("cultos", [])
 
     if request.method == "POST":
+        acao = request.form.get("acao", "galeria").strip()
+
+        if acao == "lider_foto":
+            perfil_id = request.form.get("perfil_id", "").strip()
+            arquivo = request.files.get("foto")
+            if not perfil_id:
+                flash("Perfil inválido.", "erro")
+                return redirect(url_for("admin_galeria") + "#lideres")
+            if not arquivo or not arquivo.filename:
+                flash("Envie a nova foto do líder.", "erro")
+                return redirect(url_for("admin_galeria") + "#lideres")
+            if not lideres_midia.extensao_ok(arquivo.filename):
+                flash("Foto: use JPG, PNG, WEBP ou GIF.", "erro")
+                return redirect(url_for("admin_galeria") + "#lideres")
+            lideres_midia.init_db()
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_final = f"{perfil_id}_{uuid.uuid4().hex}{extensao}"
+            arquivo.save(lideres_midia.UPLOAD_DIR / nome_final)
+            if lideres_midia.atualizar_foto(perfil_id, nome_final):
+                flash("Foto do líder atualizada.", "ok")
+            else:
+                flash("Não foi possível atualizar a foto.", "erro")
+            return redirect(url_for("admin_galeria") + "#lideres")
+
+        if acao == "lider_restaurar":
+            perfil_id = request.form.get("perfil_id", "").strip()
+            if lideres_midia.restaurar_padrao(perfil_id):
+                flash("Foto restaurada para a imagem padrão.", "ok")
+            else:
+                flash("Perfil não encontrado.", "erro")
+            return redirect(url_for("admin_galeria") + "#lideres")
+
         culto_titulo = request.form.get("culto_titulo", "").strip()
         culto_dia = request.form.get("culto_dia", "").strip()
         titulo = request.form.get("titulo", "").strip() or f"Fotos — {culto_titulo}"
@@ -303,6 +567,7 @@ def admin_galeria():
         igreja=igreja,
         cultos=cultos,
         posts=posts,
+        perfis_lideres=lideres_midia.listar_perfis(),
     )
 
 

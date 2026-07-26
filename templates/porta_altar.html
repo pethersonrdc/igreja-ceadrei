@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block body_class %}pagina-fundo tema-porta-altar{% endblock %}
+
+{% block title %}Papo de Altar — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/porta_altar/fundo.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero porta-altar-hero">
+  <p class="eyebrow">Papo de Altar</p>
+  <h1>Papo de Altar e momentos do culto</h1>
+  <p>Vídeos liberados após o culto, conversas do Papo de Altar e respostas às perguntas da comunidade.</p>
+  {% if admin_logado %}
+  <p class="section-link">
+    <a href="{{ url_for('porta_altar_admin') }}">Abrir painel do Papo de Altar</a>
+  </p>
+  {% else %}
+  <p class="section-link">
+    <a href="{{ url_for('admin_login', next=url_for('porta_altar_admin')) }}">Acesso da mídia</a>
+  </p>
+  {% endif %}
+</section>
+
+{% if videos_papo %}
+<section class="section porta-altar-content">
+  <div class="section-head">
+    <h2>Papo de Altar</h2>
+    <p>Conversas e vídeos da série.</p>
+  </div>
+  <div class="porta-altar-grid">
+    {% for video in videos_papo %}
+    <article class="porta-altar-card">
+      {% if video.capa %}
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      {% endif %}
+      <div class="porta-altar-card-body">
+        <p class="eyebrow">{{ video.culto_titulo or 'Papo de Altar' }}</p>
+        <h3>{{ video.titulo }}</h3>
+        {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
+        <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
+          <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
+          Seu navegador não reproduz este vídeo.
+        </video>
+        {% if video.link_instagram or video.link_facebook %}
+        <p class="porta-altar-social-links">
+          {% if video.link_instagram %}
+          <a href="{{ video.link_instagram }}" target="_blank" rel="noopener noreferrer">Ver no Instagram</a>
+          {% endif %}
+          {% if video.link_facebook %}
+          <a href="{{ video.link_facebook }}" target="_blank" rel="noopener noreferrer">Ver no Facebook</a>
+          {% endif %}
+        </p>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if videos_culto %}
+<section class="section porta-altar-content">
+  <div class="section-head">
+    <h2>Vídeos pós-culto</h2>
+    <p>Disponíveis após o culto.</p>
+  </div>
+  <div class="porta-altar-grid">
+    {% for video in videos_culto %}
+    <article class="porta-altar-card">
+      {% if video.capa %}
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      {% endif %}
+      <div class="porta-altar-card-body">
+        <p class="eyebrow">{{ video.culto_titulo or 'Culto' }}</p>
+        <h3>{{ video.titulo }}</h3>
+        {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
+        <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
+          <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
+          Seu navegador não reproduz este vídeo.
+        </video>
+        {% if video.link_instagram or video.link_facebook %}
+        <p class="porta-altar-social-links">
+          {% if video.link_instagram %}
+          <a href="{{ video.link_instagram }}" target="_blank" rel="noopener noreferrer">Ver no Instagram</a>
+          {% endif %}
+          {% if video.link_facebook %}
+          <a href="{{ video.link_facebook }}" target="_blank" rel="noopener noreferrer">Ver no Facebook</a>
+          {% endif %}
+        </p>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if perguntas %}
+<section class="section porta-altar-content">
+  <div class="section-head">
+    <h2>Perguntas e respostas</h2>
+    <p>Conteúdos preparados pela equipe.</p>
+  </div>
+  <div class="porta-altar-perguntas">
+    {% for item in perguntas %}
+    <details class="porta-altar-pergunta">
+      <summary>{{ item.pergunta }}</summary>
+      {% if item.resposta %}
+      <p>{{ item.resposta }}</p>
+      {% else %}
+      <p>Em breve.</p>
+      {% endif %}
+    </details>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if not videos_papo and not videos_culto and not perguntas %}
+<section class="section porta-altar-content">
+  <article class="admin-card porta-altar-empty">
+    <h2>Aguardando conteúdo</h2>
+    <p>Quando a mídia publicar vídeos ou perguntas — e o horário de liberação chegar — eles aparecem aqui.</p>
+  </article>
+</section>
+{% endif %}
+
+{% if aguardando %}
+<section class="section porta-altar-content">
+  <div class="section-head">
+    <h2>Em breve</h2>
+    <p>Já enviados — liberam no horário marcado.</p>
+  </div>
+  <ul class="porta-altar-aguardando">
+    {% for video in aguardando %}
+    <li>
+      <strong>{{ video.titulo }}</strong>
+      <span>{{ video.tipo_label }} · {{ video.culto_titulo or 'Culto' }} · libera em {{ video.termino_br }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="section porta-altar-content">
+  <div class="porta-altar-redes">
+    <p class="eyebrow">Siga a igreja</p>
+    <div class="porta-altar-form-actions">
+      {% if igreja.contato.instagram %}
+      <a class="btn btn-primary" href="{{ igreja.contato.instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>
+      {% endif %}
+      {% if igreja.contato.facebook %}
+      <a class="btn btn-ghost-dark" href="{{ igreja.contato.facebook }}" target="_blank" rel="noopener noreferrer">Facebook</a>
+      {% endif %}
+      <a
+        class="btn btn-ghost-dark"
+        href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('porta_altar_page', _external=True)|urlencode }}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Compartilhar no Facebook</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

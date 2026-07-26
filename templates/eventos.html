@@ -19,7 +19,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo</a>
       </div>
       <figure class="arraial-card-foto">
-        <img src="{{ url_for('static', filename='images/batismo/sueli.png') }}" alt="Evangelista Sueli">
+        <img src="{{ url_for('static', filename=fotos_lideres.batismo) }}" alt="Evangelista Sueli">
         <figcaption>Evangelista Sueli</figcaption>
       </figure>
     </article>
@@ -32,7 +32,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('casais_page') }}">Página do encontro</a>
       </div>
       <figure class="arraial-card-foto casais-card-foto">
-        <img src="{{ url_for('static', filename='images/casais/robson-luana.png') }}" alt="Diac. Robson e Diac. Luana">
+        <img src="{{ url_for('static', filename=fotos_lideres.casais) }}" alt="Diac. Robson e Diac. Luana">
         <figcaption>Diac. Robson &amp; Diac. Luana</figcaption>
       </figure>
     </article>
@@ -45,7 +45,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('comunicado_obreiros') }}">Comunicado dos obreiros</a>
       </div>
       <figure class="arraial-card-foto">
-        <img src="{{ url_for('static', filename='images/pastores/solange-jose.png') }}" alt="Pas. Solange e Pas. Jose Luiz">
+        <img src="{{ url_for('static', filename=fotos_lideres.pastores) }}" alt="Pas. Solange e Pas. Jose Luiz">
         <figcaption>Pas. Solange &amp; Pas. Jose Luiz</figcaption>
       </figure>
     </article>
@@ -58,7 +58,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('arraial_page') }}">Página do Arraiá</a>
       </div>
       <figure class="arraial-card-foto">
-        <img src="{{ url_for('static', filename='images/arraial/cassia.png') }}" alt="Diac. Cássia">
+        <img src="{{ url_for('static', filename=fotos_lideres.arraial) }}" alt="Diac. Cássia">
         <figcaption>Diac. Cássia</figcaption>
       </figure>
     </article>
@@ -71,7 +71,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página da mocidade</a>
       </div>
       <figure class="arraial-card-foto">
-        <img src="{{ url_for('static', filename='images/mocidade/natan-ana.png') }}" alt="Diác. Natan e Diác. Ana Beatriz">
+        <img src="{{ url_for('static', filename=fotos_lideres.mocidade) }}" alt="Diác. Natan e Diác. Ana Beatriz">
         <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
       </figure>
     </article>
@@ -84,7 +84,7 @@
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leoas') }}">Página Leoas da Fé</a>
       </div>
       <figure class="arraial-card-foto">
-        <img src="{{ url_for('static', filename='images/leoas/lideres.png') }}" alt="Líderes Leoas da Fé">
+        <img src="{{ url_for('static', filename=fotos_lideres.leoas) }}" alt="Líderes Leoas da Fé">
         <figcaption>Leoas da Fé</figcaption>
       </figure>
     </article>
@@ -96,6 +96,10 @@
         <a class="btn btn-primary btn-leaodejuda" href="{{ url_for('campanha_login', slug='leaodejuda') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leaodejuda') }}">Página Leão de Judá</a>
       </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.leaodejuda) }}" alt="Leão de Judá">
+        <figcaption>Leão de Judá</figcaption>
+      </figure>
     </article>
   </div>
 </section>

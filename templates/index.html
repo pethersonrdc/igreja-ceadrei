@@ -12,9 +12,86 @@
     <div class="hero-actions">
       <a class="btn btn-primary" href="{{ url_for('cultos_page') }}">Horários de culto</a>
       <a class="btn btn-ghost" href="{{ url_for('contato') }}">Como chegar</a>
+      <a class="btn btn-primary" href="{{ url_for('mensagem_dia_page') }}">Mensagem do Dia</a>
     </div>
   </div>
 </section>
+
+{% if eventos_destaque %}
+<section class="section home-topico-eventos">
+  <div class="section-head">
+    <p class="eyebrow">Em destaque</p>
+    <h2>Eventos da igreja</h2>
+    <p>Publicados pelos líderes — atualizam sozinhos no início da página.</p>
+  </div>
+  <div class="avisos-lista avisos-lista--destaque">
+    {% for ev in eventos_destaque %}
+    <article class="aviso-card aviso-card--destaque">
+      <strong>{{ ev.titulo }}</strong>
+      <span>
+        {{ ev.data_br }}{% if ev.horario %} · {{ ev.horario }}{% endif %}
+        {% if ev.lider %} · {{ ev.lider }}{% endif %}
+      </span>
+      {% if ev.local %}<span class="aviso-local">{{ ev.local }}</span>{% endif %}
+      {% if ev.aviso_texto or ev.descricao %}
+      <p>{{ ev.aviso_texto or ev.descricao }}</p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  <p class="section-link"><a href="{{ url_for('calendario_lideres') }}">Ver calendário dos líderes</a></p>
+</section>
+{% endif %}
+
+{% if escala_hoje or (destaque_culto and (destaque_culto.porta or destaque_culto.tem_pregador)) %}
+<section class="section home-topico-obreiros">
+  <div class="section-head">
+    <p class="eyebrow">Tópico em destaque</p>
+    <h2>Escala dos obreiros</h2>
+    <p>Quem está servindo neste culto — porta, abertura e palavra.</p>
+  </div>
+
+  {% if escala_hoje %}
+  <article class="obreiros-hoje obreiros-hoje--destaque {% if escala_hoje.eh_hoje %}is-hoje{% endif %}">
+    <p class="eyebrow">{% if escala_hoje.eh_hoje %}Hoje na porta{% else %}Próxima escala{% endif %}</p>
+    <h3>{{ escala_hoje.data_br }} · {{ escala_hoje.dia_semana }}</h3>
+    <div class="obreiros-hoje-grid">
+      <div>
+        <span>Porta vidro</span>
+        <strong>{{ escala_hoje.porta_vidro or '—' }}</strong>
+      </div>
+      <div>
+        <span>Abertura</span>
+        <strong>{{ escala_hoje.abertura or '—' }}</strong>
+      </div>
+      <div>
+        <span>Porta escada</span>
+        <strong>{{ escala_hoje.porta_escada or '—' }}</strong>
+      </div>
+    </div>
+  </article>
+  {% endif %}
+
+  {% if destaque_culto and destaque_culto.tem_pregador %}
+  <article class="pregador-destaque pregador-destaque--home">
+    {% if destaque_culto.pregador_foto %}
+    <img src="{{ url_for('static', filename='uploads/pastores/' + destaque_culto.pregador_foto) }}" alt="{{ destaque_culto.pregador_nome }}">
+    {% endif %}
+    <div>
+      <p class="eyebrow">Ministra a palavra</p>
+      <strong>{{ destaque_culto.pregador_nome }}</strong>
+      {% if destaque_culto.porta %}<span>Porta: {{ destaque_culto.porta }}</span>{% endif %}
+      {% if destaque_culto.abertura_culto %}<span>Abertura: {{ destaque_culto.abertura_culto }}</span>{% endif %}
+    </div>
+  </article>
+  {% endif %}
+
+  <div class="hero-actions" style="margin-top:1.25rem">
+    <a class="btn btn-primary" href="{{ url_for('comunicado_obreiros') }}">Ver comunicado completo</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('calendario_lideres') }}">Calendário dos líderes</a>
+  </div>
+</section>
+{% endif %}
 
 <section class="section verse-section">
   <blockquote>
@@ -119,73 +196,6 @@
     <h2>{{ msg_campanha }}</h2>
     {% if destaque_culto.referencia %}<cite>{{ destaque_culto.referencia }}</cite>{% endif %}
   </article>
-</section>
-{% endif %}
-
-{% if escala_hoje or (destaque_culto and (destaque_culto.porta or destaque_culto.tem_pregador)) %}
-<section class="section">
-  <div class="section-head">
-    <h2>Comunidade dos obreiros</h2>
-    <p>Quem está servindo neste culto — porta, abertura e palavra.</p>
-  </div>
-
-  {% if escala_hoje %}
-  <article class="obreiros-hoje {% if escala_hoje.eh_hoje %}is-hoje{% endif %}">
-    <p class="eyebrow">{% if escala_hoje.eh_hoje %}Hoje na porta{% else %}Próxima escala{% endif %}</p>
-    <h3>{{ escala_hoje.data_br }} · {{ escala_hoje.dia_semana }}</h3>
-    <div class="obreiros-hoje-grid">
-      <div>
-        <span>Porta vidro</span>
-        <strong>{{ escala_hoje.porta_vidro or '—' }}</strong>
-      </div>
-      <div>
-        <span>Abertura</span>
-        <strong>{{ escala_hoje.abertura or '—' }}</strong>
-      </div>
-      <div>
-        <span>Porta escada</span>
-        <strong>{{ escala_hoje.porta_escada or '—' }}</strong>
-      </div>
-    </div>
-  </article>
-  {% endif %}
-
-  {% if destaque_culto and destaque_culto.tem_pregador %}
-  <article class="pregador-destaque pregador-destaque--home">
-    {% if destaque_culto.pregador_foto %}
-    <img src="{{ url_for('static', filename='uploads/pastores/' + destaque_culto.pregador_foto) }}" alt="{{ destaque_culto.pregador_nome }}">
-    {% endif %}
-    <div>
-      <p class="eyebrow">Ministra a palavra</p>
-      <strong>{{ destaque_culto.pregador_nome }}</strong>
-      {% if destaque_culto.porta %}<span>Porta: {{ destaque_culto.porta }}</span>{% endif %}
-      {% if destaque_culto.abertura_culto %}<span>Abertura: {{ destaque_culto.abertura_culto }}</span>{% endif %}
-    </div>
-  </article>
-  {% endif %}
-
-  <div class="hero-actions" style="margin-top:1.25rem">
-    <a class="btn btn-primary" href="{{ url_for('comunicado_obreiros') }}">Ver comunicado completo</a>
-    <a class="btn btn-ghost-dark" href="{{ url_for('calendario_lideres') }}">Calendário dos líderes</a>
-  </div>
-</section>
-{% endif %}
-
-{% if avisos_lideres %}
-<section class="section">
-  <div class="section-head">
-    <h2>Avisos dos líderes</h2>
-    <p>Eventos próximos — fiquem atentos às datas.</p>
-  </div>
-  <div class="avisos-lista">
-    {% for ev in avisos_lideres %}
-    <article class="aviso-card">
-      <strong>{{ ev.titulo }}</strong>
-      <span>{{ ev.data_br }}{% if ev.lider %} · {{ ev.lider }}{% endif %}</span>
-      <p>{{ ev.aviso_texto }}</p>
-    </article>
-    {% endfor %}
-  </div>
 </section>
 {% endif %}
 

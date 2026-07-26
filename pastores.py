@@ -549,3 +549,12 @@ def avisos_proximos(dias_limite: int = 7) -> list[dict]:
         if ev["dias_restantes"] is not None and ev["dias_restantes"] <= dias_limite:
             resultado.append(ev)
     return resultado
+
+
+def eventos_destaque_home(limite: int = 6) -> list[dict]:
+    """
+    Qualquer evento futuro publicado pelos líderes aparece no início da home.
+    Ordenado pela data mais próxima.
+    """
+    eventos = listar_eventos_lideres(incluir_passados=False)
+    return eventos[: max(1, limite)]

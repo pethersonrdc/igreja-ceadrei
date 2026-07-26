@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block body_class %}pagina-fundo tema-porta-altar{% endblock %}
+
+{% block title %}Admin Papo de Altar — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/porta_altar/fundo.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero porta-altar-hero">
+  <p class="eyebrow">Equipe da mídia</p>
+  <h1>Papo de Altar — painel</h1>
+  <p>Publique vídeos do culto e do Papo de Altar, e crie perguntas com respostas para a página pública.</p>
+  <p class="section-link">
+    <a href="{{ url_for('porta_altar_page') }}">Ver página pública</a>
+    ·
+    <a href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
+    ·
+    <a href="{{ url_for('admin_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section porta-altar-content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card porta-altar-form" method="post" enctype="multipart/form-data" id="form-video">
+    <h2>{% if edit_video %}Editar vídeo{% else %}Publicar vídeo{% endif %}</h2>
+    <p class="admin-help">Escolha o tipo: pós-culto ou Papo de Altar. O vídeo só aparece depois da data/hora de liberação.</p>
+
+    <input type="hidden" name="acao" value="{% if edit_video %}video_editar{% else %}video_criar{% endif %}">
+    {% if edit_video %}
+    <input type="hidden" name="video_id" value="{{ edit_video.id }}">
+    {% endif %}
+
+    <label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo" required>
+      {% for chave, rotulo in tipos_video.items() %}
+      <option value="{{ chave }}" {% if (edit_video and edit_video.tipo == chave) or (not edit_video and chave == 'papo_altar') %}selected{% endif %}>{{ rotulo }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" type="text" required placeholder="Ex.: Papo de Altar — episódio 1" value="{{ edit_video.titulo if edit_video else '' }}">
+
+    <label for="culto_titulo">Culto / série</label>
+    <input id="culto_titulo" name="culto_titulo" type="text" placeholder="Ex.: Papo de Altar" value="{{ edit_video.culto_titulo if edit_video else '' }}">
+
+    <label for="termino_em">Liberar a partir de</label>
+    <input id="termino_em" name="termino_em" type="datetime-local" required value="{{ edit_video.termino_local if edit_video else '' }}">
+
+    <label for="descricao">Descrição</label>
+    <textarea id="descricao" name="descricao" rows="3" placeholder="Recado opcional sobre o vídeo">{{ edit_video.descricao if edit_video else '' }}</textarea>
+
+    <label for="video">Arquivo de vídeo{% if edit_video %} (deixe em branco para manter){% endif %}</label>
+    <input id="video" name="video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*" {% if not edit_video %}required{% endif %}>
+
+    <label for="capa">Capa / thumbnail (opcional)</label>
+    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+
+    <h3 class="porta-altar-subhead">Redes sociais (opcional)</h3>
+    <p class="admin-help">Cole o link do Reel/post no Instagram ou Facebook depois de publicar nas redes. Também use os botões de compartilhar abaixo.</p>
+
+    <label for="link_instagram">Link do Instagram</label>
+    <input id="link_instagram" name="link_instagram" type="url" placeholder="https://www.instagram.com/reel/..." value="{{ edit_video.link_instagram if edit_video else '' }}">
+
+    <label for="link_facebook">Link do Facebook</label>
+    <input id="link_facebook" name="link_facebook" type="url" placeholder="https://www.facebook.com/..." value="{{ edit_video.link_facebook if edit_video else '' }}">
+
+    <div class="porta-altar-form-actions">
+      <button class="btn btn-primary" type="submit">{% if edit_video %}Salvar alterações{% else %}Salvar vídeo{% endif %}</button>
+      {% if edit_video %}
+      <a class="btn btn-ghost-dark" href="{{ url_for('porta_altar_admin') }}">Cancelar edição</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="admin-card porta-altar-form porta-altar-share" id="compartilhar">
+    <h2>Compartilhar nas redes</h2>
+    <p class="admin-help">O Instagram e o Facebook não permitem postar o vídeo direto do site sem conta Business da Meta. Use estes atalhos: copie o texto, abra a rede e publique o vídeo.</p>
+    <textarea id="texto-compartilhar" class="porta-altar-share-text" rows="4" readonly>{% if edit_video %}{{ edit_video.titulo }}{% if edit_video.descricao %}
+
+{{ edit_video.descricao }}{% endif %}
+
+Assista no Papo de Altar: {{ url_for('porta_altar_page', _external=True) }}
+#CEASDREI #PapoDeAltar{% else %}Papo de Altar — {{ igreja.nome }}
+
+Assista no Papo de Altar: {{ url_for('porta_altar_page', _external=True) }}
+#CEASDREI #PapoDeAltar{% endif %}</textarea>
+    <div class="porta-altar-form-actions">
+      <button class="btn btn-primary" type="button" id="btn-copiar-texto">Copiar texto da postagem</button>
+      {% if igreja.contato.instagram %}
+      <a class="btn btn-ghost-dark" href="{{ igreja.contato.instagram }}" target="_blank" rel="noopener noreferrer">Abrir Instagram</a>
+      {% endif %}
+      {% if igreja.contato.facebook %}
+      <a class="btn btn-ghost-dark" href="{{ igreja.contato.facebook }}" target="_blank" rel="noopener noreferrer">Abrir Facebook</a>
+      {% endif %}
+      <a
+        class="btn btn-ghost-dark"
+        href="https://www.facebook.com/sharer/sharer.php?u={{ url_for('porta_altar_page', _external=True)|urlencode }}"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Compartilhar página no Facebook</a>
+    </div>
+    <p class="admin-help" id="copiar-feedback" hidden>Texto copiado!</p>
+  </div>
+</section>
+
+{% if videos %}
+<section class="section porta-altar-content">
+  <div class="section-head">
+    <h2>Vídeos cadastrados</h2>
+  </div>
+  <ul class="admin-posts">
+    {% for video in videos %}
+    <li class="admin-card porta-altar-form">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ video.titulo }}</strong>
+          <span class="status-pill status-pill--vou">{{ video.tipo_label }}</span>
+          {% if video.liberado %}
+          <span class="status-pill status-pill--vou">Liberado</span>
+          {% else %}
+          <span class="status-pill status-pill--analise">Aguarda {{ video.termino_br }}</span>
+          {% endif %}
+          {% if not video.ativo %}
+          <span class="status-pill status-pill--desistir">Inativo</span>
+          {% endif %}
+          <p class="admin-meta">{{ video.culto_titulo or 'Culto' }} · {{ video.criado_em.replace('T', ' ') }}</p>
+          {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
+          {% if video.link_instagram or video.link_facebook %}
+          <p class="porta-altar-social-links">
+            {% if video.link_instagram %}<a href="{{ video.link_instagram }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
+            {% if video.link_facebook %}<a href="{{ video.link_facebook }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% endif %}
+          </p>
+          {% endif %}
+        </div>
+        <div>
+          <a class="btn btn-ghost-dark" href="{{ url_for('porta_altar_admin', editar_video=video.id) }}#form-video">Editar</a>
+          {% if video.ativo %}
+          <form method="post" action="{{ url_for('porta_altar_desativar', video_id=video.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Desativar</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('porta_altar_ativar', video_id=video.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Ativar</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('porta_altar_apagar', video_id=video.id) }}" onsubmit="return confirm('Apagar este vídeo?');" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </div>
+      </div>
+      {% if video.arquivo %}
+      <video class="porta-altar-player" controls preload="metadata" style="max-width:420px">
+        <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
+      </video>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="section porta-altar-content" id="perguntas">
+  <form class="admin-card porta-altar-form" method="post">
+    <h2>{% if edit_pergunta %}Editar pergunta{% else %}Criar pergunta{% endif %}</h2>
+    <p class="admin-help">Essas perguntas e respostas aparecem na página pública do Papo de Altar.</p>
+
+    <input type="hidden" name="acao" value="pergunta_salvar">
+    {% if edit_pergunta %}
+    <input type="hidden" name="pergunta_id" value="{{ edit_pergunta.id }}">
+    {% endif %}
+
+    <label for="pergunta">Pergunta</label>
+    <input id="pergunta" name="pergunta" type="text" required placeholder="Ex.: O que é o Papo de Altar?" value="{{ edit_pergunta.pergunta if edit_pergunta else '' }}">
+
+    <label for="resposta">Resposta</label>
+    <textarea id="resposta" name="resposta" rows="4" placeholder="Escreva a resposta">{{ edit_pergunta.resposta if edit_pergunta else '' }}</textarea>
+
+    <label for="ordem">Ordem (menor número aparece primeiro)</label>
+    <input id="ordem" name="ordem" type="number" value="{{ edit_pergunta.ordem if edit_pergunta else 0 }}">
+
+    <div class="porta-altar-form-actions">
+      <button class="btn btn-primary" type="submit">{% if edit_pergunta %}Salvar pergunta{% else %}Adicionar pergunta{% endif %}</button>
+      {% if edit_pergunta %}
+      <a class="btn btn-ghost-dark" href="{{ url_for('porta_altar_admin') }}#perguntas">Cancelar edição</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if perguntas %}
+  <div class="section-head" style="margin-top:2rem">
+    <h2>Perguntas cadastradas</h2>
+  </div>
+  <ul class="admin-posts">
+    {% for item in perguntas %}
+    <li class="admin-card porta-altar-form">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ item.pergunta }}</strong>
+          {% if not item.ativo %}
+          <span class="status-pill status-pill--desistir">Inativa</span>
+          {% endif %}
+          <p class="admin-meta">Ordem {{ item.ordem }}</p>
+          {% if item.resposta %}<p>{{ item.resposta }}</p>{% endif %}
+        </div>
+        <div>
+          <a class="btn btn-ghost-dark" href="{{ url_for('porta_altar_admin', editar_pergunta=item.id) }}#perguntas">Editar</a>
+          {% if item.ativo %}
+          <form method="post" action="{{ url_for('porta_altar_pergunta_desativar', pergunta_id=item.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Desativar</button>
+          </form>
+          {% else %}
+          <form method="post" action="{{ url_for('porta_altar_pergunta_ativar', pergunta_id=item.id) }}" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Ativar</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('porta_altar_pergunta_apagar', pergunta_id=item.id) }}" onsubmit="return confirm('Apagar esta pergunta?');" style="display:inline">
+            <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+          </form>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var btn = document.getElementById("btn-copiar-texto");
+  var area = document.getElementById("texto-compartilhar");
+  var ok = document.getElementById("copiar-feedback");
+  if (!btn || !area) return;
+  btn.addEventListener("click", function () {
+    area.select();
+    navigator.clipboard.writeText(area.value).then(function () {
+      if (ok) {
+        ok.hidden = false;
+        setTimeout(function () { ok.hidden = true; }, 2200);
+      }
+    }).catch(function () {
+      document.execCommand("copy");
+      if (ok) {
+        ok.hidden = false;
+        setTimeout(function () { ok.hidden = true; }, 2200);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-mensagem-dia{% endblock %}
+
+{% block title %}Mensagem do Dia — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<div class="msg-dia-bg" aria-hidden="true">
+  <span class="msg-dia-glow msg-dia-glow--1"></span>
+  <span class="msg-dia-glow msg-dia-glow--2"></span>
+  <span class="msg-dia-glow msg-dia-glow--3"></span>
+  <span class="msg-dia-rays"></span>
+  <span class="msg-dia-particles"></span>
+</div>
+
+<section class="msg-dia-stage">
+  <div class="msg-dia-visual">
+    <img
+      class="msg-dia-emblem"
+      src="{{ url_for('static', filename='images/emblema.png') }}"
+      alt=""
+      width="88"
+      height="88"
+    >
+    <p class="msg-dia-eyebrow">Palavra de Deus</p>
+    <h1 class="msg-dia-title">Mensagem do Dia</h1>
+    <div class="msg-dia-frame">
+      <span class="msg-dia-ornament msg-dia-ornament--top" aria-hidden="true"></span>
+      <blockquote class="msg-dia-quote">
+        <p>“{{ mensagem_dia.texto }}”</p>
+        {% if mensagem_dia.referencia %}
+        <cite>{{ mensagem_dia.referencia }}</cite>
+        {% endif %}
+      </blockquote>
+      <span class="msg-dia-ornament msg-dia-ornament--bottom" aria-hidden="true"></span>
+    </div>
+    <p class="msg-dia-note">Renovada todos os dias para fortalecer a sua fé.</p>
+    <a class="btn btn-primary msg-dia-back" href="{{ url_for('home') }}">Voltar ao início</a>
+  </div>
+</section>
+{% endblock %}

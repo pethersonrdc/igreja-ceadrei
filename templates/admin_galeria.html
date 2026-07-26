@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block body_class %}tema-admin-galeria{% endblock %}
+
 {% block title %}Admin Galeria — {{ igreja.nome }}{% endblock %}
 
 {% block content %}
@@ -7,11 +9,13 @@
   <p class="eyebrow">Painel da mídia</p>
   <h1>Galeria dos cultos</h1>
   <p>
-    Publique as fotos do culto. Elas aparecem na página inicial e na galeria
-    até você apagar manualmente neste painel.
+    Publique as fotos do culto e atualize as fotos dos líderes dos eventos
+    quando quiser.
   </p>
   <p class="section-link">
     <a href="{{ url_for('galeria_publica') }}">Ver galeria pública</a>
+    ·
+    <a href="#lideres">Fotos dos líderes</a>
     ·
     <a href="{{ url_for('admin_logout') }}">Sair</a>
   </p>
@@ -28,6 +32,7 @@
 
   <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
     <h2>Nova postagem</h2>
+    <input type="hidden" name="acao" value="galeria">
 
     <label for="culto_titulo">Culto</label>
     <select id="culto_titulo" name="culto_titulo" required>
@@ -50,6 +55,49 @@
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
   </form>
+</section>
+
+<section class="section" id="lideres">
+  <div class="section-head">
+    <h2>Fotos dos líderes</h2>
+    <p>Essas fotos aparecem na página Eventos. Atualize quando quiser.</p>
+  </div>
+
+  <div class="lideres-admin-grid">
+    {% for perfil in perfis_lideres %}
+    <article class="admin-card lider-perfil-card">
+      <figure class="lider-perfil-foto">
+        <img src="{{ url_for('static', filename=perfil.foto) }}" alt="{{ perfil.nome }}">
+        <figcaption>
+          <strong>{{ perfil.nome }}</strong>
+          <span>{{ perfil.departamento }}</span>
+        </figcaption>
+      </figure>
+
+      <form method="post" enctype="multipart/form-data" class="lider-perfil-form">
+        <input type="hidden" name="acao" value="lider_foto">
+        <input type="hidden" name="perfil_id" value="{{ perfil.id }}">
+        <label for="foto-{{ perfil.id }}">Atualizar imagem do perfil</label>
+        <input
+          id="foto-{{ perfil.id }}"
+          name="foto"
+          type="file"
+          accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+          required
+        >
+        <button class="btn btn-primary" type="submit">Salvar nova foto</button>
+      </form>
+
+      {% if perfil.custom %}
+      <form method="post" onsubmit="return confirm('Voltar para a foto padrão?');">
+        <input type="hidden" name="acao" value="lider_restaurar">
+        <input type="hidden" name="perfil_id" value="{{ perfil.id }}">
+        <button class="btn btn-ghost-dark" type="submit">Usar foto padrão</button>
+      </form>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
 </section>
 
 <section class="section">
