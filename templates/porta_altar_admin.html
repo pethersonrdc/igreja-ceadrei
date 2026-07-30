@@ -59,6 +59,46 @@
     <label for="culto_titulo">Culto / série</label>
     <input id="culto_titulo" name="culto_titulo" type="text" placeholder="Ex.: Papo de Altar" value="{{ edit_video.culto_titulo if edit_video else '' }}">
 
+    <div class="porta-altar-palavra-box" id="palavra-culto-box">
+      <h3 class="porta-altar-subhead">Palavra do culto</h3>
+      <p class="admin-help">Clique numa palavra da nuvem ou digite a sua. Ela fica salva com o vídeo e aparece em destaque na página pública.</p>
+      <div
+        class="porta-altar-nuvem"
+        id="nuvem-palavras"
+        role="listbox"
+        aria-label="Escolher palavra do culto"
+      >
+        {% set palavras_nuvem = [
+          'Fé', 'Graça', 'Perdão', 'Esperança', 'Amor', 'Salvação',
+          'Adoração', 'Comunhão', 'Misericórdia', 'Santidade', 'Poder',
+          'Promessa', 'Paz', 'Alegria', 'Obediência', 'Humildade',
+          'Oração', 'Vitória', 'Restauração', 'Arrependimento', 'Serviço',
+          'Discipulado', 'Unção', 'Liberdade', 'Gratidão'
+        ] %}
+        {% for palavra in palavras_nuvem %}
+        <button
+          type="button"
+          class="porta-altar-nuvem-palavra porta-altar-nuvem-palavra--{{ loop.index0 % 6 }}"
+          data-palavra="{{ palavra }}"
+          role="option"
+        >{{ palavra }}</button>
+        {% endfor %}
+      </div>
+      <p class="porta-altar-palavra-destaque" id="palavra-destaque" hidden>
+        Palavra escolhida: <strong id="palavra-destaque-texto"></strong>
+      </p>
+      <label for="palavra_culto">Palavra do culto (ou digite a sua)</label>
+      <input
+        id="palavra_culto"
+        name="palavra_culto"
+        type="text"
+        maxlength="80"
+        placeholder="Ex.: Graça"
+        value="{{ edit_video.palavra_culto if edit_video else '' }}"
+        autocomplete="off"
+      >
+    </div>
+
     <label for="termino_em">Liberar a partir de</label>
     <input id="termino_em" name="termino_em" type="datetime-local" required value="{{ edit_video.termino_local if edit_video else '' }}">
 
@@ -140,6 +180,9 @@ Assista no Papo de Altar: {{ url_for('porta_altar_page', _external=True) }}
           <span class="status-pill status-pill--desistir">Inativo</span>
           {% endif %}
           <p class="admin-meta">{{ video.culto_titulo or 'Culto' }} · {{ video.criado_em.replace('T', ' ') }}</p>
+          {% if video.palavra_culto %}
+          <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
+          {% endif %}
           {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
           {% if video.link_instagram or video.link_facebook %}
           <p class="porta-altar-social-links">
@@ -247,22 +290,62 @@ Assista no Papo de Altar: {{ url_for('porta_altar_page', _external=True) }}
   var btn = document.getElementById("btn-copiar-texto");
   var area = document.getElementById("texto-compartilhar");
   var ok = document.getElementById("copiar-feedback");
-  if (!btn || !area) return;
-  btn.addEventListener("click", function () {
-    area.select();
-    navigator.clipboard.writeText(area.value).then(function () {
-      if (ok) {
-        ok.hidden = false;
-        setTimeout(function () { ok.hidden = true; }, 2200);
-      }
-    }).catch(function () {
-      document.execCommand("copy");
-      if (ok) {
-        ok.hidden = false;
-        setTimeout(function () { ok.hidden = true; }, 2200);
-      }
+  if (btn && area) {
+    btn.addEventListener("click", function () {
+      area.select();
+      navigator.clipboard.writeText(area.value).then(function () {
+        if (ok) {
+          ok.hidden = false;
+          setTimeout(function () { ok.hidden = true; }, 2200);
+        }
+      }).catch(function () {
+        document.execCommand("copy");
+        if (ok) {
+          ok.hidden = false;
+          setTimeout(function () { ok.hidden = true; }, 2200);
+        }
+      });
     });
+  }
+
+  var input = document.getElementById("palavra_culto");
+  var nuvem = document.getElementById("nuvem-palavras");
+  var destaque = document.getElementById("palavra-destaque");
+  var destaqueTexto = document.getElementById("palavra-destaque-texto");
+  if (!input || !nuvem) return;
+
+  function syncNuvem(valor) {
+    var normalizado = (valor || "").trim().toLocaleLowerCase("pt-BR");
+    var botoes = nuvem.querySelectorAll("[data-palavra]");
+    botoes.forEach(function (botao) {
+      var mesma = botao.getAttribute("data-palavra").toLocaleLowerCase("pt-BR") === normalizado;
+      botao.classList.toggle("is-selected", mesma);
+      botao.setAttribute("aria-selected", mesma ? "true" : "false");
+    });
+    if (destaque && destaqueTexto) {
+      if (normalizado) {
+        destaque.hidden = false;
+        destaqueTexto.textContent = valor.trim();
+      } else {
+        destaque.hidden = true;
+        destaqueTexto.textContent = "";
+      }
+    }
+  }
+
+  nuvem.addEventListener("click", function (evento) {
+    var botao = evento.target.closest("[data-palavra]");
+    if (!botao) return;
+    input.value = botao.getAttribute("data-palavra");
+    syncNuvem(input.value);
+    input.focus();
   });
+
+  input.addEventListener("input", function () {
+    syncNuvem(input.value);
+  });
+
+  syncNuvem(input.value);
 })();
 </script>
 {% endblock %}

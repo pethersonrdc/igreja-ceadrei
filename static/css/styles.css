@@ -485,6 +485,34 @@ body.tema-mensagem-dia .site-footer {
   min-width: 180px;
 }
 
+.msg-dia-share {
+  margin: 0 0 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.msg-dia-share-label {
+  margin: 0;
+  color: rgba(255, 248, 238, 0.86);
+  font-size: 0.95rem;
+}
+
+.msg-dia-share-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.msg-dia-share-hint {
+  margin: 0;
+  max-width: 28rem;
+  color: #f0c75e;
+  font-size: 0.92rem;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .msg-dia-glow,
   .msg-dia-rays,
@@ -1846,6 +1874,102 @@ body.tema-porta-altar .porta-altar-form textarea:hover {
   margin-top: 0;
 }
 
+.pessoa-block {
+  margin-top: 1rem;
+}
+
+.pessoa-block:first-of-type {
+  margin-top: 0;
+}
+
+.pessoa-block-title {
+  margin: 0 0 0.45rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.pessoa-row--sexo {
+  grid-template-columns: 1.35fr 1fr auto;
+  align-items: end;
+}
+
+.sexo-field {
+  display: grid;
+  gap: 0.28rem;
+  align-content: end;
+  min-width: 0;
+}
+
+.sexo-field-label {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  line-height: 1;
+}
+
+.sexo-picker {
+  margin: 0;
+  padding: 2px;
+  border: 1px solid rgba(18, 32, 51, 0.16);
+  border-radius: 999px;
+  background: rgba(18, 32, 51, 0.04);
+  height: 34px;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+}
+
+.sexo-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  min-width: 32px;
+  height: 28px;
+  padding: 0 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  color: var(--ink-soft);
+  user-select: none;
+}
+
+.sexo-option span {
+  position: relative;
+  z-index: 1;
+}
+
+.sexo-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.sexo-option:has(input:checked) {
+  background: var(--gold-deep, #8f6a28);
+  color: #fff8ee;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.sexo-option:has(input:focus-visible) {
+  outline: 2px solid rgba(143, 106, 40, 0.45);
+  outline-offset: 1px;
+}
+
+.filho-row--sexo {
+  grid-template-columns: 1.3fr 1fr auto;
+}
+
+.filho-row--sexo.filho-row--com-remover {
+  grid-template-columns: 1.2fr 0.9fr auto auto;
+}
+
 .filhos-block {
   margin-top: 0.9rem;
 }
@@ -1904,8 +2028,11 @@ body.tema-porta-altar .porta-altar-form textarea:hover {
 
 @media (max-width: 700px) {
   .pessoa-row,
+  .pessoa-row--sexo,
   .filho-row,
-  .filho-row--com-remover {
+  .filho-row--sexo,
+  .filho-row--com-remover,
+  .filho-row--sexo.filho-row--com-remover {
     grid-template-columns: 1fr;
   }
 }
@@ -2014,6 +2141,58 @@ body.tema-casais .btn-primary:hover,
 .btn-casais:hover {
   background: linear-gradient(135deg, #a04a60, #7a3042);
   color: #fff8f5;
+}
+
+/* Inscrição Casais com fundo artístico (sem zoom) */
+body.tema-casais.pagina-fundo {
+  background: #050505;
+  color: #fff8ee;
+}
+
+body.tema-casais.pagina-fundo .pagina-fundo-content .page-hero h1,
+body.tema-casais.pagina-fundo .pagina-fundo-content .section-head h2 {
+  color: #fff8ee;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-casais.pagina-fundo .pagina-fundo-content .page-hero p,
+body.tema-casais.pagina-fundo .pagina-fundo-content .section-head p {
+  color: rgba(255, 248, 238, 0.92);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-casais.pagina-fundo .pagina-fundo-content .eyebrow {
+  color: #e8a0ad;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-casais.pagina-fundo .site-footer,
+body.tema-casais.pagina-fundo .footer-brand,
+body.tema-casais.pagina-fundo .footer-lema,
+body.tema-casais.pagina-fundo .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-casais.pagina-fundo .casais-card,
+body.tema-casais.pagina-fundo .casais-form,
+body.tema-casais.pagina-fundo .casais-programacao {
+  background: rgba(255, 248, 245, 0.94) !important;
+  color: #2a1a20;
+  --ink: #2a1a20;
+  --ink-soft: #6a4a55;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+body.tema-casais.pagina-fundo .casais-card label,
+body.tema-casais.pagina-fundo .casais-form label,
+body.tema-casais.pagina-fundo .casais-card h2,
+body.tema-casais.pagina-fundo .casais-card h3,
+body.tema-casais.pagina-fundo .casais-programacao h2,
+body.tema-casais.pagina-fundo .casais-programacao-texto {
+  color: #2a1a20;
+  text-shadow: none;
 }
 
 .casais-hero h1 {
@@ -2300,6 +2479,36 @@ body.tema-pastores .btn-primary:hover {
   margin-top: 0.55rem;
   color: rgba(244, 247, 245, 0.8);
   font-style: italic;
+}
+
+.home-aviso-midia {
+  padding-top: 0.5rem;
+}
+
+.home-aviso-midia-card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.35rem 1.5rem;
+  border-radius: 1.1rem;
+  text-align: center;
+  background:
+    linear-gradient(160deg, rgba(184, 137, 58, 0.14), rgba(255, 255, 255, 0.72)),
+    rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(143, 106, 40, 0.22);
+  box-shadow: 0 16px 40px rgba(13, 36, 54, 0.08);
+}
+
+.home-aviso-midia-card .eyebrow {
+  margin-bottom: 0.45rem;
+  color: var(--gold-deep);
+}
+
+.home-aviso-midia-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
+  line-height: 1.25;
+  color: var(--ink);
 }
 
 .obreiros-hoje {
@@ -2888,6 +3097,67 @@ body.tema-mocidade .site-header {
   background: rgba(61, 42, 34, 0.82);
 }
 
+/* Fundo artístico da mocidade (sem zoom) */
+body.tema-mocidade.pagina-fundo {
+  background: #3d2a22;
+}
+
+body.tema-mocidade .fundo-pagina.fundo-pagina--arte {
+  background-color: #3d2a22;
+  background-image: none;
+}
+
+body.tema-mocidade .fundo-pagina--arte::after {
+  background: linear-gradient(
+    180deg,
+    rgba(61, 42, 34, 0.28) 0%,
+    rgba(61, 42, 34, 0.08) 45%,
+    rgba(61, 42, 34, 0.35) 100%
+  );
+}
+
+body.tema-mocidade.pagina-fundo .page-hero h1,
+body.tema-mocidade.pagina-fundo .mocidade-hero h1 {
+  color: #fff8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.55);
+}
+
+body.tema-mocidade.pagina-fundo .page-hero p,
+body.tema-mocidade.pagina-fundo .mocidade-hero p {
+  color: rgba(255, 248, 238, 0.92);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
+}
+
+body.tema-mocidade.pagina-fundo .page-hero .eyebrow,
+body.tema-mocidade.pagina-fundo .mocidade-hero .eyebrow {
+  color: #f0d4b0;
+}
+
+body.tema-mocidade.pagina-fundo .site-footer,
+body.tema-mocidade.pagina-fundo .footer-brand,
+body.tema-mocidade.pagina-fundo .footer-lema,
+body.tema-mocidade.pagina-fundo .footer-copy {
+  color: #f7f2ec;
+}
+
+body.tema-mocidade.pagina-fundo .mocidade-post-card,
+body.tema-mocidade.pagina-fundo .mocidade-cta-card {
+  background: rgba(61, 42, 34, 0.62);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(247, 242, 236, 0.16);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.22);
+}
+
+body.tema-mocidade.pagina-fundo .arraial-lider-foto {
+  background: rgba(61, 42, 34, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+body.tema-mocidade.pagina-fundo .arraial-lider-foto figcaption {
+  color: #f7f2ec;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
 .btn-mocidade,
 body.tema-mocidade .btn-primary {
   background: linear-gradient(135deg, #6b4a3a, #5c4033);
@@ -2938,6 +3208,49 @@ body.tema-mocidade .btn-primary:hover {
 
 .mocidade-post-card {
   grid-template-columns: 1fr;
+}
+
+body.tema-mocidade.pagina-fundo .mocidade-post-card {
+  max-width: 420px;
+  margin-inline: auto;
+  padding: 1.1rem 1.15rem 1.2rem;
+  border-radius: 22px;
+  transition:
+    transform 0.28s ease,
+    box-shadow 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease;
+}
+
+body.tema-mocidade.pagina-fundo .mocidade-post-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  background: rgba(61, 42, 34, 0.78);
+  border-color: rgba(240, 212, 176, 0.35);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.32);
+}
+
+body.tema-mocidade.pagina-fundo .mocidade-post-card img {
+  max-width: 220px;
+  width: 100%;
+  margin-inline: auto;
+  aspect-ratio: 4 / 3;
+  transition: transform 0.28s ease;
+}
+
+body.tema-mocidade.pagina-fundo .mocidade-post-card:hover img {
+  transform: scale(1.03);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.tema-mocidade.pagina-fundo .mocidade-post-card,
+  body.tema-mocidade.pagina-fundo .mocidade-post-card img {
+    transition: none;
+  }
+
+  body.tema-mocidade.pagina-fundo .mocidade-post-card:hover,
+  body.tema-mocidade.pagina-fundo .mocidade-post-card:hover img {
+    transform: none;
+  }
 }
 
 .mocidade-post-card h2,
@@ -3831,4 +4144,87 @@ body.tema-porta-altar .admin-msg--erro {
   color: rgba(255, 248, 238, 0.88);
   line-height: 1.55;
   white-space: pre-wrap;
+}
+
+.porta-altar-palavra-box {
+  margin: 0.35rem 0 1rem;
+}
+
+.porta-altar-nuvem {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
+  align-items: center;
+  justify-content: center;
+  margin: 0.85rem 0 1rem;
+  padding: 1rem 0.85rem;
+  border-radius: 1rem;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 248, 238, 0.16);
+}
+
+.porta-altar-nuvem-palavra {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 0.15rem 0.2rem;
+  transition: transform 0.2s ease, opacity 0.2s ease, text-shadow 0.2s ease;
+}
+
+.porta-altar-nuvem-palavra:hover,
+.porta-altar-nuvem-palavra:focus-visible {
+  transform: scale(1.08);
+  outline: none;
+}
+
+.porta-altar-nuvem-palavra.is-selected {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-shadow: 0 0 18px rgba(240, 199, 94, 0.55);
+}
+
+.porta-altar-nuvem-palavra--0 { color: #f0c75e; font-size: 1.55rem; }
+.porta-altar-nuvem-palavra--1 { color: #e8ddd0; font-size: 1.15rem; }
+.porta-altar-nuvem-palavra--2 { color: #d4a040; font-size: 1.35rem; }
+.porta-altar-nuvem-palavra--3 { color: #fff8ee; font-size: 1.05rem; }
+.porta-altar-nuvem-palavra--4 { color: #c9a24d; font-size: 1.45rem; }
+.porta-altar-nuvem-palavra--5 { color: #f5e6c8; font-size: 1.2rem; }
+
+.porta-altar-palavra-destaque {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.85rem;
+  background: rgba(240, 199, 94, 0.16);
+  border: 1px solid rgba(240, 199, 94, 0.45);
+  color: #fff8ee;
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.porta-altar-palavra-destaque strong {
+  color: #f0c75e;
+}
+
+.porta-altar-palavra-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(240, 199, 94, 0.18);
+  border: 1px solid rgba(240, 199, 94, 0.4);
+  color: #fff8ee;
+  font-size: 0.95rem;
+}
+
+.porta-altar-palavra-badge strong {
+  color: #f0c75e;
+}
+
+.home-papo-altar .section-link {
+  margin-top: 0.5rem;
 }

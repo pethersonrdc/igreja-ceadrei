@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-mocidade{% endblock %}
+{% block body_class %}pagina-fundo tema-mocidade{% endblock %}
 
 {% block title %}Mocidade — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/mocidade/fundo.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero mocidade-hero">
+<section class="page-hero mocidade-hero pagina-fundo-content">
   <p class="eyebrow">Geração eleita</p>
   <h1>{{ h1_responsaveis }}</h1>
   <p>Espaço da juventude CEASDREI — culto dos jovens e comunhão.</p>
 </section>
 
 {% if post_ativo %}
-<section class="section">
+<section class="section pagina-fundo-content">
   <article class="mocidade-post-card">
     <p class="eyebrow">Culto dos jovens</p>
     <h2>{{ post_ativo.titulo }}</h2>
@@ -24,7 +34,7 @@
 </section>
 {% endif %}
 
-<section class="section arraial-login-layout">
+<section class="section arraial-login-layout pagina-fundo-content">
   <article class="mocidade-cta-card">
     <h2>Líderes da Mocidade</h2>
     <p>Diác. Natan e Diác. Ana Beatriz</p>

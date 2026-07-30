@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-casais{% endblock %}
+{% block body_class %}pagina-fundo tema-casais{% endblock %}
 
 {% block title %}Inscrição Casais — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/casais/fundo.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero casais-hero">
+<section class="page-hero casais-hero pagina-fundo-content">
   <p class="eyebrow">Inscrição do casal</p>
   <h1>{{ h1_responsaveis }}</h1>
   <p>Preencham juntos. É rápido e fica registrado para os responsáveis.</p>
 </section>
 
 {% if fotos %}
-<section class="section">
+<section class="section pagina-fundo-content">
   <div class="gallery-grid casais-mini-grid">
     {% for foto in fotos[:3] %}
     <figure>
@@ -28,7 +38,7 @@
 {% endif %}
 
 {% if programacao %}
-<section class="section">
+<section class="section pagina-fundo-content">
   <article class="casais-programacao">
     <h2>Neste dia</h2>
     <div class="casais-programacao-texto">{{ programacao }}</div>
@@ -36,7 +46,7 @@
 </section>
 {% endif %}
 
-<section class="section">
+<section class="section pagina-fundo-content">
   {% if erro %}
   <p class="admin-msg admin-msg--erro">{{ erro }}</p>
   {% endif %}

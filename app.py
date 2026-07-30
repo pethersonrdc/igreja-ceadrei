@@ -206,6 +206,7 @@ def home():
     eventos_destaque = pastores.eventos_destaque_home(6)
     info_arraial = arraial.info_evento()
     post_mocidade = mocidade.obter_post_ativo()
+    aviso_home = gallery.obter_aviso_home()
     return render_template(
         "index.html",
         igreja=igreja,
@@ -220,6 +221,7 @@ def home():
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
         post_mocidade=post_mocidade,
+        aviso_home=aviso_home,
     )
 
 
@@ -330,6 +332,7 @@ def porta_altar_admin():
         tipo = request.form.get("tipo", "pos_culto").strip() or "pos_culto"
         link_instagram = request.form.get("link_instagram", "").strip()
         link_facebook = request.form.get("link_facebook", "").strip()
+        palavra_culto = request.form.get("palavra_culto", "").strip()
         arquivo = request.files.get("video")
         capa_file = request.files.get("capa")
         video_id = request.form.get("video_id", type=int)
@@ -372,6 +375,7 @@ def porta_altar_admin():
                 capa=nome_capa,
                 link_instagram=link_instagram,
                 link_facebook=link_facebook,
+                palavra_culto=palavra_culto,
             ):
                 flash("Vídeo atualizado.", "ok")
             else:
@@ -392,6 +396,7 @@ def porta_altar_admin():
             tipo=tipo,
             link_instagram=link_instagram,
             link_facebook=link_facebook,
+            palavra_culto=palavra_culto,
         )
         flash("Vídeo salvo. Ele aparece na página após o horário de liberação.", "ok")
         return redirect(url_for("porta_altar_admin"))
@@ -532,6 +537,18 @@ def admin_galeria():
                 flash("Perfil não encontrado.", "erro")
             return redirect(url_for("admin_galeria") + "#lideres")
 
+        if acao == "aviso_home":
+            texto = request.form.get("aviso_texto", "").strip()
+            ativo = request.form.get("aviso_ativo") == "1"
+            gallery.salvar_aviso_home(texto, ativo=ativo)
+            if ativo and texto:
+                flash("Aviso publicado na página inicial.", "ok")
+            elif texto:
+                flash("Aviso salvo (oculto na página inicial).", "ok")
+            else:
+                flash("Aviso da página inicial removido.", "ok")
+            return redirect(url_for("admin_galeria") + "#aviso-home")
+
         culto_titulo = request.form.get("culto_titulo", "").strip()
         culto_dia = request.form.get("culto_dia", "").strip()
         titulo = request.form.get("titulo", "").strip() or f"Fotos — {culto_titulo}"
@@ -568,6 +585,7 @@ def admin_galeria():
         cultos=cultos,
         posts=posts,
         perfis_lideres=lideres_midia.listar_perfis(),
+        aviso_home=gallery.obter_aviso_home(),
     )
 
 
@@ -733,47 +751,48 @@ def batismo_inscricao():
     erro = None
 
     if request.method == "POST":
-        nome_marido = request.form.get("nome_marido", "").strip()
-        nome_mulher = request.form.get("nome_mulher", "").strip()
-        rg_marido = request.form.get("rg_marido", "").strip()
-        rg_mulher = request.form.get("rg_mulher", "").strip()
-        nomes_filhos = request.form.getlist("filhos")
-        docs_filhos = request.form.getlist("filhos_doc")
-        filhos = []
-        for i, nome in enumerate(nomes_filhos):
+        nomes_pessoas = request.form.getlist("pessoas")
+        docs_pessoas = request.form.getlist("pessoas_doc")
+        sexos_pessoas = request.form.getlist("pessoas_sexo")
+        pessoas = []
+        for i, nome in enumerate(nomes_pessoas):
             nome_limpo = (nome or "").strip()
             if not nome_limpo:
                 continue
-            doc = docs_filhos[i].strip() if i < len(docs_filhos) else ""
-            filhos.append({"nome": nome_limpo, "documento": doc})
+            doc = docs_pessoas[i].strip() if i < len(docs_pessoas) else ""
+            sexo = sexos_pessoas[i].strip() if i < len(sexos_pessoas) else ""
+            pessoas.append({"nome": nome_limpo, "documento": doc, "sexo": sexo})
+
         telefone = request.form.get("telefone", "").strip()
-        participantes = request.form.getlist("participantes")
         status = request.form.get("status", "analise").strip()
 
-        # Identificação da família (sem campo "nome completo")
-        if nome_marido and nome_mulher:
-            nome_completo = f"{nome_marido} & {nome_mulher}"
+        if not pessoas:
+            nome_completo = "Família"
+        elif len(pessoas) == 1:
+            nome_completo = pessoas[0]["nome"]
+        elif len(pessoas) == 2:
+            nome_completo = f"{pessoas[0]['nome']} & {pessoas[1]['nome']}"
         else:
-            nome_completo = nome_marido or nome_mulher or "Família"
+            nome_completo = f"{pessoas[0]['nome']} e +{len(pessoas) - 1}"
 
-        if not nome_marido and not nome_mulher:
-            erro = "Informe o nome do marido e/ou da mulher."
+        if not pessoas:
+            erro = "Adicione ao menos uma pessoa da família."
         elif not telefone:
             erro = "Informe o telefone de contato."
-        elif not participantes:
-            erro = "Selecione quem vai ao batismo (marido, mulher e/ou filhos)."
         elif status not in batismo.STATUS_OPCOES:
             erro = "Selecione uma confirmação válida."
         else:
             inscricao_id = batismo.criar_inscricao(
                 nome_completo=nome_completo,
-                nome_marido=nome_marido,
-                nome_mulher=nome_mulher,
-                filhos=filhos,
-                rg_marido=rg_marido,
-                rg_mulher=rg_mulher,
+                nome_marido="",
+                nome_mulher="",
+                filhos=pessoas,
+                rg_marido="",
+                rg_mulher="",
+                sexo_marido="",
+                sexo_mulher="",
                 telefone=telefone,
-                participantes=participantes,
+                participantes=["familia"],
                 status=status,
             )
             return redirect(url_for("batismo_confirmacao", inscricao_id=inscricao_id))
@@ -784,7 +803,6 @@ def batismo_inscricao():
         fotos=fotos,
         erro=erro,
         status_opcoes=batismo.STATUS_OPCOES,
-        participante_opcoes=batismo.PARTICIPANTE_OPCOES,
     )
 
 
@@ -814,11 +832,8 @@ def batismo_exportar_excel():
     ws.append(
         [
             "ID",
-            "Marido",
-            "RG/CPF Marido",
-            "Mulher",
-            "RG/CPF Mulher",
-            "Filhos",
+            "Família",
+            "Pessoas",
             "Telefone",
             "Participantes",
             "Status",
@@ -826,14 +841,21 @@ def batismo_exportar_excel():
         ]
     )
     for item in inscricoes:
+        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
+        legado = []
+        if item.get("nome_marido"):
+            legado.append(item["nome_marido"])
+        if item.get("nome_mulher"):
+            legado.append(item["nome_mulher"])
+        if legado and pessoas:
+            pessoas = ", ".join(legado) + " | " + pessoas
+        elif legado:
+            pessoas = ", ".join(legado)
         ws.append(
             [
                 item["id"],
-                item["nome_marido"],
-                item.get("rg_marido") or "",
-                item["nome_mulher"],
-                item.get("rg_mulher") or "",
-                item.get("filhos_texto") or "",
+                item.get("nome_completo") or "",
+                pessoas,
                 item["telefone"],
                 item["participantes_texto"],
                 item["status_texto"],
@@ -875,13 +897,10 @@ def batismo_exportar_pdf():
 
     colunas = [
         ("ID", 12),
-        ("Nome", 45),
-        ("Marido", 35),
-        ("Mulher", 35),
-        ("Filhos", 40),
-        ("Telefone", 30),
-        ("Quem", 30),
-        ("Status", 35),
+        ("Familia", 50),
+        ("Pessoas", 90),
+        ("Telefone", 35),
+        ("Status", 40),
     ]
     pdf.set_font("Helvetica", "B", 8)
     for titulo, largura in colunas:
@@ -890,14 +909,12 @@ def batismo_exportar_pdf():
 
     pdf.set_font("Helvetica", "", 7)
     for item in inscricoes:
+        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
         valores = [
             str(item["id"]),
-            item["nome_completo"][:40],
-            item["nome_marido"][:30],
-            item["nome_mulher"][:30],
-            (item.get("filhos_texto") or item.get("filhos") or "")[:35],
+            (item.get("nome_completo") or "")[:45],
+            pessoas[:80],
             item["telefone"][:22],
-            item["participantes_texto"][:25],
             item["status_texto"][:28],
         ]
         for valor, (_, largura) in zip(valores, colunas):

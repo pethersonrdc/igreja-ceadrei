@@ -15,13 +15,15 @@
   <p class="section-link">
     <a href="{{ url_for('galeria_publica') }}">Ver galeria pública</a>
     ·
+    <a href="#aviso-home">Aviso da página inicial</a>
+    ·
     <a href="#lideres">Fotos dos líderes</a>
     ·
     <a href="{{ url_for('admin_logout') }}">Sair</a>
   </p>
 </section>
 
-<section class="section">
+<section class="section" id="aviso-home">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for categoria, mensagem in messages %}
@@ -30,6 +32,33 @@
     {% endif %}
   {% endwith %}
 
+  <form class="admin-card admin-upload" method="post">
+    <h2>Aviso na página inicial</h2>
+    <p class="admin-help">Texto simples que aparece no início do site. Ex.: Terá escola dominical.</p>
+    <input type="hidden" name="acao" value="aviso_home">
+
+    <label for="aviso_texto">Texto do aviso</label>
+    <input
+      id="aviso_texto"
+      name="aviso_texto"
+      type="text"
+      maxlength="180"
+      placeholder="Ex.: Terá escola dominical"
+      value="{{ aviso_home.texto if aviso_home else '' }}"
+    >
+
+    <label class="check-line">
+      <input type="checkbox" name="aviso_ativo" value="1" {% if aviso_home and aviso_home.ativo %}checked{% endif %}>
+      <span>Mostrar na página inicial</span>
+    </label>
+
+    <div class="porta-altar-form-actions" style="margin-top:0.85rem">
+      <button class="btn btn-primary" type="submit">Salvar aviso</button>
+    </div>
+  </form>
+</section>
+
+<section class="section">
   <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
     <h2>Nova postagem</h2>
     <input type="hidden" name="acao" value="galeria">

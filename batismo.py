@@ -26,6 +26,7 @@ PARTICIPANTE_OPCOES = {
     "marido": "Marido",
     "mulher": "Mulher",
     "filhos": "Filhos",
+    "familia": "Pessoas da família",
 }
 
 
@@ -50,6 +51,19 @@ def _garantir_colunas(conn: sqlite3.Connection) -> None:
         conn.execute(
             "ALTER TABLE inscricoes ADD COLUMN rg_mulher TEXT NOT NULL DEFAULT ''"
         )
+    if "sexo_marido" not in cols:
+        conn.execute(
+            "ALTER TABLE inscricoes ADD COLUMN sexo_marido TEXT NOT NULL DEFAULT ''"
+        )
+    if "sexo_mulher" not in cols:
+        conn.execute(
+            "ALTER TABLE inscricoes ADD COLUMN sexo_mulher TEXT NOT NULL DEFAULT ''"
+        )
+
+
+def _normalizar_sexo(valor: str) -> str:
+    letra = (valor or "").strip().upper()
+    return letra if letra in {"F", "M"} else ""
 
 
 def init_db() -> None:
@@ -101,6 +115,7 @@ def serializar_filhos(filhos: list[dict]) -> str:
             {
                 "nome": nome,
                 "documento": (item.get("documento") or "").strip(),
+                "sexo": _normalizar_sexo(item.get("sexo") or ""),
             }
         )
     return json.dumps(limpos, ensure_ascii=False)
@@ -124,15 +139,18 @@ def parse_filhos(filhos_raw: str) -> list[dict]:
                             {
                                 "nome": nome,
                                 "documento": (item.get("documento") or "").strip(),
+                                "sexo": _normalizar_sexo(item.get("sexo") or ""),
                             }
                         )
                     elif isinstance(item, str) and item.strip():
-                        resultado.append({"nome": item.strip(), "documento": ""})
+                        resultado.append(
+                            {"nome": item.strip(), "documento": "", "sexo": ""}
+                        )
                 return resultado
         except json.JSONDecodeError:
             pass
     return [
-        {"nome": nome.strip(), "documento": ""}
+        {"nome": nome.strip(), "documento": "", "sexo": ""}
         for nome in texto.replace(",", "\n").split("\n")
         if nome.strip()
     ]
@@ -184,6 +202,8 @@ def criar_inscricao(
     filhos: list[dict],
     rg_marido: str,
     rg_mulher: str,
+    sexo_marido: str = "",
+    sexo_mulher: str = "",
     telefone: str,
     participantes: list[str],
     status: str,
@@ -192,16 +212,27 @@ def criar_inscricao(
     if status not in STATUS_OPCOES:
         status = "analise"
     participantes_ok = [p for p in participantes if p in PARTICIPANTE_OPCOES]
+    sexo_m = _normalizar_sexo(sexo_marido)
+    sexo_f = _normalizar_sexo(sexo_mulher)
     filhos_json = serializar_filhos(filhos)
     filhos_objs = parse_filhos(filhos_json)
     rg_resumo_partes = []
     if rg_marido.strip():
-        rg_resumo_partes.append(f"Marido: {rg_marido.strip()}")
+        parte = f"Marido: {rg_marido.strip()}"
+        if sexo_m:
+            parte += f" ({sexo_m})"
+        rg_resumo_partes.append(parte)
     if rg_mulher.strip():
-        rg_resumo_partes.append(f"Mulher: {rg_mulher.strip()}")
+        parte = f"Mulher: {rg_mulher.strip()}"
+        if sexo_f:
+            parte += f" ({sexo_f})"
+        rg_resumo_partes.append(parte)
     for filho in filhos_objs:
-        if filho["documento"]:
-            rg_resumo_partes.append(f"{filho['nome']}: {filho['documento']}")
+        if filho["documento"] or filho.get("sexo"):
+            detalhe = filho["documento"] or ""
+            if filho.get("sexo"):
+                detalhe = f"{detalhe} ({filho['sexo']})".strip()
+            rg_resumo_partes.append(f"{filho['nome']}: {detalhe}".strip(": "))
     rg_resumo = " | ".join(rg_resumo_partes)
 
     with _connect() as conn:
@@ -209,8 +240,9 @@ def criar_inscricao(
             """
             INSERT INTO inscricoes (
                 nome_completo, nome_marido, nome_mulher, filhos, rg,
-                rg_marido, rg_mulher, telefone, participantes, status, criado_em
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                rg_marido, rg_mulher, sexo_marido, sexo_mulher,
+                telefone, participantes, status, criado_em
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome_completo.strip(),
@@ -220,6 +252,8 @@ def criar_inscricao(
                 rg_resumo,
                 rg_marido.strip(),
                 rg_mulher.strip(),
+                sexo_m,
+                sexo_f,
                 telefone.strip(),
                 ",".join(participantes_ok),
                 status,
@@ -249,11 +283,17 @@ def _enriquecer_inscricao(item: dict) -> dict:
     item["filhos_objs"] = filhos
     item["filhos_lista"] = [f["nome"] for f in filhos]
     item["filhos_texto"] = ", ".join(
-        f"{f['nome']}" + (f" ({f['documento']})" if f["documento"] else "")
+        f"{f['nome']}"
+        + (f" ({f['documento']})" if f["documento"] else "")
+        + (f" [{f['sexo']}]" if f.get("sexo") else "")
         for f in filhos
     )
+    item["pessoas_objs"] = filhos
+    item["pessoas_texto"] = item["filhos_texto"]
     item["rg_marido"] = item.get("rg_marido") or ""
     item["rg_mulher"] = item.get("rg_mulher") or ""
+    item["sexo_marido"] = _normalizar_sexo(item.get("sexo_marido") or "")
+    item["sexo_mulher"] = _normalizar_sexo(item.get("sexo_mulher") or "")
     return item
 
 

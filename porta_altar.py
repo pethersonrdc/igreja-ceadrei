@@ -45,6 +45,7 @@ def init_db() -> None:
                 tipo TEXT NOT NULL DEFAULT 'pos_culto',
                 link_instagram TEXT NOT NULL DEFAULT '',
                 link_facebook TEXT NOT NULL DEFAULT '',
+                palavra_culto TEXT NOT NULL DEFAULT '',
                 ativo INTEGER NOT NULL DEFAULT 1,
                 criado_em TEXT NOT NULL
             );
@@ -75,6 +76,10 @@ def init_db() -> None:
         if "link_facebook" not in cols:
             conn.execute(
                 "ALTER TABLE videos ADD COLUMN link_facebook TEXT NOT NULL DEFAULT ''"
+            )
+        if "palavra_culto" not in cols:
+            conn.execute(
+                "ALTER TABLE videos ADD COLUMN palavra_culto TEXT NOT NULL DEFAULT ''"
             )
 
 
@@ -136,6 +141,7 @@ def criar_video(
     tipo: str = "pos_culto",
     link_instagram: str = "",
     link_facebook: str = "",
+    palavra_culto: str = "",
 ) -> int:
     init_db()
     tipo_ok = tipo if tipo in TIPOS_VIDEO else "pos_culto"
@@ -144,8 +150,8 @@ def criar_video(
             """
             INSERT INTO videos (
                 titulo, descricao, arquivo, capa, culto_titulo, termino_em, tipo,
-                link_instagram, link_facebook, ativo, criado_em
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+                link_instagram, link_facebook, palavra_culto, ativo, criado_em
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
             """,
             (
                 titulo.strip() or "Vídeo do culto",
@@ -157,6 +163,7 @@ def criar_video(
                 tipo_ok,
                 link_instagram.strip(),
                 link_facebook.strip(),
+                palavra_culto.strip(),
                 agora().isoformat(timespec="seconds"),
             ),
         )
@@ -175,6 +182,7 @@ def atualizar_video(
     capa: str = "",
     link_instagram: str = "",
     link_facebook: str = "",
+    palavra_culto: str = "",
     manter_arquivos: bool = True,
 ) -> bool:
     init_db()
@@ -200,7 +208,7 @@ def atualizar_video(
             UPDATE videos SET
                 titulo = ?, descricao = ?, culto_titulo = ?, termino_em = ?,
                 tipo = ?, arquivo = ?, capa = ?,
-                link_instagram = ?, link_facebook = ?
+                link_instagram = ?, link_facebook = ?, palavra_culto = ?
             WHERE id = ?
             """,
             (
@@ -213,6 +221,7 @@ def atualizar_video(
                 nova_capa,
                 link_instagram.strip(),
                 link_facebook.strip(),
+                palavra_culto.strip(),
                 video_id,
             ),
         )

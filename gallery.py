@@ -5,6 +5,7 @@ As fotos só são apagadas manualmente pelo usuário no painel.
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -14,8 +15,38 @@ DATA_DIR = BASE_DIR / "data"
 UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "galeria"
 SEED_DIR = BASE_DIR / "static" / "images" / "galeria"
 DB_PATH = DATA_DIR / "galeria.db"
+AVISO_HOME_PATH = DATA_DIR / "aviso_home_midia.json"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+def obter_aviso_home() -> dict:
+    """Aviso de texto da mídia para a página inicial."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    if not AVISO_HOME_PATH.exists():
+        return {"texto": "", "ativo": False}
+    try:
+        dados = json.loads(AVISO_HOME_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return {"texto": "", "ativo": False}
+    texto = (dados.get("texto") or "").strip()
+    ativo = bool(dados.get("ativo")) and bool(texto)
+    return {"texto": texto, "ativo": ativo}
+
+
+def salvar_aviso_home(texto: str, ativo: bool = True) -> dict:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    limpo = (texto or "").strip()
+    payload = {
+        "texto": limpo,
+        "ativo": bool(ativo) and bool(limpo),
+        "atualizado_em": agora().isoformat(timespec="seconds"),
+    }
+    AVISO_HOME_PATH.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    return {"texto": payload["texto"], "ativo": payload["ativo"]}
 
 
 def _connect() -> sqlite3.Connection:

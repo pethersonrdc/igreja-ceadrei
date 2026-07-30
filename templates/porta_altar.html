@@ -45,6 +45,9 @@
       <div class="porta-altar-card-body">
         <p class="eyebrow">{{ video.culto_titulo or 'Papo de Altar' }}</p>
         <h3>{{ video.titulo }}</h3>
+        {% if video.palavra_culto %}
+        <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
+        {% endif %}
         {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
         <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
           <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
@@ -82,6 +85,9 @@
       <div class="porta-altar-card-body">
         <p class="eyebrow">{{ video.culto_titulo or 'Culto' }}</p>
         <h3>{{ video.titulo }}</h3>
+        {% if video.palavra_culto %}
+        <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
+        {% endif %}
         {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
         <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
           <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">

@@ -13,8 +13,29 @@
       <a class="btn btn-primary" href="{{ url_for('cultos_page') }}">Horários de culto</a>
       <a class="btn btn-ghost" href="{{ url_for('contato') }}">Como chegar</a>
       <a class="btn btn-primary" href="{{ url_for('mensagem_dia_page') }}">Mensagem do Dia</a>
+      <a class="btn btn-ghost" href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
     </div>
   </div>
+</section>
+
+{% if aviso_home and aviso_home.ativo and aviso_home.texto %}
+<section class="section home-aviso-midia">
+  <article class="home-aviso-midia-card">
+    <p class="eyebrow">Aviso da igreja</p>
+    <h2>{{ aviso_home.texto }}</h2>
+  </article>
+</section>
+{% endif %}
+
+<section class="section home-papo-altar">
+  <div class="section-head">
+    <p class="eyebrow">Conteúdo da mídia</p>
+    <h2>Papo de Altar</h2>
+    <p>Vídeos do culto, conversas e a palavra que marcou o encontro — tudo em uma página só.</p>
+  </div>
+  <p class="section-link">
+    <a class="btn btn-primary" href="{{ url_for('porta_altar_page') }}">Abrir Papo de Altar</a>
+  </p>
 </section>
 
 {% if eventos_destaque %}
