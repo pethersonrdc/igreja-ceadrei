@@ -75,7 +75,7 @@ PERFIS = [
         "id": "louvor",
         "nome": "Grupo de Louvor",
         "departamento": "Grupo de Louvor",
-        "padrao": "images/emblema.png",
+        "padrao": "images/louvor/lideres.png",
     },
 ]
 

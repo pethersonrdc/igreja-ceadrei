@@ -22,7 +22,7 @@ H1_RESPONSAVEIS = (
     "Dúvidas, fale com a liderança do louvor."
 )
 
-FUNDO = "images/emblema.png"
+FUNDO = "images/louvor/fundo.png"
 
 
 def _connect() -> sqlite3.Connection:

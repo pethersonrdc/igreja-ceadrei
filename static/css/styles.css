@@ -4532,13 +4532,29 @@ body.tema-louvor .ministerio-destaque-card {
 /* ---------- Grupo de Louvor ---------- */
 
 body.tema-louvor {
-  --gold: #c9a24a;
-  --gold-deep: #8a6a1a;
-  --sea: #16110a;
-  --sea-deep: #0b0805;
+  --gold: #d4af37;
+  --gold-deep: #9a7b18;
+  --sea: #000000;
+  --sea-deep: #000000;
   --ink: #fff8ee;
   --ink-soft: rgba(255, 248, 238, 0.88);
   color: #fff8ee;
+  background: #000;
+}
+
+body.tema-louvor .fundo-pagina.fundo-pagina--arte {
+  background: #000;
+}
+
+body.tema-louvor .fundo-pagina--arte .fundo-pagina-img {
+  object-fit: contain;
+  object-position: center center;
+  opacity: 0.95;
+}
+
+body.tema-louvor .fundo-pagina--arte::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0.48) 45%, rgba(0, 0, 0, 0.78));
 }
 
 body.tema-louvor .site-header {
