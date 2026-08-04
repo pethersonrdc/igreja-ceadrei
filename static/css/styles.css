@@ -3883,7 +3883,7 @@ body.tema-cultos .schedule-list--full p {
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
 }
 
-/* Cards claros com texto escuro */
+/* Cards translúcidos (estilo Papo de Altar) + texto claro e forte */
 body.tema-leoas .admin-card,
 body.tema-leaodejuda .admin-card,
 body.tema-maranata .admin-card,
@@ -3895,11 +3895,19 @@ body.tema-soldadinhos .campanha-post-card,
 body.tema-leoas .leoas-card,
 body.tema-leaodejuda .leaodejuda-card,
 body.tema-maranata .maranata-card,
-body.tema-soldadinhos .soldadinhos-card {
-  background: rgba(255, 255, 255, 0.92) !important;
-  color: #1a1208;
-  --ink: #1a1208;
-  --ink-soft: #4a4034;
+body.tema-soldadinhos .soldadinhos-card,
+body.tema-leoas .ministerio-destaque-card,
+body.tema-leaodejuda .ministerio-destaque-card,
+body.tema-maranata .ministerio-destaque-card,
+body.tema-soldadinhos .ministerio-destaque-card {
+  background: rgba(0, 0, 0, 0.32) !important;
+  color: #fff8ee;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.92);
+  border: 1px solid rgba(255, 248, 238, 0.22) !important;
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 body.tema-leoas .admin-card h2,
@@ -3925,9 +3933,104 @@ body.tema-soldadinhos .admin-card label,
 body.tema-leoas .admin-card strong,
 body.tema-leaodejuda .admin-card strong,
 body.tema-maranata .admin-card strong,
-body.tema-soldadinhos .admin-card strong {
-  color: #1a1208;
-  text-shadow: none;
+body.tema-soldadinhos .admin-card strong,
+body.tema-leoas .admin-help,
+body.tema-leaodejuda .admin-help,
+body.tema-maranata .admin-help,
+body.tema-soldadinhos .admin-help,
+body.tema-leoas .admin-meta,
+body.tema-leaodejuda .admin-meta,
+body.tema-maranata .admin-meta,
+body.tema-soldadinhos .admin-meta,
+body.tema-leoas .ministerio-destaque-msg,
+body.tema-leaodejuda .ministerio-destaque-msg,
+body.tema-maranata .ministerio-destaque-msg,
+body.tema-soldadinhos .ministerio-destaque-msg {
+  color: #fff8ee !important;
+  font-weight: 600;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+body.tema-leoas .page-hero h1,
+body.tema-leaodejuda .page-hero h1,
+body.tema-maranata .page-hero h1,
+body.tema-soldadinhos .page-hero h1 {
+  font-weight: 700;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.9);
+}
+
+body.tema-leoas .page-hero p,
+body.tema-leaodejuda .page-hero p,
+body.tema-maranata .page-hero p,
+body.tema-soldadinhos .page-hero p,
+body.tema-leoas .section-link a,
+body.tema-leaodejuda .section-link a,
+body.tema-maranata .section-link a,
+body.tema-soldadinhos .section-link a {
+  font-weight: 600;
+  color: #fff8ee;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+body.tema-leoas .admin-card input,
+body.tema-leaodejuda .admin-card input,
+body.tema-maranata .admin-card input,
+body.tema-soldadinhos .admin-card input,
+body.tema-leoas .admin-card select,
+body.tema-leaodejuda .admin-card select,
+body.tema-maranata .admin-card select,
+body.tema-soldadinhos .admin-card select,
+body.tema-leoas .admin-card textarea,
+body.tema-leaodejuda .admin-card textarea,
+body.tema-maranata .admin-card textarea,
+body.tema-soldadinhos .admin-card textarea {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 248, 238, 0.28);
+  color: #fff8ee;
+  font-weight: 500;
+}
+
+body.tema-leoas .admin-card input::placeholder,
+body.tema-leaodejuda .admin-card input::placeholder,
+body.tema-maranata .admin-card input::placeholder,
+body.tema-soldadinhos .admin-card input::placeholder,
+body.tema-leoas .admin-card textarea::placeholder,
+body.tema-leaodejuda .admin-card textarea::placeholder,
+body.tema-maranata .admin-card textarea::placeholder,
+body.tema-soldadinhos .admin-card textarea::placeholder {
+  color: rgba(255, 248, 238, 0.55);
+}
+
+body.tema-leoas .btn-ghost-dark,
+body.tema-leaodejuda .btn-ghost-dark,
+body.tema-maranata .btn-ghost-dark,
+body.tema-soldadinhos .btn-ghost-dark {
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.35);
+  font-weight: 600;
+}
+
+body.tema-leoas .btn-ghost-dark:hover,
+body.tema-leaodejuda .btn-ghost-dark:hover,
+body.tema-maranata .btn-ghost-dark:hover,
+body.tema-soldadinhos .btn-ghost-dark:hover {
+  background: rgba(255, 248, 238, 0.1);
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.55);
+}
+
+body.tema-leoas .admin-msg--ok,
+body.tema-leaodejuda .admin-msg--ok,
+body.tema-maranata .admin-msg--ok,
+body.tema-soldadinhos .admin-msg--ok,
+body.tema-leoas .admin-msg--erro,
+body.tema-leaodejuda .admin-msg--erro,
+body.tema-maranata .admin-msg--erro,
+body.tema-soldadinhos .admin-msg--erro {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff8ee;
+  border: 1px solid rgba(255, 248, 238, 0.22);
+  font-weight: 600;
 }
 
 .btn-leoas,
@@ -3991,8 +4094,8 @@ body.tema-soldadinhos .btn-primary {
 .maranata-card,
 .soldadinhos-card,
 .campanha-post-card {
-  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .campanha-post-card {
@@ -4519,14 +4622,10 @@ body.tema-porta-altar .admin-msg--erro {
   line-height: 1.45;
 }
 
-body.tema-leoas .ministerio-destaque-card,
-body.tema-leaodejuda .ministerio-destaque-card,
-body.tema-maranata .ministerio-destaque-card,
-body.tema-soldadinhos .ministerio-destaque-card,
-body.tema-mocidade .ministerio-destaque-card,
-body.tema-louvor .ministerio-destaque-card {
-  background: rgba(255, 255, 255, 0.94) !important;
-  color: #1a1208;
+body.tema-mocidade .ministerio-destaque-card {
+  background: rgba(0, 0, 0, 0.32) !important;
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.22);
 }
 
 /* ---------- Grupo de Louvor ---------- */
@@ -4591,11 +4690,16 @@ body.tema-louvor .footer-copy {
 body.tema-louvor .admin-card,
 body.tema-louvor .louvor-card,
 body.tema-louvor .louvor-video-card,
-body.tema-louvor .louvor-integrante-card {
-  background: rgba(255, 255, 255, 0.92) !important;
-  color: #1a1208;
-  --ink: #1a1208;
-  --ink-soft: #4a4034;
+body.tema-louvor .louvor-integrante-card,
+body.tema-louvor .ministerio-destaque-card {
+  background: rgba(0, 0, 0, 0.32) !important;
+  color: #fff8ee;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.92);
+  border: 1px solid rgba(255, 248, 238, 0.22) !important;
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 body.tema-louvor .admin-card h2,
@@ -4603,11 +4707,63 @@ body.tema-louvor .admin-card h3,
 body.tema-louvor .admin-card p,
 body.tema-louvor .admin-card label,
 body.tema-louvor .admin-card strong,
+body.tema-louvor .admin-help,
+body.tema-louvor .admin-meta,
 body.tema-louvor .louvor-video-card h3,
 body.tema-louvor .louvor-integrante-card strong,
-body.tema-louvor .louvor-integrante-card span {
-  color: #1a1208;
-  text-shadow: none;
+body.tema-louvor .louvor-integrante-card span,
+body.tema-louvor .ministerio-destaque-msg {
+  color: #fff8ee !important;
+  font-weight: 600;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.85);
+}
+
+body.tema-louvor .page-hero h1 {
+  font-weight: 700;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, 0.9);
+}
+
+body.tema-louvor .page-hero p,
+body.tema-louvor .section-link a {
+  font-weight: 600;
+  color: #fff8ee;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.85);
+}
+
+body.tema-louvor .admin-card input,
+body.tema-louvor .admin-card select,
+body.tema-louvor .admin-card textarea,
+body.tema-louvor .louvor-busca input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 248, 238, 0.28);
+  color: #fff8ee;
+  font-weight: 500;
+}
+
+body.tema-louvor .admin-card input::placeholder,
+body.tema-louvor .admin-card textarea::placeholder,
+body.tema-louvor .louvor-busca input::placeholder {
+  color: rgba(255, 248, 238, 0.55);
+}
+
+body.tema-louvor .btn-ghost-dark {
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.35);
+  font-weight: 600;
+}
+
+body.tema-louvor .btn-ghost-dark:hover {
+  background: rgba(255, 248, 238, 0.1);
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.55);
+}
+
+body.tema-louvor .admin-msg--ok,
+body.tema-louvor .admin-msg--erro {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff8ee;
+  border: 1px solid rgba(255, 248, 238, 0.22);
+  font-weight: 600;
 }
 
 .btn-louvor,
@@ -4625,8 +4781,8 @@ body.tema-louvor .btn-primary {
 }
 
 .louvor-card {
-  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .login-anim--louvor .login-anim-onda {
@@ -4669,10 +4825,8 @@ body.tema-louvor .btn-primary {
 }
 
 .louvor-video-card {
-  background: rgba(255, 255, 255, 0.92);
   border-radius: 1.1rem;
   padding: 1rem;
-  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .louvor-video-frame {
@@ -4700,11 +4854,9 @@ body.tema-louvor .btn-primary {
 }
 
 .louvor-integrante-card {
-  background: rgba(255, 255, 255, 0.92);
   border-radius: 1.1rem;
   padding: 1rem;
   text-align: center;
-  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .louvor-integrante-card img,
@@ -4724,7 +4876,7 @@ body.tema-louvor .btn-primary {
 .louvor-integrante-card span {
   display: block;
   margin-top: 0.2rem;
-  color: #4a4034;
+  color: rgba(255, 248, 238, 0.9);
   font-size: 0.95rem;
 }
 
