@@ -46,6 +46,14 @@ RESPONSAVEIS_EVENTO = {
         "titulo": "Leão de Judá",
         "lider": "Leão de Judá",
     },
+    "maranata": {
+        "titulo": "Dança Maranata",
+        "lider": "Dança Maranata",
+    },
+    "soldadinhos": {
+        "titulo": "Soldadinho de Deus",
+        "lider": "Soldadinho de Deus",
+    },
 }
 
 

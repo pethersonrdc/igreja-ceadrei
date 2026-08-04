@@ -5,7 +5,7 @@ Filhos do Rei — posts simples (foto + texto) para o culto dos jovens.
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -14,6 +14,7 @@ UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "mocidade"
 DB_PATH = DATA_DIR / "mocidade.db"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+DIAS_DESTAQUE_ANTES = 7
 
 H1_RESPONSAVEIS = (
     "Diác. Natan e Diác. Ana Beatriz são os responsáveis pelos Filhos do Rei, "
@@ -43,6 +44,23 @@ def init_db() -> None:
                 ativo INTEGER NOT NULL DEFAULT 1,
                 criado_em TEXT NOT NULL
             )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS destaque (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                data TEXT NOT NULL DEFAULT '',
+                imagem TEXT NOT NULL DEFAULT '',
+                mensagem TEXT NOT NULL DEFAULT '',
+                atualizado_em TEXT NOT NULL DEFAULT ''
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT OR IGNORE INTO destaque (id, data, imagem, mensagem, atualizado_em)
+            VALUES (1, '', '', '', '')
             """
         )
 
@@ -123,3 +141,114 @@ def desativar_post(post_id: int) -> bool:
             (post_id,),
         )
         return cur.rowcount > 0
+
+
+def _parse_data(valor: str) -> date | None:
+    texto = (valor or "").strip()
+    if not texto:
+        return None
+    try:
+        return date.fromisoformat(texto[:10])
+    except ValueError:
+        return None
+
+
+def obter_destaque() -> dict:
+    init_db()
+    with _connect() as conn:
+        row = conn.execute("SELECT * FROM destaque WHERE id = 1").fetchone()
+        item = dict(row) if row else {
+            "id": 1,
+            "data": "",
+            "imagem": "",
+            "mensagem": "",
+            "atualizado_em": "",
+        }
+    data_evt = _parse_data(item.get("data", ""))
+    item["data_obj"] = data_evt
+    item["data_br"] = data_evt.strftime("%d/%m/%Y") if data_evt else ""
+    item["tem_imagem"] = bool((item.get("imagem") or "").strip())
+    item["mensagem"] = (item.get("mensagem") or "").strip()
+    item["tem_conteudo"] = item["tem_imagem"] or bool(item["mensagem"]) or bool(data_evt)
+    return item
+
+
+def salvar_destaque(*, data_iso: str, mensagem: str, imagem: str = "") -> None:
+    init_db()
+    atual = obter_destaque()
+    imagem_final = imagem.strip() if imagem.strip() else (atual.get("imagem") or "")
+    with _connect() as conn:
+        conn.execute(
+            """
+            UPDATE destaque
+            SET data = ?, imagem = ?, mensagem = ?, atualizado_em = ?
+            WHERE id = 1
+            """,
+            (
+                (data_iso or "").strip()[:10],
+                imagem_final,
+                (mensagem or "").strip(),
+                agora().isoformat(timespec="seconds"),
+            ),
+        )
+
+
+def apagar_imagem_destaque() -> bool:
+    init_db()
+    atual = obter_destaque()
+    nome = (atual.get("imagem") or "").strip()
+    if not nome:
+        return False
+    caminho = UPLOAD_DIR / nome
+    if caminho.exists():
+        caminho.unlink()
+    with _connect() as conn:
+        conn.execute(
+            """
+            UPDATE destaque
+            SET imagem = '', atualizado_em = ?
+            WHERE id = 1
+            """,
+            (agora().isoformat(timespec="seconds"),),
+        )
+    return True
+
+
+def limpar_destaque() -> None:
+    init_db()
+    atual = obter_destaque()
+    nome = (atual.get("imagem") or "").strip()
+    if nome:
+        caminho = UPLOAD_DIR / nome
+        if caminho.exists():
+            caminho.unlink()
+    with _connect() as conn:
+        conn.execute(
+            """
+            UPDATE destaque
+            SET data = '', imagem = '', mensagem = '', atualizado_em = ?
+            WHERE id = 1
+            """,
+            (agora().isoformat(timespec="seconds"),),
+        )
+
+
+def destaque_na_janela(hoje: date | None = None) -> bool:
+    hoje = hoje or date.today()
+    item = obter_destaque()
+    data_evt = item.get("data_obj")
+    if not data_evt or not item.get("tem_conteudo"):
+        return False
+    inicio = data_evt - timedelta(days=DIAS_DESTAQUE_ANTES)
+    return inicio <= hoje <= data_evt
+
+
+def obter_destaque_publico(hoje: date | None = None) -> dict | None:
+    if not destaque_na_janela(hoje=hoje):
+        return None
+    item = obter_destaque()
+    item["slug"] = "mocidade"
+    item["titulo"] = "Filhos do Rei"
+    item["tema"] = "tema-mocidade"
+    item["url_slug"] = "mocidade"
+    return item

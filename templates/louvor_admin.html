@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-louvor pagina-fundo{% endblock %}
+
+{% block title %}Admin Grupo de Louvor — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/louvor/fundo.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">Grupo de Louvor</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Publique vídeos (YouTube/Vimeo) e fotos dos integrantes.</p>
+  <p class="section-link">
+    <a href="{{ url_for('louvor_page') }}">Ver página pública</a>
+    ·
+    <a href="{{ url_for('louvor_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section pagina-fundo-content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="video">
+    <h2>Novo vídeo</h2>
+    <p class="admin-help">Cole o link do YouTube ou Vimeo. O público pode buscar por título ou tema.</p>
+
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Adoração — domingo à noite">
+
+    <label for="tema">Tema / tags</label>
+    <input id="tema" name="tema" type="text" placeholder="Ex.: adoração, natal, juventude">
+
+    <label for="link">Link do vídeo</label>
+    <input id="link" name="link" type="url" required placeholder="https://www.youtube.com/watch?v=...">
+
+    <label for="capa">Capa (opcional)</label>
+    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+
+    <button class="btn btn-primary btn-louvor" type="submit">Publicar vídeo</button>
+  </form>
+</section>
+
+{% if videos %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Vídeos publicados</h2>
+  </div>
+  <ul class="admin-posts">
+    {% for video in videos %}
+    <li class="admin-card louvor-card">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ video.titulo }}</strong>
+          {% if video.tema %}<p class="admin-meta">Tema: {{ video.tema }}</p>{% endif %}
+          <p class="admin-meta"><a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">{{ video.link }}</a></p>
+        </div>
+        <form method="post" action="{{ url_for('louvor_apagar_video', video_id=video.id) }}" onsubmit="return confirm('Apagar este vídeo?');">
+          <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+        </form>
+      </div>
+      {% if video.capa %}
+      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="">
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="section pagina-fundo-content">
+  <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="integrante">
+    <h2>Novo integrante</h2>
+    <p class="admin-help">Foto + nome + função para a igreja conhecer quem faz parte do louvor.</p>
+
+    <label for="nome">Nome</label>
+    <input id="nome" name="nome" type="text" required placeholder="Ex.: Ana">
+
+    <label for="funcao">Função</label>
+    <input id="funcao" name="funcao" type="text" placeholder="Ex.: Vocal, teclado, guitarra">
+
+    <label for="foto">Foto</label>
+    <input id="foto" name="foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" required>
+
+    <button class="btn btn-primary btn-louvor" type="submit">Adicionar integrante</button>
+  </form>
+</section>
+
+{% if integrantes %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Integrantes</h2>
+  </div>
+  <ul class="admin-posts louvor-integrantes-admin">
+    {% for pessoa in integrantes %}
+    <li class="admin-card louvor-card">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ pessoa.nome }}</strong>
+          {% if pessoa.funcao %}<p class="admin-meta">{{ pessoa.funcao }}</p>{% endif %}
+        </div>
+        <form method="post" action="{{ url_for('louvor_apagar_integrante', integrante_id=pessoa.id) }}" onsubmit="return confirm('Remover este integrante?');">
+          <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+        </form>
+      </div>
+      {% if pessoa.foto %}
+      <img class="louvor-integrante-thumb" src="{{ url_for('static', filename='uploads/louvor/' + pessoa.foto) }}" alt="{{ pessoa.nome }}">
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

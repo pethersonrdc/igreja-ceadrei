@@ -28,6 +28,7 @@
       <a href="{{ url_for('eventos_page') }}">Eventos</a>
       <a href="{{ url_for('galeria_publica') }}">Galeria</a>
       <a href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
+      <a href="{{ url_for('louvor_page') }}">Grupo de Louvor</a>
       <a href="{{ url_for('contato') }}">Contato</a>
       {% if admin_logado %}
       <a href="{{ url_for('admin_galeria') }}">Painel</a>
@@ -54,6 +55,15 @@
       {% endif %}
       {% if leaodejuda_logado %}
       <a href="{{ url_for('campanha_admin', slug='leaodejuda') }}">Leão</a>
+      {% endif %}
+      {% if maranata_logado %}
+      <a href="{{ url_for('campanha_admin', slug='maranata') }}">Maranata</a>
+      {% endif %}
+      {% if soldadinhos_logado %}
+      <a href="{{ url_for('campanha_admin', slug='soldadinhos') }}">Soldadinhos</a>
+      {% endif %}
+      {% if louvor_logado %}
+      <a href="{{ url_for('louvor_admin') }}">Louvor</a>
       {% endif %}
     </nav>
   </header>
