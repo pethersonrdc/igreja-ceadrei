@@ -101,6 +101,32 @@
         <figcaption>Leão de Judá</figcaption>
       </figure>
     </article>
+
+    <article class="admin-card batismo-access-card maranata-access-card">
+      <h2>Grupo de Dança Maranata</h2>
+      <p>Avisos do grupo de dança, ensaios e calendário.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-maranata" href="{{ url_for('campanha_login', slug='maranata') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='maranata') }}">Página Maranata</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.maranata) }}" alt="Grupo de Dança Maranata">
+        <figcaption>Maranata</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card soldadinhos-access-card">
+      <h2>Crianças — Soldadinhos</h2>
+      <p>Ministério infantil — avisos, datas e calendário.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-soldadinhos" href="{{ url_for('campanha_login', slug='soldadinhos') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='soldadinhos') }}">Página Soldadinhos</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.soldadinhos) }}" alt="Soldadinhos">
+        <figcaption>Soldadinhos</figcaption>
+      </figure>
+    </article>
   </div>
 </section>
 

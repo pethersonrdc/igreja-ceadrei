@@ -67,19 +67,27 @@ ARRAIAL_PASSWORD_HASH = generate_password_hash(ARRAIAL_PASSWORD)
 MOCIDADE_PASSWORD = os.environ.get("MOCIDADE_PASSWORD", "Mocidade")
 MOCIDADE_PASSWORD_HASH = generate_password_hash(MOCIDADE_PASSWORD)
 
-# Senhas Leoas da Fé / Leão de Judá
+# Senhas Leoas da Fé / Leão de Judá / Maranata / Soldadinhos
 LEOAS_PASSWORD = os.environ.get("LEOAS_PASSWORD", "Leoasdafe")
 LEOAS_PASSWORD_HASH = generate_password_hash(LEOAS_PASSWORD)
 LEAODEJUDA_PASSWORD = os.environ.get("LEAODEJUDA_PASSWORD", "Leaodejuda")
 LEAODEJUDA_PASSWORD_HASH = generate_password_hash(LEAODEJUDA_PASSWORD)
+MARANATA_PASSWORD = os.environ.get("MARANATA_PASSWORD", "Maranatas")
+MARANATA_PASSWORD_HASH = generate_password_hash(MARANATA_PASSWORD)
+SOLDADINHOS_PASSWORD = os.environ.get("SOLDADINHOS_PASSWORD", "Soldadinhos")
+SOLDADINHOS_PASSWORD_HASH = generate_password_hash(SOLDADINHOS_PASSWORD)
 
 CAMPANHA_PASSWORD_HASH = {
     "leoas": LEOAS_PASSWORD_HASH,
     "leaodejuda": LEAODEJUDA_PASSWORD_HASH,
+    "maranata": MARANATA_PASSWORD_HASH,
+    "soldadinhos": SOLDADINHOS_PASSWORD_HASH,
 }
 CAMPANHA_SESSION_KEY = {
     "leoas": "leoas_ok",
     "leaodejuda": "leaodejuda_ok",
+    "maranata": "maranata_ok",
+    "soldadinhos": "soldadinhos_ok",
 }
 
 
@@ -173,6 +181,8 @@ def inject_admin():
         "mocidade_logado": bool(session.get("mocidade_ok")),
         "leoas_logado": bool(session.get("leoas_ok")),
         "leaodejuda_logado": bool(session.get("leaodejuda_ok")),
+        "maranata_logado": bool(session.get("maranata_ok")),
+        "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
     }
 
 

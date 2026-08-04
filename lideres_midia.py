@@ -59,6 +59,18 @@ PERFIS = [
         "departamento": "Evento Leão de Judá",
         "padrao": "images/emblema.png",
     },
+    {
+        "id": "maranata",
+        "nome": "Grupo de Dança Maranata",
+        "departamento": "Grupo de Dança Maranata",
+        "padrao": "images/maranata/lideres.png",
+    },
+    {
+        "id": "soldadinhos",
+        "nome": "Soldadinhos",
+        "departamento": "Crianças — Soldadinhos",
+        "padrao": "images/soldadinhos/lideres.png",
+    },
 ]
 
 

@@ -1,6 +1,6 @@
 """
-Eventos Leoas da Fé e Leão de Judá — calendário + post de campanha do culto
-(aniversário ou culto normal).
+Campanhas por departamento (Leoas, Leão de Judá, Maranata, Soldadinhos) —
+calendário + post de campanha do culto (aniversário ou culto normal).
 """
 
 from __future__ import annotations
@@ -45,6 +45,33 @@ EVENTOS = {
         "tema": "tema-leaodejuda",
         "btn": "btn-leaodejuda",
         "card": "leaodejuda-card",
+    },
+    "maranata": {
+        "titulo": "Grupo de Dança Maranata",
+        "lider": "Grupo de Dança Maranata",
+        "origem": "maranata",
+        "fundo": "images/maranata/fundo.png",
+        "upload_dir": BASE_DIR / "static" / "uploads" / "maranata",
+        "db_path": DATA_DIR / "maranata.db",
+        "h1": "Grupo de Dança Maranata — ensaios, cultos e calendário.",
+        "descricao": "Poste avisos do grupo de dança e registre datas no calendário.",
+        "tema": "tema-maranata",
+        "btn": "btn-maranata",
+        "card": "maranata-card",
+    },
+    "soldadinhos": {
+        "titulo": "Crianças — Soldadinhos",
+        "lider": "Soldadinhos",
+        "origem": "soldadinhos",
+        "fundo": "images/soldadinhos/fundo.png",
+        "upload_dir": BASE_DIR / "static" / "uploads" / "soldadinhos",
+        "db_path": DATA_DIR / "soldadinhos.db",
+        "h1": "Soldadinhos — ministério infantil da CEASDREI.",
+        "descricao": "Poste avisos das crianças e registre datas no calendário.",
+        "tema": "tema-soldadinhos",
+        "btn": "btn-soldadinhos",
+        "card": "soldadinhos-card",
+        "login_animado": True,
     },
 }
 
