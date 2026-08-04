@@ -1,6 +1,6 @@
 """
-Eventos Leoas da Fé e Leão de Judá — calendário + post de campanha do culto
-(aniversário ou culto normal).
+Eventos Leoas da Fé, Leão de Judá, Dança Maranata e Soldadinho de Deus —
+calendário + post de campanha do culto (aniversário ou culto normal).
 """
 
 from __future__ import annotations
@@ -32,6 +32,7 @@ EVENTOS = {
         "tema": "tema-leoas",
         "btn": "btn-leoas",
         "card": "leoas-card",
+        "login_anim": "",
     },
     "leaodejuda": {
         "titulo": "Leão de Judá",
@@ -45,6 +46,35 @@ EVENTOS = {
         "tema": "tema-leaodejuda",
         "btn": "btn-leaodejuda",
         "card": "leaodejuda-card",
+        "login_anim": "",
+    },
+    "maranata": {
+        "titulo": "Dança Maranata",
+        "lider": "Dança Maranata",
+        "origem": "maranata",
+        "fundo": "images/maranata/fundo.png",
+        "upload_dir": BASE_DIR / "static" / "uploads" / "maranata",
+        "db_path": DATA_DIR / "maranata.db",
+        "h1": "Dança Maranata — campanha e calendário do ministério.",
+        "descricao": "Poste a campanha da dança e registre datas no calendário.",
+        "tema": "tema-maranata",
+        "btn": "btn-maranata",
+        "card": "maranata-card",
+        "login_anim": "maranata",
+    },
+    "soldadinhos": {
+        "titulo": "Soldadinho de Deus",
+        "lider": "Soldadinho de Deus",
+        "origem": "soldadinhos",
+        "fundo": "images/soldadinhos/fundo.png",
+        "upload_dir": BASE_DIR / "static" / "uploads" / "soldadinhos",
+        "db_path": DATA_DIR / "soldadinhos.db",
+        "h1": "Soldadinho de Deus — ministério infantil, campanha e calendário.",
+        "descricao": "Poste a campanha das crianças e registre datas no calendário.",
+        "tema": "tema-soldadinhos",
+        "btn": "btn-soldadinhos",
+        "card": "soldadinhos-card",
+        "login_anim": "soldadinhos",
     },
 }
 

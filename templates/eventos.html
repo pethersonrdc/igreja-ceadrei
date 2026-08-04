@@ -64,11 +64,11 @@
     </article>
 
     <article class="admin-card batismo-access-card mocidade-access-card">
-      <h2>Líderes da Mocidade</h2>
-      <p>Departamento do Diác. Natan e Diác. Ana Beatriz — culto dos jovens.</p>
+      <h2>Líderes dos Filhos do Rei</h2>
+      <p>Departamento do Diác. Natan e Diác. Ana Beatriz — Filhos do Rei.</p>
       <div class="hero-actions">
         <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos Lideres</a>
-        <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página da mocidade</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página dos Filhos do Rei</a>
       </div>
       <figure class="arraial-card-foto">
         <img src="{{ url_for('static', filename=fotos_lideres.mocidade) }}" alt="Diác. Natan e Diác. Ana Beatriz">
@@ -99,6 +99,32 @@
       <figure class="arraial-card-foto">
         <img src="{{ url_for('static', filename=fotos_lideres.leaodejuda) }}" alt="Leão de Judá">
         <figcaption>Leão de Judá</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card maranata-access-card">
+      <h2>Dança Maranata</h2>
+      <p>Ministério de dança — campanha e calendário dos líderes.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-maranata" href="{{ url_for('campanha_login', slug='maranata') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='maranata') }}">Página Dança Maranata</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.maranata) }}" alt="Dança Maranata">
+        <figcaption>Dança Maranata</figcaption>
+      </figure>
+    </article>
+
+    <article class="admin-card batismo-access-card soldadinhos-access-card">
+      <h2>Soldadinho de Deus</h2>
+      <p>Ministério infantil — campanha e calendário das crianças.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-soldadinhos" href="{{ url_for('campanha_login', slug='soldadinhos') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='soldadinhos') }}">Página Soldadinho de Deus</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.soldadinhos) }}" alt="Soldadinho de Deus">
+        <figcaption>Soldadinho de Deus</figcaption>
       </figure>
     </article>
   </div>

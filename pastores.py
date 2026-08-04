@@ -35,7 +35,7 @@ RESPONSAVEIS_EVENTO = {
         "lider": "Diac. Cássia",
     },
     "mocidade": {
-        "titulo": "Culto dos Jovens",
+        "titulo": "Filhos do Rei",
         "lider": "Diác. Natan e Diác. Ana Beatriz",
     },
     "leoas": {
@@ -45,6 +45,14 @@ RESPONSAVEIS_EVENTO = {
     "leaodejuda": {
         "titulo": "Leão de Judá",
         "lider": "Leão de Judá",
+    },
+    "maranata": {
+        "titulo": "Dança Maranata",
+        "lider": "Dança Maranata",
+    },
+    "soldadinhos": {
+        "titulo": "Soldadinho de Deus",
+        "lider": "Soldadinho de Deus",
     },
 }
 

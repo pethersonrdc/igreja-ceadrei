@@ -2,7 +2,7 @@
 
 {% block body_class %}pagina-fundo tema-mocidade{% endblock %}
 
-{% block title %}Mocidade — {{ igreja.nome }}{% endblock %}
+{% block title %}Filhos do Rei — {{ igreja.nome }}{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
@@ -18,13 +18,13 @@
 <section class="page-hero mocidade-hero pagina-fundo-content">
   <p class="eyebrow">Geração eleita</p>
   <h1>{{ h1_responsaveis }}</h1>
-  <p>Espaço da juventude CEASDREI — culto dos jovens e comunhão.</p>
+  <p>Espaço dos Filhos do Rei CEASDREI — culto dos jovens e comunhão.</p>
 </section>
 
 {% if post_ativo %}
 <section class="section pagina-fundo-content">
   <article class="mocidade-post-card">
-    <p class="eyebrow">Culto dos jovens</p>
+    <p class="eyebrow">Filhos do Rei</p>
     <h2>{{ post_ativo.titulo }}</h2>
     <p>{{ post_ativo.texto }}</p>
     {% if post_ativo.foto %}
@@ -36,7 +36,7 @@
 
 <section class="section arraial-login-layout pagina-fundo-content">
   <article class="mocidade-cta-card">
-    <h2>Líderes da Mocidade</h2>
+    <h2>Líderes dos Filhos do Rei</h2>
     <p>Diác. Natan e Diác. Ana Beatriz</p>
     <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos Lideres</a>
   </article>

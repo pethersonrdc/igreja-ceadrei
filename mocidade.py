@@ -1,5 +1,5 @@
 """
-Líderes da Mocidade — posts simples (foto + texto) para o culto dos jovens.
+Filhos do Rei — posts simples (foto + texto) para o culto dos jovens.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ DB_PATH = DATA_DIR / "mocidade.db"
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 H1_RESPONSAVEIS = (
-    "Diác. Natan e Diác. Ana Beatriz são os responsáveis pela Mocidade, "
+    "Diác. Natan e Diác. Ana Beatriz são os responsáveis pelos Filhos do Rei, "
     "dúvidas entre em contato."
 )
 

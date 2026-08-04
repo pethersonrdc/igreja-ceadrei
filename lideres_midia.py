@@ -44,7 +44,7 @@ PERFIS = [
     {
         "id": "mocidade",
         "nome": "Diác. Natan & Diác. Ana Beatriz",
-        "departamento": "Líderes da Mocidade",
+        "departamento": "Líderes dos Filhos do Rei",
         "padrao": "images/mocidade/natan-ana.png",
     },
     {
@@ -57,6 +57,18 @@ PERFIS = [
         "id": "leaodejuda",
         "nome": "Leão de Judá",
         "departamento": "Evento Leão de Judá",
+        "padrao": "images/emblema.png",
+    },
+    {
+        "id": "maranata",
+        "nome": "Dança Maranata",
+        "departamento": "Evento Dança Maranata",
+        "padrao": "images/emblema.png",
+    },
+    {
+        "id": "soldadinhos",
+        "nome": "Soldadinho de Deus",
+        "departamento": "Evento Soldadinho de Deus",
         "padrao": "images/emblema.png",
     },
 ]
