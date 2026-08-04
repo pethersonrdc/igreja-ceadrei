@@ -3773,8 +3773,22 @@ body.tema-cultos .site-header,
 body.tema-leoas .site-header,
 body.tema-leaodejuda .site-header,
 body.tema-maranata .site-header,
-body.tema-soldadinhos .site-header {
-  background: rgba(8, 8, 8, 0.78);
+body.tema-soldadinhos .site-header,
+body.tema-louvor .site-header {
+  background: rgba(8, 8, 8, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+body.tema-leoas .site-nav a,
+body.tema-leaodejuda .site-nav a,
+body.tema-maranata .site-nav a,
+body.tema-soldadinhos .site-nav a,
+body.tema-louvor .site-nav a,
+body.tema-porta-altar .site-nav a {
+  color: #fff8ee;
+  font-weight: 600;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
 }
 
 body.tema-cultos .page-hero h1,
