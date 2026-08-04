@@ -64,6 +64,12 @@ Abra no navegador: [http://127.0.0.1:5000](http://127.0.0.1:5000)
 | `/mocidade/login` | Login Líderes da Mocidade |
 | `/mocidade/admin` | Posts do culto dos jovens |
 | `/mocidade` | Página da mocidade |
+| `/evento/maranata/login` | Login Grupo de Dança Maranata |
+| `/evento/maranata/admin` | Posts e calendário Maranata |
+| `/evento/maranata` | Página Maranata |
+| `/evento/soldadinhos/login` | Login Crianças — Soldadinhos |
+| `/evento/soldadinhos/admin` | Posts e calendário Soldadinhos |
+| `/evento/soldadinhos` | Página Soldadinhos |
 
 ---
 
@@ -84,13 +90,15 @@ Estrutura local de armazenamento (já em uso):
 
 | Pasta / arquivo | Conteúdo |
 |-----------------|----------|
-| `data/*.db` | Bancos SQLite (galeria, batismo, casais, pastores, arraial, mocidade) |
+| `data/*.db` | Bancos SQLite (galeria, batismo, casais, pastores, arraial, mocidade, leoas, maranata, soldadinhos…) |
 | `static/uploads/galeria/` | Fotos enviadas pela mídia |
 | `static/uploads/batismo/` | Fotos do sítio / batismo |
 | `static/uploads/casais/` | Fotos do encontro de casais |
 | `static/uploads/pastores/` | Foto do pregador etc. |
 | `static/uploads/arraial/` | Flyer do arraiá |
 | `static/uploads/mocidade/` | Posts do culto dos jovens |
+| `static/uploads/maranata/` | Posts do Grupo de Dança Maranata |
+| `static/uploads/soldadinhos/` | Posts das crianças (Soldadinhos) |
 | `static/images/` | Fotos fixas dos líderes/login (versionadas no Git) |
 
 Uploads e bancos **não vão para o Git** (ficam só no disco do servidor),
@@ -185,6 +193,32 @@ set ARRAIAL_PASSWORD=sua_senha_forte
 
 ```bash
 set MOCIDADE_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Grupo de Dança Maranata
+
+- **Acesso:** http://127.0.0.1:5000/evento/maranata/login
+- **Senha padrão (local):** `Maranatas`
+- **Página:** http://127.0.0.1:5000/evento/maranata
+- Mesmo modelo das Leoas: post de campanha + calendário dos líderes
+
+```bash
+set MARANATA_PASSWORD=sua_senha_forte
+```
+
+---
+
+## Crianças — Soldadinhos
+
+- **Acesso:** http://127.0.0.1:5000/evento/soldadinhos/login (login com animação)
+- **Senha padrão (local):** `Soldadinhos`
+- **Página:** http://127.0.0.1:5000/evento/soldadinhos
+- Mesmo modelo das Leoas: post de campanha + calendário dos líderes
+
+```bash
+set SOLDADINHOS_PASSWORD=sua_senha_forte
 ```
 
 ---

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block body_class %}{{ info.tema }} pagina-fundo{% endblock %}
+{% block body_class %}{{ info.tema }} pagina-fundo{% if info.login_animado %} login-animado{% endif %}{% endblock %}
 
 {% block title %}{{ info.titulo }} — Acesso{% endblock %}
 
@@ -15,14 +15,23 @@
 {% endblock %}
 
 {% block content %}
-<section class="page-hero pagina-fundo-content">
+<section class="page-hero pagina-fundo-content{% if info.login_animado %} login-animado-hero{% endif %}">
   <p class="eyebrow">Área restrita</p>
   <h1>{{ info.h1 }}</h1>
   <p>Acesso dos Lideres — {{ info.titulo }}.</p>
 </section>
 
 <section class="section admin-login-wrap pagina-fundo-content">
-  <form class="admin-card {{ info.card }}" method="post" action="{{ url_for('campanha_login', slug=slug, next=request.args.get('next', '')) }}">
+  <form
+    class="admin-card {{ info.card }}{% if info.login_animado %} login-animado-card{% endif %}"
+    method="post"
+    action="{{ url_for('campanha_login', slug=slug, next=request.args.get('next', '')) }}"
+  >
+    {% if info.login_animado %}
+    <div class="login-animado-stars" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    {% endif %}
     <label for="senha">Senha de acesso</label>
     <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
     {% if erro %}

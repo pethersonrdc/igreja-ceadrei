@@ -3717,44 +3717,90 @@ body.tema-leaodejuda {
   color: #fff8ee;
 }
 
+body.tema-maranata {
+  --gold: #c45c78;
+  --gold-deep: #8a3048;
+  --sea: #1a0e14;
+  --sea-deep: #0d070a;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
+body.tema-soldadinhos {
+  --gold: #3d9b7a;
+  --gold-deep: #246b52;
+  --sea: #0c1814;
+  --sea-deep: #06100c;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
 body.tema-cultos .site-header,
 body.tema-leoas .site-header,
-body.tema-leaodejuda .site-header {
+body.tema-leaodejuda .site-header,
+body.tema-maranata .site-header,
+body.tema-soldadinhos .site-header {
   background: rgba(8, 8, 8, 0.78);
 }
 
 body.tema-cultos .page-hero h1,
 body.tema-leoas .page-hero h1,
 body.tema-leaodejuda .page-hero h1,
+body.tema-maranata .page-hero h1,
+body.tema-soldadinhos .page-hero h1,
 body.tema-cultos .page-hero p,
 body.tema-leoas .page-hero p,
 body.tema-leaodejuda .page-hero p,
+body.tema-maranata .page-hero p,
+body.tema-soldadinhos .page-hero p,
 body.tema-cultos .section-head h2,
 body.tema-leoas .section-head h2,
 body.tema-leaodejuda .section-head h2,
+body.tema-maranata .section-head h2,
+body.tema-soldadinhos .section-head h2,
 body.tema-cultos .section-head p,
 body.tema-leoas .section-head p,
 body.tema-leaodejuda .section-head p,
+body.tema-maranata .section-head p,
+body.tema-soldadinhos .section-head p,
 body.tema-cultos .section-link,
 body.tema-leoas .section-link,
 body.tema-leaodejuda .section-link,
+body.tema-maranata .section-link,
+body.tema-soldadinhos .section-link,
 body.tema-cultos .section-link a,
 body.tema-leoas .section-link a,
-body.tema-leaodejuda .section-link a {
+body.tema-leaodejuda .section-link a,
+body.tema-maranata .section-link a,
+body.tema-soldadinhos .section-link a {
   color: #fff8ee;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
 }
 
 body.tema-cultos .eyebrow,
 body.tema-leoas .eyebrow,
-body.tema-leaodejuda .eyebrow {
+body.tema-leaodejuda .eyebrow,
+body.tema-maranata .eyebrow,
+body.tema-soldadinhos .eyebrow {
   color: #f0c75e;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
 }
 
+body.tema-maranata .eyebrow {
+  color: #f0a8bc;
+}
+
+body.tema-soldadinhos .eyebrow {
+  color: #7fd4b0;
+}
+
 body.tema-cultos .site-footer,
 body.tema-leoas .site-footer,
-body.tema-leaodejuda .site-footer {
+body.tema-leaodejuda .site-footer,
+body.tema-maranata .site-footer,
+body.tema-soldadinhos .site-footer {
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55));
   border-top-color: rgba(255, 248, 238, 0.18);
 }
@@ -3762,12 +3808,18 @@ body.tema-leaodejuda .site-footer {
 body.tema-cultos .footer-brand,
 body.tema-leoas .footer-brand,
 body.tema-leaodejuda .footer-brand,
+body.tema-maranata .footer-brand,
+body.tema-soldadinhos .footer-brand,
 body.tema-cultos .footer-lema,
 body.tema-leoas .footer-lema,
 body.tema-leaodejuda .footer-lema,
+body.tema-maranata .footer-lema,
+body.tema-soldadinhos .footer-lema,
 body.tema-cultos .footer-copy,
 body.tema-leoas .footer-copy,
-body.tema-leaodejuda .footer-copy {
+body.tema-leaodejuda .footer-copy,
+body.tema-maranata .footer-copy,
+body.tema-soldadinhos .footer-copy {
   color: #fff8ee;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
 }
@@ -3802,10 +3854,16 @@ body.tema-cultos .schedule-list--full p {
 /* Cards claros com texto escuro */
 body.tema-leoas .admin-card,
 body.tema-leaodejuda .admin-card,
+body.tema-maranata .admin-card,
+body.tema-soldadinhos .admin-card,
 body.tema-leoas .campanha-post-card,
 body.tema-leaodejuda .campanha-post-card,
+body.tema-maranata .campanha-post-card,
+body.tema-soldadinhos .campanha-post-card,
 body.tema-leoas .leoas-card,
-body.tema-leaodejuda .leaodejuda-card {
+body.tema-leaodejuda .leaodejuda-card,
+body.tema-maranata .maranata-card,
+body.tema-soldadinhos .soldadinhos-card {
   background: rgba(255, 255, 255, 0.92) !important;
   color: #1a1208;
   --ink: #1a1208;
@@ -3814,16 +3872,28 @@ body.tema-leaodejuda .leaodejuda-card {
 
 body.tema-leoas .admin-card h2,
 body.tema-leaodejuda .admin-card h2,
+body.tema-maranata .admin-card h2,
+body.tema-soldadinhos .admin-card h2,
 body.tema-leoas .campanha-post-card h2,
 body.tema-leaodejuda .campanha-post-card h2,
+body.tema-maranata .campanha-post-card h2,
+body.tema-soldadinhos .campanha-post-card h2,
 body.tema-leoas .admin-card p,
 body.tema-leaodejuda .admin-card p,
+body.tema-maranata .admin-card p,
+body.tema-soldadinhos .admin-card p,
 body.tema-leoas .campanha-post-card p,
 body.tema-leaodejuda .campanha-post-card p,
+body.tema-maranata .campanha-post-card p,
+body.tema-soldadinhos .campanha-post-card p,
 body.tema-leoas .admin-card label,
 body.tema-leaodejuda .admin-card label,
+body.tema-maranata .admin-card label,
+body.tema-soldadinhos .admin-card label,
 body.tema-leoas .admin-card strong,
-body.tema-leaodejuda .admin-card strong {
+body.tema-leaodejuda .admin-card strong,
+body.tema-maranata .admin-card strong,
+body.tema-soldadinhos .admin-card strong {
   color: #1a1208;
   text-shadow: none;
 }
@@ -3842,6 +3912,20 @@ body.tema-leaodejuda .btn-primary {
   color: #14110c;
 }
 
+.btn-maranata,
+body.tema-maranata .btn-primary {
+  background: linear-gradient(135deg, #c45c78, #8a3048);
+  border-color: transparent;
+  color: #fff8ee;
+}
+
+.btn-soldadinhos,
+body.tema-soldadinhos .btn-primary {
+  background: linear-gradient(135deg, #3d9b7a, #246b52);
+  border-color: transparent;
+  color: #fff8ee;
+}
+
 .leoas-access-card {
   background:
     linear-gradient(160deg, rgba(201, 162, 39, 0.14), rgba(255, 255, 255, 0.92)),
@@ -3856,11 +3940,93 @@ body.tema-leaodejuda .btn-primary {
   border-color: rgba(154, 123, 24, 0.2);
 }
 
+.maranata-access-card {
+  background:
+    linear-gradient(160deg, rgba(196, 92, 120, 0.16), rgba(255, 255, 255, 0.92)),
+    rgba(255, 255, 255, 0.55);
+  border-color: rgba(138, 48, 72, 0.22);
+}
+
+.soldadinhos-access-card {
+  background:
+    linear-gradient(160deg, rgba(61, 155, 122, 0.16), rgba(255, 255, 255, 0.92)),
+    rgba(255, 255, 255, 0.55);
+  border-color: rgba(36, 107, 82, 0.22);
+}
+
 .leoas-card,
 .leaodejuda-card,
+.maranata-card,
+.soldadinhos-card,
 .campanha-post-card {
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(8px);
+}
+
+/* Login animado — Soldadinhos */
+.login-animado-hero {
+  animation: soldadinhos-rise 0.85s ease both;
+}
+
+.login-animado-card {
+  position: relative;
+  overflow: hidden;
+  animation: soldadinhos-pop 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.login-animado-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow: 0 22px 48px rgba(36, 107, 82, 0.28);
+}
+
+.login-animado-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.login-animado-stars span {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(61, 155, 122, 0.55);
+  animation: soldadinhos-float 4.5s ease-in-out infinite;
+}
+
+.login-animado-stars span:nth-child(1) { left: 12%; top: 18%; animation-delay: 0s; }
+.login-animado-stars span:nth-child(2) { left: 78%; top: 22%; width: 6px; height: 6px; animation-delay: -1s; }
+.login-animado-stars span:nth-child(3) { left: 22%; top: 72%; width: 10px; height: 10px; animation-delay: -2s; }
+.login-animado-stars span:nth-child(4) { left: 68%; top: 78%; animation-delay: -2.8s; }
+.login-animado-stars span:nth-child(5) { left: 48%; top: 12%; width: 5px; height: 5px; animation-delay: -1.6s; }
+
+@keyframes soldadinhos-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes soldadinhos-pop {
+  0% { opacity: 0; transform: translateY(28px) scale(0.94); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes soldadinhos-float {
+  0%, 100% { transform: translateY(0); opacity: 0.45; }
+  50% { transform: translateY(-12px); opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-animado-hero,
+  .login-animado-card,
+  .login-animado-stars span {
+    animation: none !important;
+  }
+
+  .login-animado-card:hover {
+    transform: none;
+  }
 }
 
 .campanha-post-card {
