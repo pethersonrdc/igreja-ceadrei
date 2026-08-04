@@ -63,7 +63,7 @@ PERFIS = [
         "id": "maranata",
         "nome": "Dança Maranata",
         "departamento": "Evento Dança Maranata",
-        "padrao": "images/emblema.png",
+        "padrao": "images/maranata/lideres.png",
     },
     {
         "id": "soldadinhos",

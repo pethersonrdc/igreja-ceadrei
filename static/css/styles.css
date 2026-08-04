@@ -3718,13 +3718,29 @@ body.tema-leaodejuda {
 }
 
 body.tema-maranata {
-  --gold: #e85d8a;
-  --gold-deep: #a8325c;
-  --sea: #1a0c14;
-  --sea-deep: #0d060a;
-  --ink: #fff5f8;
-  --ink-soft: rgba(255, 245, 248, 0.88);
-  color: #fff5f8;
+  --gold: #d4af37;
+  --gold-deep: #9a7b18;
+  --sea: #000000;
+  --sea-deep: #000000;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+  background: #000;
+}
+
+body.tema-maranata .fundo-pagina.fundo-pagina--arte {
+  background: #000;
+}
+
+body.tema-maranata .fundo-pagina--arte .fundo-pagina-img {
+  object-fit: contain;
+  object-position: center center;
+  opacity: 0.92;
+}
+
+body.tema-maranata .fundo-pagina--arte::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.78));
 }
 
 body.tema-soldadinhos {
