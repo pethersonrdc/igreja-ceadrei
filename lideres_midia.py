@@ -71,6 +71,12 @@ PERFIS = [
         "departamento": "Evento Soldadinho de Deus",
         "padrao": "images/emblema.png",
     },
+    {
+        "id": "louvor",
+        "nome": "Grupo de Louvor",
+        "departamento": "Grupo de Louvor",
+        "padrao": "images/emblema.png",
+    },
 ]
 
 

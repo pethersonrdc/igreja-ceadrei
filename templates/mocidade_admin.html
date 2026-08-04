@@ -26,6 +26,46 @@
   {% endwith %}
 
   <form class="admin-card mocidade-card" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="acao" value="destaque">
+    <h2>Destaque do evento</h2>
+    <p class="admin-help">Imagem + mensagem. Na home, aparece sozinho 7 dias antes da data e some depois do evento.</p>
+
+    <label for="data_destaque">Data do evento</label>
+    <input id="data_destaque" name="data" type="date" value="{{ destaque.data or '' }}">
+
+    <label for="imagem_destaque">Imagem de destaque</label>
+    <input id="imagem_destaque" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    {% if destaque.tem_imagem %}
+    <p class="admin-help">Imagem atual:
+      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/mocidade/' + destaque.imagem) }}" alt="">
+    </p>
+    {% endif %}
+
+    <label for="mensagem_destaque">Mensagem embaixo da imagem</label>
+    <textarea id="mensagem_destaque" name="mensagem" rows="3" placeholder="Ex.: Culto dos Filhos do Rei — venha!">{{ destaque.mensagem or '' }}</textarea>
+
+    <div class="hero-actions">
+      <button class="btn btn-primary btn-mocidade" type="submit">Salvar destaque</button>
+    </div>
+  </form>
+
+  {% if destaque.tem_conteudo %}
+  <div class="hero-actions" style="margin-top:0.75rem">
+    {% if destaque.tem_imagem %}
+    <form method="post" action="{{ url_for('mocidade_apagar_imagem_destaque') }}" onsubmit="return confirm('Apagar a imagem do destaque?');">
+      <button class="btn btn-ghost-dark" type="submit">Apagar imagem</button>
+    </form>
+    {% endif %}
+    <form method="post" onsubmit="return confirm('Limpar todo o destaque?');">
+      <input type="hidden" name="acao" value="limpar_destaque">
+      <button class="btn btn-ghost-dark" type="submit">Limpar destaque</button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+
+<section class="section">
+  <form class="admin-card mocidade-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="post">
     <h2>Novo post — culto dos jovens</h2>
     <p class="admin-help">Texto + uma foto. O post ativo aparece na página inicial.</p>

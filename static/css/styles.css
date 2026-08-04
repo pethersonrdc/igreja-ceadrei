@@ -4449,7 +4449,237 @@ body.tema-porta-altar .admin-msg--erro {
   .login-anim--soldadinhos .login-anim-marcha,
   .login-anim-estrela,
   .login-anim--maranata .login-anim-onda,
-  .login-anim--maranata .login-anim-nota {
+  .login-anim--maranata .login-anim-nota,
+  .login-anim--louvor .login-anim-onda,
+  .login-anim--louvor .login-anim-nota {
     animation: none !important;
   }
+}
+
+/* ---------- Ministérios em destaque (home + páginas) ---------- */
+
+.ministerios-destaque-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.ministerio-destaque-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 1.1rem;
+  padding: 1.25rem;
+  color: #1a1208;
+}
+
+.ministerio-destaque-card img {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 0.85rem;
+  margin: 0.75rem 0;
+}
+
+.ministerio-destaque-msg {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+body.tema-leoas .ministerio-destaque-card,
+body.tema-leaodejuda .ministerio-destaque-card,
+body.tema-maranata .ministerio-destaque-card,
+body.tema-soldadinhos .ministerio-destaque-card,
+body.tema-mocidade .ministerio-destaque-card,
+body.tema-louvor .ministerio-destaque-card {
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #1a1208;
+}
+
+/* ---------- Grupo de Louvor ---------- */
+
+body.tema-louvor {
+  --gold: #c9a24a;
+  --gold-deep: #8a6a1a;
+  --sea: #16110a;
+  --sea-deep: #0b0805;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+}
+
+body.tema-louvor .site-header {
+  background: rgba(8, 8, 8, 0.78);
+}
+
+body.tema-louvor .page-hero h1,
+body.tema-louvor .page-hero p,
+body.tema-louvor .section-head h2,
+body.tema-louvor .section-head p,
+body.tema-louvor .section-link,
+body.tema-louvor .section-link a {
+  color: #fff8ee;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
+
+body.tema-louvor .eyebrow {
+  color: #f0c75e;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.65);
+}
+
+body.tema-louvor .site-footer {
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55));
+  border-top-color: rgba(255, 248, 238, 0.18);
+}
+
+body.tema-louvor .footer-brand,
+body.tema-louvor .footer-lema,
+body.tema-louvor .footer-copy {
+  color: #fff8ee;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+}
+
+body.tema-louvor .admin-card,
+body.tema-louvor .louvor-card,
+body.tema-louvor .louvor-video-card,
+body.tema-louvor .louvor-integrante-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #1a1208;
+  --ink: #1a1208;
+  --ink-soft: #4a4034;
+}
+
+body.tema-louvor .admin-card h2,
+body.tema-louvor .admin-card h3,
+body.tema-louvor .admin-card p,
+body.tema-louvor .admin-card label,
+body.tema-louvor .admin-card strong,
+body.tema-louvor .louvor-video-card h3,
+body.tema-louvor .louvor-integrante-card strong,
+body.tema-louvor .louvor-integrante-card span {
+  color: #1a1208;
+  text-shadow: none;
+}
+
+.btn-louvor,
+body.tema-louvor .btn-primary {
+  background: linear-gradient(135deg, #c9a24a, #8a6a1a);
+  border-color: transparent;
+  color: #1a1208;
+}
+
+.louvor-access-card {
+  background:
+    linear-gradient(160deg, rgba(201, 162, 74, 0.16), rgba(255, 255, 255, 0.92)),
+    rgba(255, 255, 255, 0.55);
+  border-color: rgba(138, 106, 26, 0.22);
+}
+
+.louvor-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+}
+
+.login-anim--louvor .login-anim-onda {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #c9a24a, #f0c75e, #c9a24a, transparent);
+  opacity: 0.85;
+  animation: maranata-onda 2.4s ease-in-out infinite;
+}
+
+.login-anim--louvor .login-anim-nota {
+  position: absolute;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: #f0c75e;
+  box-shadow: 0.35rem -0.55rem 0 0 #c9a24a;
+  animation: maranata-nota 2.8s ease-in-out infinite;
+}
+
+.louvor-busca-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.louvor-busca-row input[type="search"] {
+  flex: 1 1 220px;
+}
+
+.louvor-videos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.louvor-video-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.1rem;
+  padding: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.louvor-video-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background: #111;
+}
+
+.louvor-video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.louvor-integrantes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.louvor-integrante-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 1.1rem;
+  padding: 1rem;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.louvor-integrante-card img,
+.louvor-integrante-thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0.85rem;
+  margin-bottom: 0.65rem;
+}
+
+.louvor-integrante-card strong {
+  display: block;
+}
+
+.louvor-integrante-card span {
+  display: block;
+  margin-top: 0.2rem;
+  color: #4a4034;
+  font-size: 0.95rem;
+}
+
+.louvor-integrantes-admin .louvor-integrante-thumb {
+  max-width: 180px;
 }

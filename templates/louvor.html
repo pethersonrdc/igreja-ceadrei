@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-louvor pagina-fundo{% endblock %}
+
+{% block title %}Grupo de Louvor — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/emblema.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content louvor-hero">
+  <p class="eyebrow">Adoração</p>
+  <h1>Grupo de Louvor</h1>
+  <p>{{ h1_responsaveis }}</p>
+</section>
+
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <p class="eyebrow">Vídeos</p>
+    <h2>Assista e busque por tema</h2>
+    <p>Louvores e momentos de adoração do ministério.</p>
+  </div>
+
+  <form class="louvor-busca admin-card louvor-card" method="get" action="{{ url_for('louvor_page') }}">
+    <label for="q">Buscar vídeo</label>
+    <div class="louvor-busca-row">
+      <input id="q" name="q" type="search" value="{{ busca }}" placeholder="Ex.: adoração, natal, juventude">
+      <button class="btn btn-primary btn-louvor" type="submit">Buscar</button>
+      {% if busca %}
+      <a class="btn btn-ghost-dark" href="{{ url_for('louvor_page') }}">Limpar</a>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if videos %}
+  <div class="louvor-videos-grid">
+    {% for video in videos %}
+    <article class="louvor-video-card">
+      {% if video.embed_url %}
+      <div class="louvor-video-frame">
+        <iframe
+          src="{{ video.embed_url }}"
+          title="{{ video.titulo }}"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+      {% elif video.capa %}
+      <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">
+        <img src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="{{ video.titulo }}">
+      </a>
+      {% endif %}
+      <h3>{{ video.titulo }}</h3>
+      {% if video.tema %}<p class="admin-meta">{{ video.tema }}</p>{% endif %}
+      {% if not video.embed_url %}
+      <p class="section-link">
+        <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">Abrir vídeo</a>
+      </p>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="pagina-fundo-content">Nenhum vídeo{% if busca %} para “{{ busca }}”{% endif %} no momento.</p>
+  {% endif %}
+</section>
+
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <p class="eyebrow">Conheça o grupo</p>
+    <h2>Integrantes do louvor</h2>
+    <p>Quem serve no ministério de adoração da igreja.</p>
+  </div>
+
+  {% if integrantes %}
+  <div class="louvor-integrantes-grid">
+    {% for pessoa in integrantes %}
+    <article class="louvor-integrante-card">
+      {% if pessoa.foto %}
+      <img src="{{ url_for('static', filename='uploads/louvor/' + pessoa.foto) }}" alt="{{ pessoa.nome }}">
+      {% endif %}
+      <strong>{{ pessoa.nome }}</strong>
+      {% if pessoa.funcao %}<span>{{ pessoa.funcao }}</span>{% endif %}
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>Os líderes ainda vão cadastrar os integrantes.</p>
+  {% endif %}
+</section>
+
+<section class="section pagina-fundo-content">
+  <article class="admin-card louvor-card">
+    <h2>Liderança do Louvor</h2>
+    <p>Acesso para publicar vídeos e fotos dos integrantes.</p>
+    <a class="btn btn-primary btn-louvor" href="{{ url_for('louvor_login') }}">Acesso dos Lideres</a>
+  </article>
+</section>
+{% endblock %}

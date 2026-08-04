@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-louvor pagina-fundo{% endblock %}
+
+{% block title %}Grupo de Louvor — Acesso{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/emblema.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">Área restrita</p>
+  <h1>{{ h1_responsaveis }}</h1>
+  <p>Acesso dos Lideres — Grupo de Louvor.</p>
+</section>
+
+<section class="section admin-login-wrap pagina-fundo-content">
+  <div class="campanha-login-stage campanha-login-stage--louvor">
+    <div class="login-anim login-anim--louvor" aria-hidden="true">
+      <span class="login-anim-onda login-anim-onda--1"></span>
+      <span class="login-anim-onda login-anim-onda--2"></span>
+      <span class="login-anim-nota login-anim-nota--1"></span>
+      <span class="login-anim-nota login-anim-nota--2"></span>
+      <span class="login-anim-nota login-anim-nota--3"></span>
+    </div>
+    <form class="admin-card louvor-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('louvor_login', next=request.args.get('next', '')) }}">
+      <label for="senha">Senha de acesso</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary btn-louvor" type="submit">Entrar</button>
+    </form>
+  </div>
+</section>
+{% endblock %}

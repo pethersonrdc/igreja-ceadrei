@@ -42,13 +42,24 @@ static/uploads/mocidade/*
 !static/uploads/mocidade/.gitkeep
 data/mocidade.db
 
-# Leoas da Fé / Leão de Judá
+# Leoas da Fé / Leão de Judá / Maranata / Soldadinhos
 static/uploads/leoas/*
 !static/uploads/leoas/.gitkeep
 data/leoas.db
 static/uploads/leaodejuda/*
 !static/uploads/leaodejuda/.gitkeep
 data/leaodejuda.db
+static/uploads/maranata/*
+!static/uploads/maranata/.gitkeep
+data/maranata.db
+static/uploads/soldadinhos/*
+!static/uploads/soldadinhos/.gitkeep
+data/soldadinhos.db
+
+# Grupo de Louvor
+static/uploads/louvor/*
+!static/uploads/louvor/.gitkeep
+data/louvor.db
 
 # Papo de Altar
 static/uploads/porta_altar/*

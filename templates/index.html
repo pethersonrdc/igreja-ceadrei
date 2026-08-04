@@ -38,6 +38,39 @@
   </p>
 </section>
 
+{% if ministerios_destaque %}
+<section class="section home-ministerios-destaque">
+  <div class="section-head">
+    <p class="eyebrow">Ministérios em destaque</p>
+    <h2>Perto da data do evento</h2>
+    <p>Aparece sozinho 7 dias antes e some depois do dia marcado.</p>
+  </div>
+  <div class="ministerios-destaque-grid">
+    {% for item in ministerios_destaque %}
+    <article class="ministerio-destaque-card">
+      <p class="eyebrow">{{ item.titulo }}{% if item.data_br %} · {{ item.data_br }}{% endif %}</p>
+      {% if item.tem_imagem %}
+      <img
+        src="{{ url_for('static', filename='uploads/' + item.slug + '/' + item.imagem) }}"
+        alt="{{ item.titulo }}"
+      >
+      {% endif %}
+      {% if item.mensagem %}
+      <p class="ministerio-destaque-msg">{{ item.mensagem }}</p>
+      {% endif %}
+      <p class="section-link">
+        {% if item.slug == 'mocidade' %}
+        <a href="{{ url_for('mocidade_page') }}">Ver Filhos do Rei</a>
+        {% else %}
+        <a href="{{ url_for('campanha_page', slug=item.slug) }}">Ver {{ item.titulo }}</a>
+        {% endif %}
+      </p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 {% if eventos_destaque %}
 <section class="section home-topico-eventos">
   <div class="section-head">

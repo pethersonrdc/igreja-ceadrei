@@ -21,6 +21,20 @@
   <p>{{ info.descricao }}</p>
 </section>
 
+{% if destaque_publico %}
+<section class="section pagina-fundo-content">
+  <article class="ministerio-destaque-card {{ info.card }}">
+    <p class="eyebrow">Em destaque{% if destaque_publico.data_br %} · {{ destaque_publico.data_br }}{% endif %}</p>
+    {% if destaque_publico.tem_imagem %}
+    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}" alt="{{ info.titulo }}">
+    {% endif %}
+    {% if destaque_publico.mensagem %}
+    <p class="ministerio-destaque-msg">{{ destaque_publico.mensagem }}</p>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
 {% if post_ativo %}
 <section class="section pagina-fundo-content">
   <article class="campanha-post-card {{ info.card }}">

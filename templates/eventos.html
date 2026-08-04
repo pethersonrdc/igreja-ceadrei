@@ -127,6 +127,19 @@
         <figcaption>Soldadinho de Deus</figcaption>
       </figure>
     </article>
+
+    <article class="admin-card batismo-access-card louvor-access-card">
+      <h2>Grupo de Louvor</h2>
+      <p>Vídeos de adoração e fotos dos integrantes do ministério.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-louvor" href="{{ url_for('louvor_login') }}">Acesso dos Lideres</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('louvor_page') }}">Página do Louvor</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.louvor) }}" alt="Grupo de Louvor">
+        <figcaption>Grupo de Louvor</figcaption>
+      </figure>
+    </article>
   </div>
 </section>
 

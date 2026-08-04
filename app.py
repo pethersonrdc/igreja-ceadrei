@@ -31,6 +31,7 @@ import batismo
 import campanha_eventos
 import casais
 import gallery
+import louvor
 import mocidade
 import pastores
 import lideres_midia
@@ -76,6 +77,10 @@ MARANATA_PASSWORD = os.environ.get("MARANATA_PASSWORD", "Maranatas")
 MARANATA_PASSWORD_HASH = generate_password_hash(MARANATA_PASSWORD)
 SOLDADINHOS_PASSWORD = os.environ.get("SOLDADINHOS_PASSWORD", "Soldadinhos")
 SOLDADINHOS_PASSWORD_HASH = generate_password_hash(SOLDADINHOS_PASSWORD)
+
+# Senha do Grupo de Louvor
+LOUVOR_PASSWORD = os.environ.get("LOUVOR_PASSWORD", "Louvor")
+LOUVOR_PASSWORD_HASH = generate_password_hash(LOUVOR_PASSWORD)
 
 CAMPANHA_PASSWORD_HASH = {
     "leoas": LEOAS_PASSWORD_HASH,
@@ -170,6 +175,16 @@ def campanha_login_required(view):
     return wrapped
 
 
+def louvor_login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("louvor_ok"):
+            return redirect(url_for("louvor_login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 @app.context_processor
 def inject_admin():
     return {
@@ -183,6 +198,7 @@ def inject_admin():
         "leaodejuda_logado": bool(session.get("leaodejuda_ok")),
         "maranata_logado": bool(session.get("maranata_ok")),
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
+        "louvor_logado": bool(session.get("louvor_ok")),
     }
 
 
@@ -217,6 +233,13 @@ def home():
     info_arraial = arraial.info_evento()
     post_mocidade = mocidade.obter_post_ativo()
     aviso_home = gallery.obter_aviso_home()
+    ministerios_destaque = campanha_eventos.listar_destaques_home()
+    mocidade_destaque = mocidade.obter_destaque_publico()
+    if mocidade_destaque:
+        ministerios_destaque = sorted(
+            [*ministerios_destaque, mocidade_destaque],
+            key=lambda x: x.get("data_obj") or date.max,
+        )
     return render_template(
         "index.html",
         igreja=igreja,
@@ -228,6 +251,7 @@ def home():
         escala_hoje=escala_hoje,
         destaque_culto=destaque_culto,
         eventos_destaque=eventos_destaque,
+        ministerios_destaque=ministerios_destaque,
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
         post_mocidade=post_mocidade,
@@ -1553,6 +1577,33 @@ def mocidade_admin():
             _processar_evento_responsavel("mocidade")
             return redirect(url_for("mocidade_admin"))
 
+        if acao == "destaque":
+            data_iso = request.form.get("data", "").strip()
+            mensagem = request.form.get("mensagem", "").strip()
+            arquivo = request.files.get("imagem")
+            nome_final = ""
+            if arquivo and arquivo.filename:
+                if not mocidade.extensao_ok(arquivo.filename):
+                    flash("Imagem: use JPG, PNG, WEBP ou GIF.", "erro")
+                    return redirect(url_for("mocidade_admin"))
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
+                mocidade.init_db()
+                arquivo.save(mocidade.UPLOAD_DIR / nome_final)
+            mocidade.salvar_destaque(
+                data_iso=data_iso,
+                mensagem=mensagem,
+                imagem=nome_final,
+            )
+            flash("Destaque salvo! Aparece na home 7 dias antes da data.", "ok")
+            return redirect(url_for("mocidade_admin"))
+
+        if acao == "limpar_destaque":
+            mocidade.limpar_destaque()
+            flash("Destaque limpo.", "ok")
+            return redirect(url_for("mocidade_admin"))
+
         titulo = request.form.get("titulo", "").strip() or "Culto dos jovens"
         texto = request.form.get("texto", "").strip()
         arquivo = request.files.get("foto")
@@ -1588,10 +1639,21 @@ def mocidade_admin():
         foto_lideres=mocidade.FOTO_LIDERES,
         posts=mocidade.listar_posts(),
         post_ativo=mocidade.obter_post_ativo(),
+        destaque=mocidade.obter_destaque(),
         eventos_calendario=pastores.listar_eventos_lideres(origem="mocidade"),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["mocidade"],
     )
+
+
+@app.route("/mocidade/admin/destaque/apagar-imagem", methods=["POST"])
+@mocidade_login_required
+def mocidade_apagar_imagem_destaque():
+    if mocidade.apagar_imagem_destaque():
+        flash("Imagem do destaque apagada.", "ok")
+    else:
+        flash("Nenhuma imagem para apagar.", "erro")
+    return redirect(url_for("mocidade_admin"))
 
 
 @app.route("/mocidade/admin/post/<int:post_id>/apagar", methods=["POST"])
@@ -1633,6 +1695,7 @@ def mocidade_page():
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
         foto_lideres=mocidade.FOTO_LIDERES,
         post_ativo=mocidade.obter_post_ativo(),
+        destaque_publico=mocidade.obter_destaque_publico(),
     )
 
 
@@ -1684,6 +1747,34 @@ def campanha_admin(slug: str):
             _processar_evento_responsavel(slug)
             return redirect(url_for("campanha_admin", slug=slug))
 
+        if acao == "destaque":
+            data_iso = request.form.get("data", "").strip()
+            mensagem = request.form.get("mensagem", "").strip()
+            arquivo = request.files.get("imagem")
+            nome_final = ""
+            if arquivo and arquivo.filename:
+                if not campanha_eventos.extensao_ok(arquivo.filename):
+                    flash("Imagem: use JPG, PNG, WEBP ou GIF.", "erro")
+                    return redirect(url_for("campanha_admin", slug=slug))
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
+                campanha_eventos.init_db(slug)
+                arquivo.save(info["upload_dir"] / nome_final)
+            campanha_eventos.salvar_destaque(
+                slug,
+                data_iso=data_iso,
+                mensagem=mensagem,
+                imagem=nome_final,
+            )
+            flash("Destaque salvo! Aparece na home 7 dias antes da data.", "ok")
+            return redirect(url_for("campanha_admin", slug=slug))
+
+        if acao == "limpar_destaque":
+            campanha_eventos.limpar_destaque(slug)
+            flash("Destaque limpo.", "ok")
+            return redirect(url_for("campanha_admin", slug=slug))
+
         titulo = request.form.get("titulo", "").strip() or info["titulo"]
         texto = request.form.get("texto", "").strip()
         tipo = request.form.get("tipo", "culto_normal").strip()
@@ -1728,10 +1819,21 @@ def campanha_admin(slug: str):
         tipos=campanha_eventos.TIPOS_CULTO,
         posts=campanha_eventos.listar_posts(slug),
         post_ativo=campanha_eventos.obter_post_ativo(slug),
+        destaque=campanha_eventos.obter_destaque(slug),
         eventos_calendario=pastores.listar_eventos_lideres(origem=slug),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO[slug],
     )
+
+
+@app.route("/evento/<slug>/admin/destaque/apagar-imagem", methods=["POST"])
+@campanha_login_required
+def campanha_apagar_imagem_destaque(slug: str):
+    if campanha_eventos.apagar_imagem_destaque(slug):
+        flash("Imagem do destaque apagada.", "ok")
+    else:
+        flash("Nenhuma imagem para apagar.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
 
 
 @app.route("/evento/<slug>/admin/post/<int:post_id>/apagar", methods=["POST"])
@@ -1776,6 +1878,135 @@ def campanha_page(slug: str):
         slug=slug,
         info=info,
         post_ativo=campanha_eventos.obter_post_ativo(slug),
+        destaque_publico=campanha_eventos.obter_destaque_publico(slug),
+    )
+
+
+# ---------- Grupo de Louvor ----------
+
+@app.route("/louvor/login", methods=["GET", "POST"])
+def louvor_login():
+    igreja = load_json("igreja.json")
+    erro = None
+    if request.method == "POST":
+        senha = request.form.get("senha", "")
+        if check_password_hash(LOUVOR_PASSWORD_HASH, senha):
+            session["louvor_ok"] = True
+            destino = request.args.get("next") or url_for("louvor_admin")
+            return redirect(destino)
+        erro = "Senha incorreta. Tente novamente."
+    if session.get("louvor_ok"):
+        return redirect(url_for("louvor_admin"))
+    return render_template(
+        "louvor_login.html",
+        igreja=igreja,
+        erro=erro,
+        h1_responsaveis=louvor.H1_RESPONSAVEIS,
+    )
+
+
+@app.route("/louvor/logout")
+def louvor_logout():
+    session.pop("louvor_ok", None)
+    return redirect(url_for("eventos_page"))
+
+
+@app.route("/louvor/admin", methods=["GET", "POST"])
+@louvor_login_required
+def louvor_admin():
+    igreja = load_json("igreja.json")
+    louvor.init_db()
+
+    if request.method == "POST":
+        acao = request.form.get("acao", "video").strip()
+
+        if acao == "video":
+            titulo = request.form.get("titulo", "").strip() or "Vídeo do louvor"
+            tema = request.form.get("tema", "").strip()
+            link = request.form.get("link", "").strip()
+            arquivo = request.files.get("capa")
+            if not link or not louvor.link_valido(link):
+                flash("Informe um link válido (YouTube ou Vimeo).", "erro")
+                return redirect(url_for("louvor_admin"))
+            nome_final = ""
+            if arquivo and arquivo.filename:
+                if not louvor.extensao_ok(arquivo.filename):
+                    flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
+                    return redirect(url_for("louvor_admin"))
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"capa-{uuid.uuid4().hex}{extensao}"
+                arquivo.save(louvor.UPLOAD_DIR / nome_final)
+            louvor.criar_video(
+                titulo=titulo,
+                tema=tema,
+                link=link,
+                capa=nome_final,
+            )
+            flash("Vídeo publicado!", "ok")
+            return redirect(url_for("louvor_admin"))
+
+        if acao == "integrante":
+            nome = request.form.get("nome", "").strip()
+            funcao = request.form.get("funcao", "").strip()
+            arquivo = request.files.get("foto")
+            if not nome:
+                flash("Informe o nome do integrante.", "erro")
+                return redirect(url_for("louvor_admin"))
+            if not arquivo or not arquivo.filename:
+                flash("Envie a foto do integrante.", "erro")
+                return redirect(url_for("louvor_admin"))
+            if not louvor.extensao_ok(arquivo.filename):
+                flash("Foto: use JPG, PNG, WEBP ou GIF.", "erro")
+                return redirect(url_for("louvor_admin"))
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_final = f"integrante-{uuid.uuid4().hex}{extensao}"
+            arquivo.save(louvor.UPLOAD_DIR / nome_final)
+            louvor.criar_integrante(nome=nome, funcao=funcao, foto=nome_final)
+            flash("Integrante adicionado!", "ok")
+            return redirect(url_for("louvor_admin"))
+
+    return render_template(
+        "louvor_admin.html",
+        igreja=igreja,
+        h1_responsaveis=louvor.H1_RESPONSAVEIS,
+        videos=louvor.listar_videos(so_ativos=False),
+        integrantes=louvor.listar_integrantes(so_ativos=False),
+    )
+
+
+@app.route("/louvor/admin/video/<int:video_id>/apagar", methods=["POST"])
+@louvor_login_required
+def louvor_apagar_video(video_id: int):
+    if louvor.apagar_video(video_id):
+        flash("Vídeo apagado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
+    return redirect(url_for("louvor_admin"))
+
+
+@app.route("/louvor/admin/integrante/<int:integrante_id>/apagar", methods=["POST"])
+@louvor_login_required
+def louvor_apagar_integrante(integrante_id: int):
+    if louvor.apagar_integrante(integrante_id):
+        flash("Integrante removido.", "ok")
+    else:
+        flash("Integrante não encontrado.", "erro")
+    return redirect(url_for("louvor_admin"))
+
+
+@app.route("/louvor")
+def louvor_page():
+    igreja = load_json("igreja.json")
+    busca = request.args.get("q", "").strip()
+    return render_template(
+        "louvor.html",
+        igreja=igreja,
+        h1_responsaveis=louvor.H1_RESPONSAVEIS,
+        videos=louvor.listar_videos(busca=busca, so_ativos=True),
+        integrantes=louvor.listar_integrantes(so_ativos=True),
+        busca=busca,
     )
 
 
