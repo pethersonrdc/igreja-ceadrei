@@ -4703,17 +4703,29 @@ body.tema-louvor .footer-copy {
 
 body.tema-louvor .admin-card,
 body.tema-louvor .louvor-card,
+body.tema-louvor form.admin-card,
+body.tema-louvor form.louvor-card,
+body.tema-louvor .section .admin-card,
+body.tema-louvor .pagina-fundo-content .admin-card,
 body.tema-louvor .louvor-video-card,
 body.tema-louvor .louvor-integrante-card,
-body.tema-louvor .ministerio-destaque-card {
-  background: rgba(0, 0, 0, 0.32) !important;
-  color: #fff8ee;
+body.tema-louvor .ministerio-destaque-card,
+body.tema-louvor .louvor-busca {
+  background: rgba(0, 0, 0, 0.28) !important;
+  color: #fff8ee !important;
   --ink: #fff8ee;
   --ink-soft: rgba(255, 248, 238, 0.92);
   border: 1px solid rgba(255, 248, 238, 0.22) !important;
-  box-shadow: none;
+  box-shadow: none !important;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+body.tema-louvor .admin-card:hover,
+body.tema-louvor .louvor-card:hover {
+  background: rgba(0, 0, 0, 0.36) !important;
+  border-color: rgba(240, 199, 94, 0.45) !important;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28) !important;
 }
 
 body.tema-louvor .admin-card h2,
