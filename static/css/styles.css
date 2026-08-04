@@ -3744,13 +3744,29 @@ body.tema-maranata .fundo-pagina--arte::after {
 }
 
 body.tema-soldadinhos {
-  --gold: #3db8e8;
-  --gold-deep: #1a7aa8;
-  --sea: #0c1520;
-  --sea-deep: #060c14;
-  --ink: #f3faff;
-  --ink-soft: rgba(243, 250, 255, 0.88);
-  color: #f3faff;
+  --gold: #d4af37;
+  --gold-deep: #9a7b18;
+  --sea: #0a0c10;
+  --sea-deep: #050608;
+  --ink: #fff8ee;
+  --ink-soft: rgba(255, 248, 238, 0.88);
+  color: #fff8ee;
+  background: #050608;
+}
+
+body.tema-soldadinhos .fundo-pagina.fundo-pagina--arte {
+  background: #050608;
+}
+
+body.tema-soldadinhos .fundo-pagina--arte .fundo-pagina-img {
+  object-fit: contain;
+  object-position: center center;
+  opacity: 0.95;
+}
+
+body.tema-soldadinhos .fundo-pagina--arte::after {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5) 45%, rgba(0, 0, 0, 0.78));
 }
 
 body.tema-cultos .site-header,
@@ -3809,7 +3825,7 @@ body.tema-maranata .eyebrow {
 }
 
 body.tema-soldadinhos .eyebrow {
-  color: #7ed4f5;
+  color: #f0c75e;
 }
 
 body.tema-cultos .site-footer,
@@ -3937,9 +3953,9 @@ body.tema-maranata .btn-primary {
 
 .btn-soldadinhos,
 body.tema-soldadinhos .btn-primary {
-  background: linear-gradient(135deg, #3db8e8, #1a7aa8);
+  background: linear-gradient(135deg, #d4af37, #9a7b18);
   border-color: transparent;
-  color: #f3faff;
+  color: #14110c;
 }
 
 .leoas-access-card {
@@ -3965,9 +3981,9 @@ body.tema-soldadinhos .btn-primary {
 
 .soldadinhos-access-card {
   background:
-    linear-gradient(160deg, rgba(61, 184, 232, 0.16), rgba(255, 255, 255, 0.92)),
+    linear-gradient(160deg, rgba(212, 175, 55, 0.16), rgba(255, 255, 255, 0.92)),
     rgba(255, 255, 255, 0.55);
-  border-color: rgba(26, 122, 168, 0.22);
+  border-color: rgba(154, 123, 24, 0.22);
 }
 
 .leoas-card,
