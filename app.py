@@ -63,7 +63,7 @@ PASTORES_PASSWORD_HASH = generate_password_hash(PASTORES_PASSWORD)
 ARRAIAL_PASSWORD = os.environ.get("ARRAIAL_PASSWORD", "Cassia")
 ARRAIAL_PASSWORD_HASH = generate_password_hash(ARRAIAL_PASSWORD)
 
-# Senha dos Líderes da Mocidade (Diác. Natan e Diác. Ana Beatriz)
+# Senha dos Líderes dos Filhos do Rei (Diác. Natan e Diác. Ana Beatriz)
 MOCIDADE_PASSWORD = os.environ.get("MOCIDADE_PASSWORD", "Mocidade")
 MOCIDADE_PASSWORD_HASH = generate_password_hash(MOCIDADE_PASSWORD)
 
@@ -1502,7 +1502,7 @@ def arraial_page():
     )
 
 
-# ---------- Líderes da Mocidade ----------
+# ---------- Filhos do Rei (mocidade) ----------
 
 @app.route("/mocidade/login", methods=["GET", "POST"])
 def mocidade_login():

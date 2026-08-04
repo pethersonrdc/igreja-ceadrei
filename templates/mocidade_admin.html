@@ -2,15 +2,15 @@
 
 {% block body_class %}tema-mocidade{% endblock %}
 
-{% block title %}Admin Mocidade — {{ igreja.nome }}{% endblock %}
+{% block title %}Admin Filhos do Rei — {{ igreja.nome }}{% endblock %}
 
 {% block content %}
 <section class="page-hero mocidade-hero">
-  <p class="eyebrow">Líderes da Mocidade</p>
+  <p class="eyebrow">Líderes dos Filhos do Rei</p>
   <h1>{{ h1_responsaveis }}</h1>
-  <p>Publique um post simples (foto + texto) do culto dos jovens na página inicial.</p>
+  <p>Publique um post simples (foto + texto) dos Filhos do Rei na página inicial.</p>
   <p class="section-link">
-    <a href="{{ url_for('mocidade_page') }}">Ver página da mocidade</a>
+    <a href="{{ url_for('mocidade_page') }}">Ver página dos Filhos do Rei</a>
     ·
     <a href="{{ url_for('mocidade_logout') }}">Sair</a>
   </p>

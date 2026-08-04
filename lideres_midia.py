@@ -44,7 +44,7 @@ PERFIS = [
     {
         "id": "mocidade",
         "nome": "Diác. Natan & Diác. Ana Beatriz",
-        "departamento": "Líderes da Mocidade",
+        "departamento": "Líderes dos Filhos do Rei",
         "padrao": "images/mocidade/natan-ana.png",
     },
     {

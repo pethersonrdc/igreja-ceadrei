@@ -35,7 +35,7 @@ RESPONSAVEIS_EVENTO = {
         "lider": "Diac. Cássia",
     },
     "mocidade": {
-        "titulo": "Culto dos Jovens",
+        "titulo": "Filhos do Rei",
         "lider": "Diác. Natan e Diác. Ana Beatriz",
     },
     "leoas": {
