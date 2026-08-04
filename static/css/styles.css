@@ -3805,7 +3805,7 @@ body.tema-soldadinhos .eyebrow {
 }
 
 body.tema-maranata .eyebrow {
-  color: #ff9fbe;
+  color: #f0c75e;
 }
 
 body.tema-soldadinhos .eyebrow {
@@ -3930,9 +3930,9 @@ body.tema-leaodejuda .btn-primary {
 
 .btn-maranata,
 body.tema-maranata .btn-primary {
-  background: linear-gradient(135deg, #e85d8a, #a8325c);
+  background: linear-gradient(135deg, #d4af37, #9a7b18);
   border-color: transparent;
-  color: #fff5f8;
+  color: #14110c;
 }
 
 .btn-soldadinhos,
@@ -3958,9 +3958,9 @@ body.tema-soldadinhos .btn-primary {
 
 .maranata-access-card {
   background:
-    linear-gradient(160deg, rgba(232, 93, 138, 0.16), rgba(255, 255, 255, 0.92)),
+    linear-gradient(160deg, rgba(212, 175, 55, 0.16), rgba(255, 255, 255, 0.92)),
     rgba(255, 255, 255, 0.55);
-  border-color: rgba(168, 50, 92, 0.22);
+  border-color: rgba(154, 123, 24, 0.22);
 }
 
 .soldadinhos-access-card {
