@@ -40,7 +40,7 @@
 
 {% if aba == 'escala' %}
 <section class="section">
-  <form class="admin-card pastores-card" method="post">
+  <form class="admin-card pastores-card" method="post" id="form-escala-obreiros">
     <input type="hidden" name="acao" value="escala">
     {% if editar_escala %}
     <input type="hidden" name="escala_id" value="{{ editar_escala.id }}">
@@ -48,64 +48,54 @@
     {% else %}
     <h2>Incluir obreiros do mês</h2>
     {% endif %}
-    <p class="admin-help">Selecione os obreiros da lista: data, porta vidro (até 2), abertura e porta escada.</p>
+    <p class="admin-help">Como na escala impressa: data, porta vidro, abertura e porta escada. Marque um ou mais nomes em cada função.</p>
 
-    <div class="pessoa-row">
-      <div>
-        <label for="data">Data</label>
-        <input id="data" name="data" type="date" required value="{{ editar_escala.data if editar_escala else '' }}">
-      </div>
-      <div>
-        <label for="abertura">Abertura do culto</label>
-        <select id="abertura" name="abertura">
-          <option value="">Selecione</option>
-          {% for nome in obreiros %}
-          <option value="{{ nome }}"{% if editar_escala and editar_escala.abertura == nome %} selected{% endif %}>{{ nome }}</option>
+    <label for="data">Data</label>
+    <input id="data" name="data" type="date" required value="{{ editar_escala.data if editar_escala else '' }}">
+
+    <label for="obreiro-busca">Pesquisar nome</label>
+    <input id="obreiro-busca" class="obreiro-busca" type="search" placeholder="Digite para filtrar a lista..." autocomplete="off">
+
+    <div class="obreiro-picklists">
+      <fieldset class="obreiro-pick">
+        <legend>Abertura do culto</legend>
+        <div class="obreiro-options">
+          {% for o in obreiros %}
+          <label class="obreiro-option" data-nome="{{ o.nome|lower }}">
+            <input type="checkbox" name="abertura" value="{{ o.nome }}"{% if o.nome in selecionados_abertura %} checked{% endif %}>
+            <span>{{ o.nome }}</span>
+          </label>
           {% endfor %}
-          {% if editar_escala and editar_escala.abertura and editar_escala.abertura not in obreiros %}
-          <option value="{{ editar_escala.abertura }}" selected>{{ editar_escala.abertura }}</option>
-          {% endif %}
-        </select>
-      </div>
+        </div>
+        <p class="obreiro-picked" data-for="abertura"></p>
+      </fieldset>
+
+      <fieldset class="obreiro-pick">
+        <legend>Porta vidro</legend>
+        <div class="obreiro-options">
+          {% for o in obreiros %}
+          <label class="obreiro-option" data-nome="{{ o.nome|lower }}">
+            <input type="checkbox" name="porta_vidro" value="{{ o.nome }}"{% if o.nome in selecionados_porta_vidro %} checked{% endif %}>
+            <span>{{ o.nome }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="obreiro-picked" data-for="porta_vidro"></p>
+      </fieldset>
+
+      <fieldset class="obreiro-pick">
+        <legend>Porta escada</legend>
+        <div class="obreiro-options">
+          {% for o in obreiros %}
+          <label class="obreiro-option" data-nome="{{ o.nome|lower }}">
+            <input type="checkbox" name="porta_escada" value="{{ o.nome }}"{% if o.nome in selecionados_porta_escada %} checked{% endif %}>
+            <span>{{ o.nome }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="obreiro-picked" data-for="porta_escada"></p>
+      </fieldset>
     </div>
-
-    <div class="pessoa-row">
-      <div>
-        <label for="porta_vidro_1">Porta vidro</label>
-        <select id="porta_vidro_1" name="porta_vidro_1">
-          <option value="">Selecione</option>
-          {% for nome in obreiros %}
-          <option value="{{ nome }}"{% if porta_vidro_1 == nome %} selected{% endif %}>{{ nome }}</option>
-          {% endfor %}
-          {% if porta_vidro_1 and porta_vidro_1 not in obreiros %}
-          <option value="{{ porta_vidro_1 }}" selected>{{ porta_vidro_1 }}</option>
-          {% endif %}
-        </select>
-      </div>
-      <div>
-        <label for="porta_vidro_2">Porta vidro (2º — opcional)</label>
-        <select id="porta_vidro_2" name="porta_vidro_2">
-          <option value="">Nenhum</option>
-          {% for nome in obreiros %}
-          <option value="{{ nome }}"{% if porta_vidro_2 == nome %} selected{% endif %}>{{ nome }}</option>
-          {% endfor %}
-          {% if porta_vidro_2 and porta_vidro_2 not in obreiros %}
-          <option value="{{ porta_vidro_2 }}" selected>{{ porta_vidro_2 }}</option>
-          {% endif %}
-        </select>
-      </div>
-    </div>
-
-    <label for="porta_escada">Porta escada</label>
-    <select id="porta_escada" name="porta_escada">
-      <option value="">Selecione</option>
-      {% for nome in obreiros %}
-      <option value="{{ nome }}"{% if editar_escala and editar_escala.porta_escada == nome %} selected{% endif %}>{{ nome }}</option>
-      {% endfor %}
-      {% if editar_escala and editar_escala.porta_escada and editar_escala.porta_escada not in obreiros %}
-      <option value="{{ editar_escala.porta_escada }}" selected>{{ editar_escala.porta_escada }}</option>
-      {% endif %}
-    </select>
 
     <button class="btn btn-primary btn-pastores" type="submit">
       {% if editar_escala %}Salvar alteração{% else %}Adicionar à escala{% endif %}
@@ -114,6 +104,44 @@
     <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='escala', ano=ano, mes=mes) }}">Cancelar edição</a>
     {% endif %}
   </form>
+</section>
+
+<section class="section">
+  <div class="admin-card pastores-card obreiros-lista-card">
+    <h2>Lista de obreiros</h2>
+    <p class="admin-help">Inclua um nome novo ou remova alguém da lista de seleção da escala.</p>
+
+    <form class="obreiros-lista-form" method="post">
+      <input type="hidden" name="acao" value="adicionar_obreiro">
+      <label for="novo_obreiro">Novo obreiro</label>
+      <div class="pessoa-row">
+        <div>
+          <input id="novo_obreiro" name="novo_obreiro" type="text" placeholder="Ex.: Dc. Nome Sobrenome" required>
+        </div>
+        <div class="obreiros-lista-actions">
+          <button class="btn btn-primary btn-pastores" type="submit">Incluir na lista</button>
+        </div>
+      </div>
+    </form>
+
+    <form class="obreiros-lista-form" method="post" onsubmit="return confirm('Remover este obreiro da lista de seleção?');">
+      <input type="hidden" name="acao" value="remover_obreiro">
+      <label for="obreiro_id">Remover da lista</label>
+      <div class="pessoa-row">
+        <div>
+          <select id="obreiro_id" name="obreiro_id" required>
+            <option value="">Selecione o nome</option>
+            {% for o in obreiros %}
+            <option value="{{ o.id }}">{{ o.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="obreiros-lista-actions">
+          <button class="btn btn-ghost-dark" type="submit">Remover</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </section>
 
 <section class="section">
@@ -277,5 +305,47 @@
   <p>Nenhum evento cadastrado pelos responsáveis ainda.</p>
   {% endif %}
 </section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if aba == 'escala' %}
+<script>
+(function () {
+  var busca = document.getElementById("obreiro-busca");
+  if (!busca) return;
+
+  var options = document.querySelectorAll(".obreiro-option");
+  var campos = ["abertura", "porta_vidro", "porta_escada"];
+
+  function filtrar() {
+    var q = (busca.value || "").trim().toLowerCase();
+    options.forEach(function (el) {
+      var nome = el.getAttribute("data-nome") || "";
+      el.classList.toggle("is-hidden", Boolean(q) && nome.indexOf(q) === -1);
+    });
+  }
+
+  function atualizarResumo(campo) {
+    var box = document.querySelector('.obreiro-picked[data-for="' + campo + '"]');
+    if (!box) return;
+    var marcados = Array.prototype.map.call(
+      document.querySelectorAll('input[name="' + campo + '"]:checked'),
+      function (input) { return input.value; }
+    );
+    box.textContent = marcados.length
+      ? ("Selecionados: " + marcados.join(" · "))
+      : "Nenhum selecionado";
+  }
+
+  busca.addEventListener("input", filtrar);
+  campos.forEach(function (campo) {
+    document.querySelectorAll('input[name="' + campo + '"]').forEach(function (input) {
+      input.addEventListener("change", function () { atualizarResumo(campo); });
+    });
+    atualizarResumo(campo);
+  });
+})();
+</script>
 {% endif %}
 {% endblock %}

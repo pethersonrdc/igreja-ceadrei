@@ -20,8 +20,8 @@ H1_PASTORES = (
     "Área pastoral da CEASDREI — organize a escala, a palavra e o calendário dos líderes."
 )
 
-# Lista fixa para seleção rápida na escala de obreiros
-OBREIROS = [
+# Lista inicial da escala (persistida no SQLite; pode incluir/remover no admin)
+OBREIROS_PADRAO = [
     "Dc. Anderson Calixto",
     "Dc. Ana Beatriz",
     "Dc. Cassia Souza",
@@ -30,17 +30,46 @@ OBREIROS = [
     "Dc. Edna do Carmo",
     "Dc. Diogo Kauan",
     "Dc. Maria Santos",
+    "Ob. Eder",
+    "Evan. Sueli",
+    "Dc. Regiane",
+    "Dc. Karen",
+    "Dc. Luana",
+    "Dc. Petherson",
+    "Dc. Milena Nascimento",
+    "Dc. Michele Calixto",
+    "Miss. Jussara",
+    "Ob. Nivaldo",
+    "Pres. Marcelo",
+    "Dc. Ricardo",
+    "Ob. Daiane",
+    "Dc. Robson",
+    "Col. Saymon",
+    "Dc. Gladson",
+    "Ob. Welligton",
+    "Dc. Vinicius",
+    "Dc. Caren Nascimento",
+    "Dc. Daiane",
+    "Dc. Maria Manoel",
+    "Dc. Rivaldo Silva",
+    "Dc. Rosy",
+    "Ob. Maria da Graças",
 ]
 
 
 def juntar_obreiros(*nomes: str) -> str:
-    """Junta nomes selecionados (ex.: porta vidro com 1 ou 2 pessoas)."""
-    limpos = [n.strip() for n in nomes if (n or "").strip()]
-    if not limpos:
-        return ""
-    if len(limpos) == 1:
-        return limpos[0]
+    """Junta nomes selecionados na multi-seleção (ex.: Anderson & Michele)."""
+    limpos: list[str] = []
+    for n in nomes:
+        t = (n or "").strip()
+        if t and t not in limpos:
+            limpos.append(t)
     return " & ".join(limpos)
+
+
+def partir_obreiros(texto: str) -> list[str]:
+    """Separa nomes salvos com ' & ' para marcar checkboxes na edição."""
+    return [p.strip() for p in (texto or "").split("&") if p.strip()]
 
 # Cada responsável registra o próprio evento no calendário compartilhado
 RESPONSAVEIS_EVENTO = {
@@ -125,8 +154,15 @@ def init_db() -> None:
                 aviso TEXT NOT NULL DEFAULT '',
                 criado_em TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS obreiros (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL UNIQUE COLLATE NOCASE,
+                criado_em TEXT NOT NULL
+            );
             """
         )
+        _seed_obreiros(conn)
         cols = {
             row["name"]
             for row in conn.execute("PRAGMA table_info(eventos_lideres)").fetchall()
@@ -213,6 +249,53 @@ def _enriquecer_evento(item: dict) -> dict:
     else:
         item["aviso_texto"] = item.get("aviso") or f"Faltam {dias} dias"
     return item
+
+
+# ---------- Lista de obreiros (picklist) ----------
+
+def _seed_obreiros(conn: sqlite3.Connection) -> None:
+    total = conn.execute("SELECT COUNT(*) AS c FROM obreiros").fetchone()["c"]
+    if total:
+        return
+    criado = agora().isoformat(timespec="seconds")
+    for nome in OBREIROS_PADRAO:
+        conn.execute(
+            "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
+            (nome, criado),
+        )
+
+
+def listar_obreiros() -> list[dict]:
+    init_db()
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT id, nome FROM obreiros ORDER BY nome COLLATE NOCASE ASC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def adicionar_obreiro(nome: str) -> tuple[bool, str]:
+    limpo = " ".join((nome or "").split())
+    if not limpo:
+        return False, "Informe o nome do obreiro."
+    init_db()
+    criado = agora().isoformat(timespec="seconds")
+    try:
+        with _connect() as conn:
+            conn.execute(
+                "INSERT INTO obreiros (nome, criado_em) VALUES (?, ?)",
+                (limpo, criado),
+            )
+    except sqlite3.IntegrityError:
+        return False, "Esse nome já está na lista."
+    return True, "Obreiro adicionado à lista."
+
+
+def remover_obreiro(obreiro_id: int) -> bool:
+    init_db()
+    with _connect() as conn:
+        cur = conn.execute("DELETE FROM obreiros WHERE id = ?", (obreiro_id,))
+        return cur.rowcount > 0
 
 
 # ---------- Escala de obreiros ----------

@@ -2436,6 +2436,91 @@ body.tema-pastores .btn-primary:hover {
   border-color: #245a42;
 }
 
+.obreiro-busca {
+  margin-bottom: 0.35rem;
+}
+
+.obreiro-picklists {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.obreiro-pick {
+  margin: 0;
+  padding: 0.85rem 0.85rem 0.7rem;
+  border: 1px solid rgba(36, 90, 66, 0.18);
+  border-radius: 1rem;
+  background: rgba(244, 247, 245, 0.55);
+  min-width: 0;
+}
+
+.obreiro-pick legend {
+  padding: 0 0.35rem;
+  font-weight: 600;
+  color: #16382a;
+}
+
+.obreiro-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-height: 16rem;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.obreiro-option {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.4rem 0.45rem;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  color: #16382a;
+  font-weight: 500;
+}
+
+.obreiro-option:hover {
+  background: rgba(36, 90, 66, 0.08);
+}
+
+.obreiro-option input {
+  width: auto;
+  margin: 0;
+  accent-color: #245a42;
+}
+
+.obreiro-option.is-hidden {
+  display: none;
+}
+
+.obreiro-picked {
+  min-height: 1.35rem;
+  margin: 0.55rem 0 0;
+  font-size: 0.86rem;
+  color: #3d5c4d;
+}
+
+.obreiros-lista-card .obreiros-lista-form + .obreiros-lista-form {
+  margin-top: 1.1rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid rgba(36, 90, 66, 0.12);
+}
+
+.obreiros-lista-actions {
+  display: flex;
+  align-items: flex-end;
+}
+
+@media (max-width: 960px) {
+  .obreiro-picklists {
+    grid-template-columns: 1fr;
+  }
+}
+
 .escala-table tr.is-hoje {
   background: rgba(46, 125, 50, 0.12);
 }
