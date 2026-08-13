@@ -21,6 +21,64 @@
   <p>{{ h1_responsaveis }}</p>
 </section>
 
+{% if escala_destaque %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <p class="eyebrow">Escala do grupo</p>
+    <h2>Quem serve neste culto</h2>
+  </div>
+  <article class="obreiros-hoje louvor-escala-destaque {% if escala_destaque.eh_hoje %}is-hoje{% endif %}">
+    <p class="eyebrow">{% if escala_destaque.eh_hoje %}Hoje no louvor{% else %}Próxima escala{% endif %}</p>
+    <h3>{{ escala_destaque.data_br }} · {{ escala_destaque.dia_semana }}</h3>
+    <div class="obreiros-hoje-grid louvor-escala-grid">
+      <div>
+        <span>Equipe</span>
+        <strong>{{ escala_destaque.equipe or '—' }}</strong>
+      </div>
+    </div>
+  </article>
+</section>
+{% endif %}
+
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <p class="eyebrow">Escala completa</p>
+    <h2>{{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('louvor_page', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('louvor_page', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+
+  {% if escala %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table escala-table louvor-escala-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Equipe</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in escala %}
+        <tr class="{% if item.eh_hoje %}is-hoje{% elif item.eh_proximo %}is-proximo{% endif %}">
+          <td>
+            <strong>{{ item.data_br }}</strong>
+            <span class="admin-meta">{{ item.dia_semana }}</span>
+            {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
+          </td>
+          <td>{{ item.equipe or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>A escala deste mês ainda não foi publicada.</p>
+  {% endif %}
+</section>
+
 <section class="section pagina-fundo-content">
   <div class="section-head">
     <p class="eyebrow">Vídeos</p>
@@ -100,7 +158,7 @@
 <section class="section pagina-fundo-content">
   <article class="admin-card louvor-card">
     <h2>Liderança do Louvor</h2>
-    <p>Acesso para publicar vídeos e fotos dos integrantes.</p>
+    <p>Acesso para publicar a escala, vídeos e fotos dos integrantes.</p>
     <a class="btn btn-primary btn-louvor" href="{{ url_for('louvor_login') }}">Acesso dos Lideres</a>
   </article>
 </section>

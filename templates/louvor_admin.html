@@ -18,7 +18,7 @@
 <section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Grupo de Louvor</p>
   <h1>{{ h1_responsaveis }}</h1>
-  <p>Publique vídeos (YouTube/Vimeo) e fotos dos integrantes.</p>
+  <p>Escala, vídeos e fotos dos integrantes.</p>
   <p class="section-link">
     <a href="{{ url_for('louvor_page') }}">Ver página pública</a>
     ·
@@ -35,6 +35,141 @@
     {% endif %}
   {% endwith %}
 
+  <nav class="pastores-tabs louvor-tabs" aria-label="Seções do painel">
+    <a class="pastores-tab{% if aba == 'escala' %} is-active{% endif %}" href="{{ url_for('louvor_admin', aba='escala', ano=ano, mes=mes) }}">Escala</a>
+    <a class="pastores-tab{% if aba == 'videos' %} is-active{% endif %}" href="{{ url_for('louvor_admin', aba='videos', ano=ano, mes=mes) }}">Vídeos</a>
+    <a class="pastores-tab{% if aba == 'integrantes' %} is-active{% endif %}" href="{{ url_for('louvor_admin', aba='integrantes', ano=ano, mes=mes) }}">Integrantes</a>
+  </nav>
+</section>
+
+{% if aba == 'escala' %}
+<section class="section pagina-fundo-content">
+  <form class="admin-card louvor-card" method="post" id="form-escala-louvor">
+    <input type="hidden" name="acao" value="escala">
+    {% if editar_escala %}
+    <input type="hidden" name="escala_id" value="{{ editar_escala.id }}">
+    <h2>Editar dia da escala</h2>
+    {% else %}
+    <h2>Incluir na escala do louvor</h2>
+    {% endif %}
+    <p class="admin-help">Como na escala impressa: escolha a data e marque um ou mais nomes. A escala fica salva e no backup do site para não sumir no deploy.</p>
+
+    <label for="data">Data</label>
+    <input id="data" name="data" type="date" required value="{{ editar_escala.data if editar_escala else '' }}">
+
+    <label for="louvor-busca">Pesquisar nome</label>
+    <input id="louvor-busca" class="obreiro-busca" type="search" placeholder="Digite para filtrar a lista..." autocomplete="off">
+
+    <div class="obreiro-picklists louvor-picklists">
+      <fieldset class="obreiro-pick">
+        <legend>Quem serve neste culto</legend>
+        <div class="obreiro-options">
+          {% for m in membros %}
+          <label class="obreiro-option" data-nome="{{ m.nome|lower }}">
+            <input type="checkbox" name="equipe" value="{{ m.nome }}"{% if m.nome in selecionados_equipe %} checked{% endif %}>
+            <span>{{ m.nome }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="obreiro-picked" data-for="equipe"></p>
+      </fieldset>
+    </div>
+
+    <button class="btn btn-primary btn-louvor" type="submit">
+      {% if editar_escala %}Salvar alteração{% else %}Adicionar à escala{% endif %}
+    </button>
+    {% if editar_escala %}
+    <a class="btn btn-ghost-dark" href="{{ url_for('louvor_admin', aba='escala', ano=ano, mes=mes) }}">Cancelar edição</a>
+    {% endif %}
+  </form>
+</section>
+
+<section class="section pagina-fundo-content">
+  <div class="admin-card louvor-card obreiros-lista-card">
+    <h2>Lista do louvor</h2>
+    <p class="admin-help">Inclua um nome novo ou remova alguém da lista de seleção da escala.</p>
+
+    <form class="obreiros-lista-form" method="post">
+      <input type="hidden" name="acao" value="adicionar_membro">
+      <label for="novo_membro">Novo nome</label>
+      <div class="pessoa-row">
+        <div>
+          <input id="novo_membro" name="novo_membro" type="text" placeholder="Ex.: Ana B." required>
+        </div>
+        <div class="obreiros-lista-actions">
+          <button class="btn btn-primary btn-louvor" type="submit">Incluir na lista</button>
+        </div>
+      </div>
+    </form>
+
+    <form class="obreiros-lista-form" method="post" onsubmit="return confirm('Remover este nome da lista de seleção?');">
+      <input type="hidden" name="acao" value="remover_membro">
+      <label for="membro_id">Remover da lista</label>
+      <div class="pessoa-row">
+        <div>
+          <select id="membro_id" name="membro_id" required>
+            <option value="">Selecione o nome</option>
+            {% for m in membros %}
+            <option value="{{ m.id }}">{{ m.nome }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="obreiros-lista-actions">
+          <button class="btn btn-ghost-dark" type="submit">Remover</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Escala — {{ calendario.nome_mes }} / {{ ano }}</h2>
+    <p>
+      <a href="{{ url_for('louvor_admin', aba='escala', ano=ano if mes > 1 else ano - 1, mes=mes - 1 if mes > 1 else 12) }}">← Mês anterior</a>
+      ·
+      <a href="{{ url_for('louvor_admin', aba='escala', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
+    </p>
+  </div>
+
+  {% if escala %}
+  <div class="batismo-table-wrap">
+    <table class="batismo-table escala-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Equipe</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in escala %}
+        <tr class="{% if item.eh_hoje %}is-hoje{% elif item.eh_proximo %}is-proximo{% endif %}">
+          <td>
+            <strong>{{ item.data_br }}</strong>
+            <span class="admin-meta">{{ item.dia_semana }}</span>
+            {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
+          </td>
+          <td>{{ item.equipe or '—' }}</td>
+          <td>
+            <a class="btn btn-ghost-dark" href="{{ url_for('louvor_admin', aba='escala', ano=ano, mes=mes, editar_escala=item.id) }}">Editar</a>
+            <form method="post" action="{{ url_for('louvor_apagar_escala', escala_id=item.id) }}" onsubmit="return confirm('Apagar este dia da escala?');" style="display:inline">
+              <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p>Nenhum dia cadastrado neste mês ainda.</p>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if aba == 'videos' %}
+<section class="section pagina-fundo-content">
   <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="video">
     <h2>Novo vídeo</h2>
@@ -82,7 +217,9 @@
   </ul>
 </section>
 {% endif %}
+{% endif %}
 
+{% if aba == 'integrantes' %}
 <section class="section pagina-fundo-content">
   <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="integrante">
@@ -126,5 +263,45 @@
     {% endfor %}
   </ul>
 </section>
+{% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if aba == 'escala' %}
+<script>
+(function () {
+  var busca = document.getElementById("louvor-busca");
+  if (!busca) return;
+
+  var options = document.querySelectorAll(".obreiro-option");
+
+  function filtrar() {
+    var q = (busca.value || "").trim().toLowerCase();
+    options.forEach(function (el) {
+      var nome = el.getAttribute("data-nome") || "";
+      el.classList.toggle("is-hidden", Boolean(q) && nome.indexOf(q) === -1);
+    });
+  }
+
+  function atualizarResumo() {
+    var box = document.querySelector('.obreiro-picked[data-for="equipe"]');
+    if (!box) return;
+    var marcados = Array.prototype.map.call(
+      document.querySelectorAll('input[name="equipe"]:checked'),
+      function (input) { return input.value; }
+    );
+    box.textContent = marcados.length
+      ? ("Selecionados: " + marcados.join(" · "))
+      : "Nenhum selecionado";
+  }
+
+  busca.addEventListener("input", filtrar);
+  document.querySelectorAll('input[name="equipe"]').forEach(function (input) {
+    input.addEventListener("change", atualizarResumo);
+  });
+  atualizarResumo();
+})();
+</script>
 {% endif %}
 {% endblock %}

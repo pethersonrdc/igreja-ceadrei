@@ -4896,6 +4896,57 @@ body.tema-louvor .btn-primary {
   -webkit-backdrop-filter: blur(8px);
 }
 
+.louvor-picklists {
+  grid-template-columns: 1fr;
+  max-width: 28rem;
+}
+
+.louvor-escala-destaque {
+  background: rgba(0, 0, 0, 0.42);
+  border-color: rgba(201, 162, 74, 0.35);
+  color: #fff8ee;
+}
+
+.louvor-escala-destaque .eyebrow {
+  color: rgba(255, 248, 238, 0.72);
+}
+
+.louvor-escala-destaque h3 {
+  color: #fff8ee;
+}
+
+.louvor-escala-grid span {
+  color: rgba(255, 248, 238, 0.7);
+}
+
+.louvor-escala-grid strong {
+  color: #fff8ee;
+}
+
+body.tema-louvor .louvor-tabs .pastores-tab {
+  background: rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 248, 238, 0.22);
+  color: #fff8ee;
+}
+
+body.tema-louvor .louvor-tabs .pastores-tab.is-active,
+body.tema-louvor .louvor-tabs .pastores-tab:hover {
+  background: linear-gradient(135deg, #c9a24a, #8a6a1a);
+  color: #1a1208;
+  border-color: transparent;
+}
+
+body.tema-louvor .louvor-escala-table {
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff8ee;
+}
+
+body.tema-louvor .louvor-escala-table th,
+body.tema-louvor .louvor-escala-table td {
+  color: #fff8ee;
+  border-color: rgba(255, 248, 238, 0.12);
+}
+
 .login-anim--louvor .login-anim-onda {
   position: absolute;
   left: 8%;
