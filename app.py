@@ -1954,10 +1954,51 @@ def louvor_logout():
 @louvor_login_required
 def louvor_admin():
     igreja = load_json("igreja.json")
+    hoje = louvor.hoje()
+    ano = int(request.args.get("ano", hoje.year))
+    mes = int(request.args.get("mes", hoje.month))
+    if mes < 1 or mes > 12:
+        mes = hoje.month
+    aba = request.args.get("aba", "escala")
     louvor.init_db()
 
     if request.method == "POST":
         acao = request.form.get("acao", "video").strip()
+
+        if acao == "escala":
+            data_iso = request.form.get("data", "").strip()
+            if not data_iso:
+                flash("Informe a data da escala.", "erro")
+            else:
+                escala_id = request.form.get("escala_id", type=int)
+                louvor.salvar_escala(
+                    data_iso=data_iso,
+                    equipe=louvor.juntar_nomes(*request.form.getlist("equipe")),
+                    escala_id=escala_id,
+                )
+                flash("Escala do louvor salva.", "ok")
+            return redirect(
+                url_for("louvor_admin", aba="escala", ano=ano, mes=mes)
+            )
+
+        if acao == "adicionar_membro":
+            ok, mensagem = louvor.adicionar_membro(
+                request.form.get("novo_membro", "")
+            )
+            flash(mensagem, "ok" if ok else "erro")
+            return redirect(
+                url_for("louvor_admin", aba="escala", ano=ano, mes=mes)
+            )
+
+        if acao == "remover_membro":
+            membro_id = request.form.get("membro_id", type=int)
+            if membro_id and louvor.remover_membro(membro_id):
+                flash("Nome removido da lista.", "ok")
+            else:
+                flash("Não foi possível remover o nome.", "erro")
+            return redirect(
+                url_for("louvor_admin", aba="escala", ano=ano, mes=mes)
+            )
 
         if acao == "video":
             titulo = request.form.get("titulo", "").strip() or "Vídeo do louvor"
@@ -1966,12 +2007,12 @@ def louvor_admin():
             arquivo = request.files.get("capa")
             if not link or not louvor.link_valido(link):
                 flash("Informe um link válido (YouTube ou Vimeo).", "erro")
-                return redirect(url_for("louvor_admin"))
+                return redirect(url_for("louvor_admin", aba="videos"))
             nome_final = ""
             if arquivo and arquivo.filename:
                 if not louvor.extensao_ok(arquivo.filename):
                     flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
-                    return redirect(url_for("louvor_admin"))
+                    return redirect(url_for("louvor_admin", aba="videos"))
                 nome_seguro = secure_filename(arquivo.filename)
                 extensao = Path(nome_seguro).suffix.lower()
                 nome_final = f"capa-{uuid.uuid4().hex}{extensao}"
@@ -1983,7 +2024,7 @@ def louvor_admin():
                 capa=nome_final,
             )
             flash("Vídeo publicado!", "ok")
-            return redirect(url_for("louvor_admin"))
+            return redirect(url_for("louvor_admin", aba="videos"))
 
         if acao == "integrante":
             nome = request.form.get("nome", "").strip()
@@ -1991,20 +2032,33 @@ def louvor_admin():
             arquivo = request.files.get("foto")
             if not nome:
                 flash("Informe o nome do integrante.", "erro")
-                return redirect(url_for("louvor_admin"))
+                return redirect(url_for("louvor_admin", aba="integrantes"))
             if not arquivo or not arquivo.filename:
                 flash("Envie a foto do integrante.", "erro")
-                return redirect(url_for("louvor_admin"))
+                return redirect(url_for("louvor_admin", aba="integrantes"))
             if not louvor.extensao_ok(arquivo.filename):
                 flash("Foto: use JPG, PNG, WEBP ou GIF.", "erro")
-                return redirect(url_for("louvor_admin"))
+                return redirect(url_for("louvor_admin", aba="integrantes"))
             nome_seguro = secure_filename(arquivo.filename)
             extensao = Path(nome_seguro).suffix.lower()
             nome_final = f"integrante-{uuid.uuid4().hex}{extensao}"
             arquivo.save(louvor.UPLOAD_DIR / nome_final)
             louvor.criar_integrante(nome=nome, funcao=funcao, foto=nome_final)
             flash("Integrante adicionado!", "ok")
-            return redirect(url_for("louvor_admin"))
+            return redirect(url_for("louvor_admin", aba="integrantes"))
+
+    editar_escala = None
+    if request.args.get("editar_escala"):
+        for item in louvor.listar_escala(ano, mes):
+            if item["id"] == request.args.get("editar_escala", type=int):
+                editar_escala = item
+                break
+
+    selecionados_equipe = (
+        louvor.partir_nomes(editar_escala.get("equipe", ""))
+        if editar_escala
+        else []
+    )
 
     return render_template(
         "louvor_admin.html",
@@ -2012,6 +2066,14 @@ def louvor_admin():
         h1_responsaveis=louvor.H1_RESPONSAVEIS,
         videos=louvor.listar_videos(so_ativos=False),
         integrantes=louvor.listar_integrantes(so_ativos=False),
+        membros=louvor.listar_membros(),
+        escala=louvor.listar_escala(ano, mes),
+        calendario=louvor.calendario_mes(ano, mes),
+        editar_escala=editar_escala,
+        selecionados_equipe=selecionados_equipe,
+        ano=ano,
+        mes=mes,
+        aba=aba,
     )
 
 
@@ -2022,7 +2084,7 @@ def louvor_apagar_video(video_id: int):
         flash("Vídeo apagado.", "ok")
     else:
         flash("Vídeo não encontrado.", "erro")
-    return redirect(url_for("louvor_admin"))
+    return redirect(url_for("louvor_admin", aba="videos"))
 
 
 @app.route("/louvor/admin/integrante/<int:integrante_id>/apagar", methods=["POST"])
@@ -2032,12 +2094,27 @@ def louvor_apagar_integrante(integrante_id: int):
         flash("Integrante removido.", "ok")
     else:
         flash("Integrante não encontrado.", "erro")
-    return redirect(url_for("louvor_admin"))
+    return redirect(url_for("louvor_admin", aba="integrantes"))
+
+
+@app.route("/louvor/admin/escala/<int:escala_id>/apagar", methods=["POST"])
+@louvor_login_required
+def louvor_apagar_escala(escala_id: int):
+    if louvor.apagar_escala(escala_id):
+        flash("Dia removido da escala.", "ok")
+    else:
+        flash("Dia não encontrado.", "erro")
+    return redirect(url_for("louvor_admin", aba="escala"))
 
 
 @app.route("/louvor")
 def louvor_page():
     igreja = load_json("igreja.json")
+    hoje = louvor.hoje()
+    ano = int(request.args.get("ano", hoje.year))
+    mes = int(request.args.get("mes", hoje.month))
+    if mes < 1 or mes > 12:
+        mes = hoje.month
     busca = request.args.get("q", "").strip()
     return render_template(
         "louvor.html",
@@ -2045,6 +2122,11 @@ def louvor_page():
         h1_responsaveis=louvor.H1_RESPONSAVEIS,
         videos=louvor.listar_videos(busca=busca, so_ativos=True),
         integrantes=louvor.listar_integrantes(so_ativos=True),
+        escala=louvor.listar_escala(ano, mes),
+        escala_destaque=louvor.obter_proxima_escala(),
+        calendario=louvor.calendario_mes(ano, mes),
+        ano=ano,
+        mes=mes,
         busca=busca,
     )
 
