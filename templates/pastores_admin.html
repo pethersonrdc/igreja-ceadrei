@@ -48,7 +48,7 @@
     {% else %}
     <h2>Incluir obreiros do mês</h2>
     {% endif %}
-    <p class="admin-help">Como na escala impressa: data, porta vidro, abertura e porta escada.</p>
+    <p class="admin-help">Selecione os obreiros da lista: data, porta vidro (até 2), abertura e porta escada.</p>
 
     <div class="pessoa-row">
       <div>
@@ -57,15 +57,55 @@
       </div>
       <div>
         <label for="abertura">Abertura do culto</label>
-        <input id="abertura" name="abertura" type="text" placeholder="Ex.: Obreiro Eder" value="{{ editar_escala.abertura if editar_escala else '' }}">
+        <select id="abertura" name="abertura">
+          <option value="">Selecione</option>
+          {% for nome in obreiros %}
+          <option value="{{ nome }}"{% if editar_escala and editar_escala.abertura == nome %} selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+          {% if editar_escala and editar_escala.abertura and editar_escala.abertura not in obreiros %}
+          <option value="{{ editar_escala.abertura }}" selected>{{ editar_escala.abertura }}</option>
+          {% endif %}
+        </select>
       </div>
     </div>
 
-    <label for="porta_vidro">Porta vidro</label>
-    <input id="porta_vidro" name="porta_vidro" type="text" placeholder="Ex.: Diac. Cássia e Diac. Petherson" value="{{ editar_escala.porta_vidro if editar_escala else '' }}">
+    <div class="pessoa-row">
+      <div>
+        <label for="porta_vidro_1">Porta vidro</label>
+        <select id="porta_vidro_1" name="porta_vidro_1">
+          <option value="">Selecione</option>
+          {% for nome in obreiros %}
+          <option value="{{ nome }}"{% if porta_vidro_1 == nome %} selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+          {% if porta_vidro_1 and porta_vidro_1 not in obreiros %}
+          <option value="{{ porta_vidro_1 }}" selected>{{ porta_vidro_1 }}</option>
+          {% endif %}
+        </select>
+      </div>
+      <div>
+        <label for="porta_vidro_2">Porta vidro (2º — opcional)</label>
+        <select id="porta_vidro_2" name="porta_vidro_2">
+          <option value="">Nenhum</option>
+          {% for nome in obreiros %}
+          <option value="{{ nome }}"{% if porta_vidro_2 == nome %} selected{% endif %}>{{ nome }}</option>
+          {% endfor %}
+          {% if porta_vidro_2 and porta_vidro_2 not in obreiros %}
+          <option value="{{ porta_vidro_2 }}" selected>{{ porta_vidro_2 }}</option>
+          {% endif %}
+        </select>
+      </div>
+    </div>
 
     <label for="porta_escada">Porta escada</label>
-    <input id="porta_escada" name="porta_escada" type="text" placeholder="Ex.: Vinicius" value="{{ editar_escala.porta_escada if editar_escala else '' }}">
+    <select id="porta_escada" name="porta_escada">
+      <option value="">Selecione</option>
+      {% for nome in obreiros %}
+      <option value="{{ nome }}"{% if editar_escala and editar_escala.porta_escada == nome %} selected{% endif %}>{{ nome }}</option>
+      {% endfor %}
+      {% if editar_escala and editar_escala.porta_escada and editar_escala.porta_escada not in obreiros %}
+      <option value="{{ editar_escala.porta_escada }}" selected>{{ editar_escala.porta_escada }}</option>
+      {% endif %}
+    </select>
 
     <button class="btn btn-primary btn-pastores" type="submit">
       {% if editar_escala %}Salvar alteração{% else %}Adicionar à escala{% endif %}
