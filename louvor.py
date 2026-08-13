@@ -59,6 +59,47 @@ def partir_nomes(texto: str) -> list[str]:
     return [p.strip() for p in (texto or "").split("&") if p.strip()]
 
 
+def url_whatsapp(texto: str) -> str:
+    from urllib.parse import quote
+
+    return "https://wa.me/?text=" + quote((texto or "").strip())
+
+
+def texto_whatsapp_dia(item: dict, igreja_nome: str = "IGREJA CEASDREI", link: str = "") -> str:
+    linhas = [
+        f"*Escala do Grupo de Louvor — {igreja_nome}*",
+        "",
+        f"{item.get('data_br') or item.get('data') or ''} · {item.get('dia_semana') or ''}".strip(" ·"),
+        f"Equipe: {item.get('equipe') or '—'}",
+    ]
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)
+
+
+def texto_whatsapp_mes(
+    itens: list[dict],
+    nome_mes: str,
+    ano: int,
+    igreja_nome: str = "IGREJA CEASDREI",
+    link: str = "",
+) -> str:
+    linhas = [
+        f"*Escala do Grupo de Louvor — {igreja_nome}*",
+        f"{nome_mes} / {ano}",
+        "",
+    ]
+    for item in itens:
+        linhas.append(
+            f"• {item.get('data_br') or item.get('data')}: {item.get('equipe') or '—'}"
+        )
+    if not itens:
+        linhas.append("Nenhum dia cadastrado neste mês.")
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)
+
+
 def _connect() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)

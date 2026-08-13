@@ -123,6 +123,11 @@
         <strong>{{ escala_hoje.porta_escada or '—' }}</strong>
       </div>
     </div>
+    {% if whatsapp_escala_obreiros %}
+    <p class="escala-share">
+      <a class="btn btn-whatsapp" href="{{ whatsapp_escala_obreiros }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+    </p>
+    {% endif %}
   </article>
   {% endif %}
 

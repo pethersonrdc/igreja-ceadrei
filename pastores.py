@@ -79,6 +79,52 @@ def partir_obreiros(texto: str) -> list[str]:
     """Separa nomes salvos com ' & ' para marcar checkboxes na edição."""
     return [p.strip() for p in (texto or "").split("&") if p.strip()]
 
+
+def url_whatsapp(texto: str) -> str:
+    from urllib.parse import quote
+
+    return "https://wa.me/?text=" + quote((texto or "").strip())
+
+
+def texto_whatsapp_dia(item: dict, igreja_nome: str = "IGREJA CEASDREI", link: str = "") -> str:
+    linhas = [
+        f"*Escala dos Obreiros — {igreja_nome}*",
+        "",
+        f"{item.get('data_br') or item.get('data') or ''} · {item.get('dia_semana') or ''}".strip(" ·"),
+        f"Porta vidro: {item.get('porta_vidro') or '—'}",
+        f"Abertura: {item.get('abertura') or '—'}",
+        f"Porta escada: {item.get('porta_escada') or '—'}",
+    ]
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)
+
+
+def texto_whatsapp_mes(
+    itens: list[dict],
+    nome_mes: str,
+    ano: int,
+    igreja_nome: str = "IGREJA CEASDREI",
+    link: str = "",
+) -> str:
+    linhas = [
+        f"*Escala dos Obreiros — {igreja_nome}*",
+        f"{nome_mes} / {ano}",
+        "",
+    ]
+    for item in itens:
+        linhas.append(
+            f"• {item.get('data_br') or item.get('data')}: "
+            f"Vidro {item.get('porta_vidro') or '—'} | "
+            f"Abertura {item.get('abertura') or '—'} | "
+            f"Escada {item.get('porta_escada') or '—'}"
+        )
+    if not itens:
+        linhas.append("Nenhum dia cadastrado neste mês.")
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)
+
 # Cada responsável registra o próprio evento no calendário compartilhado
 RESPONSAVEIS_EVENTO = {
     "batismo": {

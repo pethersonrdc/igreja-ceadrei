@@ -240,6 +240,15 @@ def home():
             [*ministerios_destaque, mocidade_destaque],
             key=lambda x: x.get("data_obj") or date.max,
         )
+    whatsapp_escala_obreiros = ""
+    if escala_hoje:
+        whatsapp_escala_obreiros = pastores.url_whatsapp(
+            pastores.texto_whatsapp_dia(
+                escala_hoje,
+                igreja.get("nome") or "IGREJA CEASDREI",
+                url_for("comunicado_obreiros", _external=True),
+            )
+        )
     return render_template(
         "index.html",
         igreja=igreja,
@@ -256,6 +265,7 @@ def home():
         cantina_texto=arraial.obter_cantina(),
         post_mocidade=post_mocidade,
         aviso_home=aviso_home,
+        whatsapp_escala_obreiros=whatsapp_escala_obreiros,
     )
 
 
@@ -1429,16 +1439,37 @@ def comunicado_obreiros():
     hoje = pastores.hoje()
     ano = int(request.args.get("ano", hoje.year))
     mes = int(request.args.get("mes", hoje.month))
+    escala = pastores.listar_escala(ano, mes)
+    escala_destaque = pastores.obter_proxima_escala()
+    calendario = pastores.calendario_mes(ano, mes)
+    nome_igreja = igreja.get("nome") or "IGREJA CEASDREI"
+    link = url_for("comunicado_obreiros", ano=ano, mes=mes, _external=True)
+    whatsapp_dia = ""
+    if escala_destaque:
+        whatsapp_dia = pastores.url_whatsapp(
+            pastores.texto_whatsapp_dia(escala_destaque, nome_igreja, link)
+        )
+    whatsapp_mes = pastores.url_whatsapp(
+        pastores.texto_whatsapp_mes(
+            escala,
+            calendario["nome_mes"],
+            ano,
+            nome_igreja,
+            link,
+        )
+    )
     return render_template(
         "comunicado.html",
         igreja=igreja,
-        escala=pastores.listar_escala(ano, mes),
-        escala_destaque=pastores.obter_proxima_escala(),
+        escala=escala,
+        escala_destaque=escala_destaque,
         destaque=pastores.obter_destaque(),
         avisos=pastores.avisos_proximos(7),
-        calendario=pastores.calendario_mes(ano, mes),
+        calendario=calendario,
         ano=ano,
         mes=mes,
+        whatsapp_dia=whatsapp_dia,
+        whatsapp_mes=whatsapp_mes,
     )
 
 
@@ -2116,18 +2147,39 @@ def louvor_page():
     if mes < 1 or mes > 12:
         mes = hoje.month
     busca = request.args.get("q", "").strip()
+    escala = louvor.listar_escala(ano, mes)
+    escala_destaque = louvor.obter_proxima_escala()
+    calendario = louvor.calendario_mes(ano, mes)
+    nome_igreja = igreja.get("nome") or "IGREJA CEASDREI"
+    link = url_for("louvor_page", ano=ano, mes=mes, _external=True)
+    whatsapp_dia = ""
+    if escala_destaque:
+        whatsapp_dia = louvor.url_whatsapp(
+            louvor.texto_whatsapp_dia(escala_destaque, nome_igreja, link)
+        )
+    whatsapp_mes = louvor.url_whatsapp(
+        louvor.texto_whatsapp_mes(
+            escala,
+            calendario["nome_mes"],
+            ano,
+            nome_igreja,
+            link,
+        )
+    )
     return render_template(
         "louvor.html",
         igreja=igreja,
         h1_responsaveis=louvor.H1_RESPONSAVEIS,
         videos=louvor.listar_videos(busca=busca, so_ativos=True),
         integrantes=louvor.listar_integrantes(so_ativos=True),
-        escala=louvor.listar_escala(ano, mes),
-        escala_destaque=louvor.obter_proxima_escala(),
-        calendario=louvor.calendario_mes(ano, mes),
+        escala=escala,
+        escala_destaque=escala_destaque,
+        calendario=calendario,
         ano=ano,
         mes=mes,
         busca=busca,
+        whatsapp_dia=whatsapp_dia,
+        whatsapp_mes=whatsapp_mes,
     )
 
 
