@@ -2609,6 +2609,34 @@ body.tema-pastores .btn-primary:hover {
   box-shadow: 0 14px 36px rgba(46, 125, 50, 0.14);
 }
 
+.escala-share {
+  margin: 1rem 0 0;
+}
+
+.btn-whatsapp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #128c7e;
+  color: #f4fffb;
+  border: 1px solid #0e6e63;
+  border-radius: 999px;
+  padding: 0.7rem 1.15rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.btn-whatsapp:hover {
+  background: #0e6e63;
+  color: #ffffff;
+}
+
+body.tema-louvor .btn-whatsapp {
+  background: linear-gradient(135deg, #25d366, #128c7e);
+  border-color: transparent;
+  color: #04140c;
+}
+
 .obreiros-hoje h2,
 .obreiros-hoje h3 {
   margin: 0.25rem 0 1rem;

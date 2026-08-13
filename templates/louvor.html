@@ -36,6 +36,11 @@
         <strong>{{ escala_destaque.equipe or '—' }}</strong>
       </div>
     </div>
+    {% if whatsapp_dia %}
+    <p class="escala-share">
+      <a class="btn btn-whatsapp" href="{{ whatsapp_dia }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+    </p>
+    {% endif %}
   </article>
 </section>
 {% endif %}
@@ -49,6 +54,11 @@
       ·
       <a href="{{ url_for('louvor_page', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
     </p>
+    {% if whatsapp_mes %}
+    <p class="escala-share">
+      <a class="btn btn-whatsapp" href="{{ whatsapp_mes }}" target="_blank" rel="noopener noreferrer">Compartilhar mês no WhatsApp</a>
+    </p>
+    {% endif %}
   </div>
 
   {% if escala %}
