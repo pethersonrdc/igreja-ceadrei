@@ -1301,9 +1301,13 @@ def pastores_admin():
                 flash("Informe a data da escala.", "erro")
             else:
                 escala_id = request.form.get("escala_id", type=int)
+                porta_vidro = pastores.juntar_obreiros(
+                    request.form.get("porta_vidro_1", ""),
+                    request.form.get("porta_vidro_2", ""),
+                )
                 pastores.salvar_escala(
                     data_iso=data_iso,
-                    porta_vidro=request.form.get("porta_vidro", ""),
+                    porta_vidro=porta_vidro,
                     abertura=request.form.get("abertura", ""),
                     porta_escada=request.form.get("porta_escada", ""),
                     escala_id=escala_id,
@@ -1348,6 +1352,13 @@ def pastores_admin():
                 editar_escala = item
                 break
 
+    porta_vidro_1 = ""
+    porta_vidro_2 = ""
+    if editar_escala and editar_escala.get("porta_vidro"):
+        partes = [p.strip() for p in editar_escala["porta_vidro"].split("&") if p.strip()]
+        porta_vidro_1 = partes[0] if partes else ""
+        porta_vidro_2 = partes[1] if len(partes) > 1 else ""
+
     return render_template(
         "pastores_admin.html",
         igreja=igreja,
@@ -1358,6 +1369,9 @@ def pastores_admin():
         calendario=pastores.calendario_mes(ano, mes),
         avisos=pastores.avisos_proximos(7),
         editar_escala=editar_escala,
+        obreiros=pastores.OBREIROS,
+        porta_vidro_1=porta_vidro_1,
+        porta_vidro_2=porta_vidro_2,
         ano=ano,
         mes=mes,
         aba=request.args.get("aba", "escala"),

@@ -20,6 +20,28 @@ H1_PASTORES = (
     "Área pastoral da CEASDREI — organize a escala, a palavra e o calendário dos líderes."
 )
 
+# Lista fixa para seleção rápida na escala de obreiros
+OBREIROS = [
+    "Dc. Anderson Calixto",
+    "Dc. Ana Beatriz",
+    "Dc. Cassia Souza",
+    "Dc. Daniele",
+    "Dc. Michael",
+    "Dc. Edna do Carmo",
+    "Dc. Diogo Kauan",
+    "Dc. Maria Santos",
+]
+
+
+def juntar_obreiros(*nomes: str) -> str:
+    """Junta nomes selecionados (ex.: porta vidro com 1 ou 2 pessoas)."""
+    limpos = [n.strip() for n in nomes if (n or "").strip()]
+    if not limpos:
+        return ""
+    if len(limpos) == 1:
+        return limpos[0]
+    return " & ".join(limpos)
+
 # Cada responsável registra o próprio evento no calendário compartilhado
 RESPONSAVEIS_EVENTO = {
     "batismo": {
