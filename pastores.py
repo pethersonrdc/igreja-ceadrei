@@ -4,15 +4,21 @@ Painel dos pastores — escala de obreiros, destaque do culto e calendário dos 
 
 from __future__ import annotations
 
+import json
+import os
 import sqlite3
 from calendar import monthrange
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+# Permite disco persistente no Render via DATA_DIR=/var/data
+DATA_DIR = Path(os.environ.get("DATA_DIR", str(BASE_DIR / "data")))
 UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "pastores"
-DB_PATH = DATA_DIR / "pastores.db"
+DB_PATH = Path(os.environ.get("PASTORES_DB_PATH", str(DATA_DIR / "pastores.db")))
+# JSON versionado no Git: restaura a escala após redeploy (disco efêmero do Render)
+ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_obreiros.json"
+OBREIROS_JSON_PATH = BASE_DIR / "data" / "obreiros_lista.json"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
@@ -47,6 +53,8 @@ OBREIROS_PADRAO = [
     "Col. Saymon",
     "Dc. Gladson",
     "Ob. Welligton",
+    "Ob. Wellington",
+    "Ob. Marilza",
     "Dc. Vinicius",
     "Dc. Caren Nascimento",
     "Dc. Daiane",
@@ -108,15 +116,22 @@ RESPONSAVEIS_EVENTO = {
 }
 
 
+_db_schema_ok = False
+_db_import_ok = False
+
+
 def _connect() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
-def init_db() -> None:
+def _ensure_schema() -> None:
+    """Cria tabelas sem reimportar o JSON (evita sobrescrever um save)."""
+    global _db_schema_ok
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.executescript(
@@ -180,6 +195,19 @@ def init_db() -> None:
             """,
             (agora().isoformat(timespec="seconds"),),
         )
+    _db_schema_ok = True
+
+
+def init_db() -> None:
+    """Garante schema e importa a escala/lista do JSON versionado (uma vez)."""
+    global _db_import_ok
+    _ensure_schema()
+    if _db_import_ok:
+        return
+    with _connect() as conn:
+        _importar_obreiros_json(conn)
+        _importar_escala_json(conn)
+    _db_import_ok = True
 
 
 def agora() -> datetime:
@@ -251,6 +279,108 @@ def _enriquecer_evento(item: dict) -> dict:
     return item
 
 
+# ---------- Persistência JSON (sobrevive ao redeploy do Render) ----------
+
+def _ler_json(path: Path) -> dict | list | None:
+    try:
+        if not path.exists():
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _escrever_json(path: Path, payload: dict | list) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def exportar_escala_json() -> None:
+    """Salva a escala no JSON versionado (restauração após deploy)."""
+    _ensure_schema()
+    with _connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT data, porta_vidro, abertura, porta_escada, criado_em
+            FROM escala
+            ORDER BY data ASC
+            """
+        ).fetchall()
+    _escrever_json(
+        ESCALA_JSON_PATH,
+        {"escala": [dict(r) for r in rows]},
+    )
+
+
+def exportar_obreiros_json() -> None:
+    """Salva a lista de nomes do picklist no JSON versionado."""
+    _ensure_schema()
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT nome FROM obreiros ORDER BY nome COLLATE NOCASE ASC"
+        ).fetchall()
+    _escrever_json(
+        OBREIROS_JSON_PATH,
+        {"obreiros": [r["nome"] for r in rows]},
+    )
+
+
+def _importar_escala_json(conn: sqlite3.Connection) -> None:
+    payload = _ler_json(ESCALA_JSON_PATH)
+    if not isinstance(payload, dict):
+        return
+    items = payload.get("escala") or []
+    if not isinstance(items, list):
+        return
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        data_iso = (item.get("data") or "").strip()
+        if not data_iso:
+            continue
+        criado = (item.get("criado_em") or "").strip() or agora().isoformat(
+            timespec="seconds"
+        )
+        conn.execute(
+            """
+            INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(data) DO UPDATE SET
+                porta_vidro = excluded.porta_vidro,
+                abertura = excluded.abertura,
+                porta_escada = excluded.porta_escada
+            """,
+            (
+                data_iso,
+                (item.get("porta_vidro") or "").strip(),
+                (item.get("abertura") or "").strip(),
+                (item.get("porta_escada") or "").strip(),
+                criado,
+            ),
+        )
+
+
+def _importar_obreiros_json(conn: sqlite3.Connection) -> None:
+    payload = _ler_json(OBREIROS_JSON_PATH)
+    if not isinstance(payload, dict):
+        return
+    nomes = payload.get("obreiros") or []
+    if not isinstance(nomes, list):
+        return
+    criado = agora().isoformat(timespec="seconds")
+    for nome in nomes:
+        limpo = " ".join(str(nome or "").split())
+        if not limpo:
+            continue
+        conn.execute(
+            "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
+            (limpo, criado),
+        )
+
+
 # ---------- Lista de obreiros (picklist) ----------
 
 def _seed_obreiros(conn: sqlite3.Connection) -> None:
@@ -288,6 +418,7 @@ def adicionar_obreiro(nome: str) -> tuple[bool, str]:
             )
     except sqlite3.IntegrityError:
         return False, "Esse nome já está na lista."
+    exportar_obreiros_json()
     return True, "Obreiro adicionado à lista."
 
 
@@ -295,7 +426,10 @@ def remover_obreiro(obreiro_id: int) -> bool:
     init_db()
     with _connect() as conn:
         cur = conn.execute("DELETE FROM obreiros WHERE id = ?", (obreiro_id,))
-        return cur.rowcount > 0
+        ok = cur.rowcount > 0
+    if ok:
+        exportar_obreiros_json()
+    return ok
 
 
 # ---------- Escala de obreiros ----------
@@ -376,32 +510,38 @@ def salvar_escala(
                     escala_id,
                 ),
             )
-            return escala_id
-        cur = conn.execute(
-            """
-            INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(data) DO UPDATE SET
-                porta_vidro = excluded.porta_vidro,
-                abertura = excluded.abertura,
-                porta_escada = excluded.porta_escada
-            """,
-            (
-                data_iso,
-                porta_vidro.strip(),
-                abertura.strip(),
-                porta_escada.strip(),
-                criado,
-            ),
-        )
-        return int(cur.lastrowid or 0)
+            resultado = escala_id
+        else:
+            cur = conn.execute(
+                """
+                INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(data) DO UPDATE SET
+                    porta_vidro = excluded.porta_vidro,
+                    abertura = excluded.abertura,
+                    porta_escada = excluded.porta_escada
+                """,
+                (
+                    data_iso,
+                    porta_vidro.strip(),
+                    abertura.strip(),
+                    porta_escada.strip(),
+                    criado,
+                ),
+            )
+            resultado = int(cur.lastrowid or 0)
+    exportar_escala_json()
+    return resultado
 
 
 def apagar_escala(escala_id: int) -> bool:
     init_db()
     with _connect() as conn:
         cur = conn.execute("DELETE FROM escala WHERE id = ?", (escala_id,))
-        return cur.rowcount > 0
+        ok = cur.rowcount > 0
+    if ok:
+        exportar_escala_json()
+    return ok
 
 
 # ---------- Destaque do culto / campanha ----------
