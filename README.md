@@ -249,6 +249,7 @@ Senha do painel em produção (padrão do `render.yaml`): `ceasdrei`
 
 > No plano gratuito do Render, o site pode “dormir” após inatividade e demorar ~30s para acordar.
 > Uploads ficam no disco do servidor (efêmero): em um redeploy as fotos/dados podem sumir. Use disco persistente se precisar manter.
+> A **escala de obreiros** e a lista de nomes ficam também em `data/escala_obreiros.json` e `data/obreiros_lista.json` (versionados no Git) e são restauradas automaticamente após o deploy.
 
 Arquivos de deploy:
 - `Procfile` — inicia com Gunicorn

@@ -48,7 +48,7 @@
     {% else %}
     <h2>Incluir obreiros do mês</h2>
     {% endif %}
-    <p class="admin-help">Como na escala impressa: data, porta vidro, abertura e porta escada. Marque um ou mais nomes em cada função.</p>
+    <p class="admin-help">Como na escala impressa: data, porta vidro, abertura e porta escada. Marque um ou mais nomes em cada função. A escala fica salva e também no arquivo de backup do site, para não sumir no deploy.</p>
 
     <label for="data">Data</label>
     <input id="data" name="data" type="date" required value="{{ editar_escala.data if editar_escala else '' }}">
