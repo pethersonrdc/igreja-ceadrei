@@ -68,7 +68,7 @@ def init_db() -> None:
                 culto_dia TEXT NOT NULL,
                 titulo TEXT NOT NULL,
                 criado_em TEXT NOT NULL,
-                expira_em TEXT
+                expira_em TEXT NOT NULL DEFAULT ''
             );
 
             CREATE TABLE IF NOT EXISTS fotos (
@@ -78,6 +78,18 @@ def init_db() -> None:
                 FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
             );
             """
+        )
+        # Bancos antigos podem ter expira_em NOT NULL sem default; garante coluna usável
+        cols = {
+            row["name"]: row
+            for row in conn.execute("PRAGMA table_info(posts)").fetchall()
+        }
+        if "expira_em" not in cols:
+            conn.execute(
+                "ALTER TABLE posts ADD COLUMN expira_em TEXT NOT NULL DEFAULT ''"
+            )
+        conn.execute(
+            "UPDATE posts SET expira_em = '' WHERE expira_em IS NULL"
         )
 
 
@@ -137,7 +149,7 @@ def criar_post(culto_titulo: str, culto_dia: str, titulo: str, arquivos: list[st
                 culto_dia.strip(),
                 titulo.strip(),
                 criado.isoformat(timespec="seconds"),
-                None,
+                "",  # posts não expiram; campo legado no SQLite local
             ),
         )
         post_id = cur.lastrowid
