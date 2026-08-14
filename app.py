@@ -231,7 +231,6 @@ def home():
     destaque_culto = pastores.obter_destaque()
     eventos_destaque = pastores.eventos_destaque_home(6)
     info_arraial = arraial.info_evento()
-    post_mocidade = mocidade.obter_post_ativo()
     aviso_home = gallery.obter_aviso_home()
     ministerios_destaque = campanha_eventos.listar_destaques_home()
     mocidade_destaque = mocidade.obter_destaque_publico()
@@ -273,7 +272,6 @@ def home():
         ministerios_destaque=ministerios_destaque,
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
-        post_mocidade=post_mocidade,
         aviso_home=aviso_home,
         whatsapp_escala_obreiros=whatsapp_escala_obreiros,
         escala_louvor=escala_louvor,
