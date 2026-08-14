@@ -179,7 +179,7 @@
   <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="video">
     <h2>Novo vídeo</h2>
-    <p class="admin-help">Envie um arquivo MP4 ou cole o link do YouTube/Vimeo. O público pode buscar por título ou tema.</p>
+    <p class="admin-help">Para o vídeo <strong>tocar</strong> na página, envie o arquivo <strong>.mp4</strong> abaixo (não use o campo de capa/imagem).</p>
 
     <label for="titulo">Título</label>
     <input id="titulo" name="titulo" type="text" placeholder="Ex.: Adoração — domingo à noite">
@@ -187,16 +187,16 @@
     <label for="tema">Tema / tags</label>
     <input id="tema" name="tema" type="text" placeholder="Ex.: adoração, natal, juventude">
 
-    <label for="arquivo_video">Arquivo de vídeo (MP4)</label>
+    <label for="arquivo_video">Arquivo do vídeo (.mp4) — este é o campo certo</label>
     <input id="arquivo_video" name="arquivo_video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*">
-    <p class="admin-help">Use este campo para o vídeo aparecer na página. Capa abaixo é só imagem (JPG/PNG).</p>
+    <p class="admin-help">Escolha o arquivo MP4 aqui. Também funciona se você colocar o MP4 no campo de capa.</p>
 
-    <label for="link">Link do YouTube/Vimeo (opcional)</label>
+    <label for="link">Ou link do YouTube/Vimeo (opcional)</label>
     <input id="link" name="link" type="text" placeholder="https://www.youtube.com/watch?v=... ou deixe em branco">
-    <p class="admin-help">Se já enviou o arquivo MP4, o link não é necessário.</p>
 
-    <label for="capa">Capa / imagem (opcional)</label>
-    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    <label for="capa">Capa / imagem de capa (opcional — só JPG/PNG)</label>
+    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <p class="admin-help">Imagem de preview. Se enviar MP4 aqui por engano, o site trata como vídeo.</p>
 
     <button class="btn btn-primary btn-louvor" type="submit">Publicar vídeo</button>
   </form>

@@ -2055,6 +2055,8 @@ def louvor_admin():
             link = request.form.get("link", "").strip()
             arquivo_capa = request.files.get("capa")
             arquivo_video = request.files.get("arquivo_video")
+            # Compatível com formulário antigo / envio do MP4 no campo "capa"
+            arquivo_unico = request.files.get("arquivo")
             link_vazio = link.lower() in {
                 "",
                 "não tem",
@@ -2073,28 +2075,62 @@ def louvor_admin():
                 return redirect(url_for("louvor_admin", aba="videos"))
 
             nome_capa = ""
-            if arquivo_capa and arquivo_capa.filename:
-                if not louvor.extensao_ok(arquivo_capa.filename):
-                    flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
-                    return redirect(url_for("louvor_admin", aba="videos"))
-                nome_seguro = secure_filename(arquivo_capa.filename)
-                extensao = Path(nome_seguro).suffix.lower()
-                nome_capa = f"capa-{uuid.uuid4().hex}{extensao}"
-                arquivo_capa.save(louvor.UPLOAD_DIR / nome_capa)
-
             nome_video = ""
+
+            def _salvar_video(upload) -> str | None:
+                if not upload or not upload.filename:
+                    return None
+                if not louvor.extensao_video_ok(upload.filename):
+                    return None
+                nome_seguro = secure_filename(upload.filename)
+                extensao = Path(nome_seguro).suffix.lower() or ".mp4"
+                final = f"video-{uuid.uuid4().hex}{extensao}"
+                upload.save(louvor.UPLOAD_DIR / final)
+                return final
+
+            def _salvar_capa(upload) -> str | None:
+                if not upload or not upload.filename:
+                    return None
+                if not louvor.extensao_ok(upload.filename):
+                    return None
+                nome_seguro = secure_filename(upload.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                final = f"capa-{uuid.uuid4().hex}{extensao}"
+                upload.save(louvor.UPLOAD_DIR / final)
+                return final
+
+            # 1) Campo dedicado de vídeo
             if arquivo_video and arquivo_video.filename:
                 if not louvor.extensao_video_ok(arquivo_video.filename):
-                    flash("Vídeo: use MP4, WEBM, OGG ou MOV.", "erro")
+                    flash("Arquivo de vídeo: use MP4, WEBM, OGG ou MOV.", "erro")
                     return redirect(url_for("louvor_admin", aba="videos"))
-                nome_seguro = secure_filename(arquivo_video.filename)
-                extensao = Path(nome_seguro).suffix.lower()
-                nome_video = f"video-{uuid.uuid4().hex}{extensao}"
-                arquivo_video.save(louvor.UPLOAD_DIR / nome_video)
+                nome_video = _salvar_video(arquivo_video) or ""
+
+            # 2) Campo único (ou MP4 enviado por engano em "capa")
+            candidatos = []
+            if arquivo_unico and arquivo_unico.filename:
+                candidatos.append(arquivo_unico)
+            if arquivo_capa and arquivo_capa.filename:
+                candidatos.append(arquivo_capa)
+
+            for upload in candidatos:
+                nome = (upload.filename or "").lower()
+                if louvor.extensao_video_ok(nome):
+                    if not nome_video:
+                        nome_video = _salvar_video(upload) or ""
+                elif louvor.extensao_ok(nome):
+                    if not nome_capa:
+                        nome_capa = _salvar_capa(upload) or ""
+                else:
+                    flash(
+                        "Envie vídeo em MP4/WEBM ou capa em JPG/PNG/WEBP/GIF.",
+                        "erro",
+                    )
+                    return redirect(url_for("louvor_admin", aba="videos"))
 
             if not link and not nome_video and not nome_capa:
                 flash(
-                    "Envie um arquivo de vídeo (MP4), um link do YouTube/Vimeo, ou uma capa.",
+                    "Envie o arquivo MP4 do vídeo (ou um link do YouTube/Vimeo).",
                     "erro",
                 )
                 return redirect(url_for("louvor_admin", aba="videos"))
@@ -2106,7 +2142,13 @@ def louvor_admin():
                 capa=nome_capa,
                 arquivo=nome_video,
             )
-            flash("Vídeo publicado!", "ok")
+            if nome_video:
+                flash("Vídeo publicado! O player aparece na página do louvor.", "ok")
+            else:
+                flash(
+                    "Publicado só com capa/link. Para tocar o vídeo no site, envie o arquivo MP4.",
+                    "ok",
+                )
             return redirect(url_for("louvor_admin", aba="videos"))
 
         if acao == "integrante":
