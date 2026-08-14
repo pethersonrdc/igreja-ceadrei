@@ -249,6 +249,16 @@ def home():
                 url_for("comunicado_obreiros", _external=True),
             )
         )
+    escala_louvor = louvor.obter_proxima_escala()
+    whatsapp_escala_louvor = ""
+    if escala_louvor:
+        whatsapp_escala_louvor = louvor.url_whatsapp(
+            louvor.texto_whatsapp_dia(
+                escala_louvor,
+                igreja.get("nome") or "IGREJA CEASDREI",
+                url_for("louvor_page", _external=True),
+            )
+        )
     return render_template(
         "index.html",
         igreja=igreja,
@@ -266,6 +276,8 @@ def home():
         post_mocidade=post_mocidade,
         aviso_home=aviso_home,
         whatsapp_escala_obreiros=whatsapp_escala_obreiros,
+        escala_louvor=escala_louvor,
+        whatsapp_escala_louvor=whatsapp_escala_louvor,
     )
 
 
