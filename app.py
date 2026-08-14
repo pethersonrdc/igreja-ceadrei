@@ -2082,10 +2082,17 @@ def louvor_admin():
                     return None
                 if not louvor.extensao_video_ok(upload.filename):
                     return None
-                nome_seguro = secure_filename(upload.filename)
+                nome_seguro = secure_filename(upload.filename) or "video.mp4"
                 extensao = Path(nome_seguro).suffix.lower() or ".mp4"
+                if extensao not in louvor.ALLOWED_VIDEO:
+                    extensao = ".mp4"
                 final = f"video-{uuid.uuid4().hex}{extensao}"
-                upload.save(louvor.UPLOAD_DIR / final)
+                destino = louvor.UPLOAD_DIR / final
+                upload.save(destino)
+                if not destino.exists() or destino.stat().st_size < 1024:
+                    if destino.exists():
+                        destino.unlink(missing_ok=True)
+                    return None
                 return final
 
             def _salvar_capa(upload) -> str | None:
@@ -2093,7 +2100,7 @@ def louvor_admin():
                     return None
                 if not louvor.extensao_ok(upload.filename):
                     return None
-                nome_seguro = secure_filename(upload.filename)
+                nome_seguro = secure_filename(upload.filename) or "capa.jpg"
                 extensao = Path(nome_seguro).suffix.lower()
                 final = f"capa-{uuid.uuid4().hex}{extensao}"
                 upload.save(louvor.UPLOAD_DIR / final)
@@ -2105,6 +2112,13 @@ def louvor_admin():
                     flash("Arquivo de vídeo: use MP4, WEBM, OGG ou MOV.", "erro")
                     return redirect(url_for("louvor_admin", aba="videos"))
                 nome_video = _salvar_video(arquivo_video) or ""
+                if not nome_video:
+                    flash(
+                        "Não foi possível salvar o vídeo (arquivo vazio?). "
+                        "Se estiver no OneDrive, baixe o MP4 para o PC e envie de novo.",
+                        "erro",
+                    )
+                    return redirect(url_for("louvor_admin", aba="videos"))
 
             # 2) Campo único (ou MP4 enviado por engano em "capa")
             candidatos = []
@@ -2118,6 +2132,13 @@ def louvor_admin():
                 if louvor.extensao_video_ok(nome):
                     if not nome_video:
                         nome_video = _salvar_video(upload) or ""
+                        if not nome_video:
+                            flash(
+                                "Não foi possível salvar o vídeo (arquivo vazio?). "
+                                "Baixe o MP4 do OneDrive para o PC e envie de novo.",
+                                "erro",
+                            )
+                            return redirect(url_for("louvor_admin", aba="videos"))
                 elif louvor.extensao_ok(nome):
                     if not nome_capa:
                         nome_capa = _salvar_capa(upload) or ""
@@ -2143,7 +2164,7 @@ def louvor_admin():
                 arquivo=nome_video,
             )
             if nome_video:
-                flash("Vídeo publicado! O player aparece na página do louvor.", "ok")
+                flash("Vídeo publicado! Abra /louvor e clique em play no player.", "ok")
             else:
                 flash(
                     "Publicado só com capa/link. Para tocar o vídeo no site, envie o arquivo MP4.",

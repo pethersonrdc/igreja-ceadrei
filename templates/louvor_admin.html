@@ -227,8 +227,16 @@
         </form>
       </div>
       {% if video.arquivo %}
-      <video class="louvor-video-player" controls preload="metadata"{% if video.capa %} poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}>
-        <source src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}">
+      <video
+        class="louvor-video-player"
+        controls
+        playsinline
+        preload="metadata"
+        src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}"
+        {% if video.capa %}poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}
+        style="margin-top:0.75rem"
+      >
+        Seu navegador não reproduz este vídeo.
       </video>
       {% elif video.capa %}
       <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="">

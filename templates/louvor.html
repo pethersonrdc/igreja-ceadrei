@@ -131,8 +131,14 @@
       </div>
       {% elif video.arquivo %}
       <div class="louvor-video-frame louvor-video-frame--arquivo">
-        <video class="louvor-video-player" controls preload="metadata"{% if video.capa %} poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}>
-          <source src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}">
+        <video
+          class="louvor-video-player"
+          controls
+          playsinline
+          preload="metadata"
+          src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}"
+          {% if video.capa %}poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}
+        >
           Seu navegador não reproduz este vídeo.
         </video>
       </div>

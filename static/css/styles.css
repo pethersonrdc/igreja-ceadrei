@@ -5090,14 +5090,34 @@ body.tema-louvor .louvor-escala-table th {
   background: #000;
 }
 
+.louvor-video-frame {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 0.85rem;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  background: #111;
+}
+
+.louvor-video-frame iframe,
+.louvor-video-frame .louvor-video-player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .louvor-video-frame--arquivo {
+  padding-top: 0;
   aspect-ratio: 16 / 9;
+  min-height: 200px;
 }
 
 .louvor-video-frame--arquivo .louvor-video-player {
-  width: 100%;
-  height: 100%;
   object-fit: contain;
+  background: #000;
 }
 
 .login-anim--louvor .login-anim-onda {
@@ -5142,24 +5162,6 @@ body.tema-louvor .louvor-escala-table th {
 .louvor-video-card {
   border-radius: 1.1rem;
   padding: 1rem;
-}
-
-.louvor-video-frame {
-  position: relative;
-  width: 100%;
-  padding-top: 56.25%;
-  border-radius: 0.85rem;
-  overflow: hidden;
-  margin-bottom: 0.75rem;
-  background: #111;
-}
-
-.louvor-video-frame iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
 }
 
 .louvor-integrantes-grid {
