@@ -4756,18 +4756,23 @@ body.tema-porta-altar .admin-msg--erro {
 }
 
 .ministerio-destaque-card {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.55);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 1.1rem;
   padding: 1.25rem;
   color: #1a1208;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .ministerio-destaque-card img {
   display: block;
   width: 100%;
-  max-height: 320px;
-  object-fit: cover;
+  max-height: 380px;
+  aspect-ratio: 16 / 10;
+  object-fit: contain;
+  object-position: center center;
+  background: #0d2436;
   border-radius: 0.85rem;
   margin: 0.75rem 0;
 }
@@ -4962,10 +4967,43 @@ body.tema-louvor .obreiro-pick legend {
   color: #e0b84d;
 }
 
+body.tema-louvor .obreiro-pick {
+  background: rgba(0, 0, 0, 0.28);
+  border-color: rgba(224, 179, 90, 0.4);
+}
+
 body.tema-louvor .obreiro-option,
 body.tema-louvor .obreiro-option span,
 body.tema-louvor .obreiro-picked {
   color: #e0b84d;
+}
+
+body.tema-louvor .obreiro-option {
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.1rem;
+}
+
+body.tema-louvor .obreiro-option input[type="checkbox"],
+.obreiro-option input[type="checkbox"] {
+  width: 1.15rem !important;
+  height: 1.15rem !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  flex-shrink: 0;
+  align-self: center;
+  border: 1px solid rgba(224, 179, 90, 0.55) !important;
+  border-radius: 0.25rem !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  accent-color: #d4af37;
+}
+
+body.tema-louvor .obreiro-option:hover {
+  background: rgba(212, 175, 55, 0.12);
 }
 
 body.tema-louvor .louvor-equipe,

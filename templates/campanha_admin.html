@@ -41,7 +41,16 @@
     <p class="admin-help">Imagem + mensagem. Na home, o destaque aparece sozinho 7 dias antes da data e some no dia seguinte.</p>
 
     <label for="data_destaque">Data do evento</label>
-    <input id="data_destaque" name="data" type="date" value="{{ destaque.data or '' }}">
+    <input
+      id="data_destaque"
+      name="data"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      placeholder="dd/mm/aaaa"
+      value="{{ destaque.data_br or '' }}"
+    >
+    <p class="admin-help">Digite como 14/08/2026 (ou só 1408 no ano atual).</p>
 
     <label for="imagem_destaque">Imagem de destaque</label>
     <input id="imagem_destaque" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
