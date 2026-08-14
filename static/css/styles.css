@@ -1331,7 +1331,7 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
 /* ---------- Galeria / carrossel ---------- */
 
 .gallery-home--destaque {
-  padding-top: 0.5rem;
+  padding-top: 1.25rem;
 }
 
 .gallery-home--destaque .section-head {
@@ -1354,13 +1354,17 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
 }
 
 .carousel--destaque {
-  aspect-ratio: 4 / 5;
-  max-width: 720px;
+  aspect-ratio: 16 / 10;
+  max-width: 960px;
   margin-inline: auto;
-  min-height: min(68vh, 640px);
-  border-radius: 32px;
+  min-height: 0;
+  max-height: min(72vh, 580px);
+  border-radius: 28px;
   box-shadow: 0 28px 70px rgba(13, 36, 54, 0.32);
   border: 1px solid rgba(224, 179, 90, 0.28);
+  background:
+    radial-gradient(circle at 50% 20%, rgba(224, 179, 90, 0.12), transparent 55%),
+    #0d2436;
 }
 
 .carousel-track {
@@ -1389,6 +1393,10 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   animation: gallery-kenburns 3.2s ease-out both;
 }
 
+.carousel--destaque .carousel-slide.is-active img {
+  animation: none;
+}
+
 .carousel-slide img {
   width: 100%;
   height: 100%;
@@ -1397,7 +1405,8 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
 }
 
 .carousel--destaque .carousel-slide img {
-  object-position: center top;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .carousel-counter {
@@ -1478,14 +1487,15 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   margin: 0;
   border-radius: 18px;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 16 / 10;
   background: #0d2436;
 }
 
 .gallery-grid img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
 }
 
 .gallery-post + .gallery-post {
