@@ -68,7 +68,7 @@ ARRAIAL_PASSWORD_HASH = generate_password_hash(ARRAIAL_PASSWORD)
 MOCIDADE_PASSWORD = os.environ.get("MOCIDADE_PASSWORD", "Mocidade")
 MOCIDADE_PASSWORD_HASH = generate_password_hash(MOCIDADE_PASSWORD)
 
-# Senhas Leoas da Fé / Leão de Judá / Dança Maranata / Soldadinho de Deus
+# Senhas Leoas da Fé / Leão de Judá / Dança Maranata / Soldadinhos de Cristo
 LEOAS_PASSWORD = os.environ.get("LEOAS_PASSWORD", "Leoasdafe")
 LEOAS_PASSWORD_HASH = generate_password_hash(LEOAS_PASSWORD)
 LEAODEJUDA_PASSWORD = os.environ.get("LEAODEJUDA_PASSWORD", "Leaodejuda")
@@ -1769,7 +1769,7 @@ def mocidade_page():
     )
 
 
-# ---------- Leoas / Leão / Maranata / Soldadinho de Deus ----------
+# ---------- Leoas / Leão / Maranata / Soldadinhos de Cristo ----------
 
 @app.route("/evento/<slug>/login", methods=["GET", "POST"])
 def campanha_login(slug: str):

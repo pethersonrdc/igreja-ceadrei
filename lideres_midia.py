@@ -67,8 +67,8 @@ PERFIS = [
     },
     {
         "id": "soldadinhos",
-        "nome": "Soldadinho de Deus",
-        "departamento": "Evento Soldadinho de Deus",
+        "nome": "Soldadinhos de Cristo",
+        "departamento": "Evento Soldadinhos de Cristo",
         "padrao": "images/soldadinhos/lideres.png",
     },
     {

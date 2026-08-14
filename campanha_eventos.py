@@ -1,5 +1,5 @@
 """
-Eventos Leoas da Fé, Leão de Judá, Dança Maranata e Soldadinho de Deus —
+Eventos Leoas da Fé, Leão de Judá, Dança Maranata e Soldadinhos de Cristo —
 calendário + post de campanha do culto (aniversário ou culto normal).
 """
 
@@ -66,13 +66,13 @@ EVENTOS = {
         "login_anim": "maranata",
     },
     "soldadinhos": {
-        "titulo": "Soldadinho de Deus",
-        "lider": "Soldadinho de Deus",
+        "titulo": "Soldadinhos de Cristo",
+        "lider": "Soldadinhos de Cristo",
         "origem": "soldadinhos",
         "fundo": "images/soldadinhos/fundo.png",
         "upload_dir": BASE_DIR / "static" / "uploads" / "soldadinhos",
         "db_path": DATA_DIR / "soldadinhos.db",
-        "h1": "Soldadinho de Deus — ministério infantil, campanha e calendário.",
+        "h1": "Soldadinhos de Cristo — ministério infantil, campanha e calendário.",
         "descricao": "Poste a campanha das crianças e registre datas no calendário.",
         "tema": "tema-soldadinhos",
         "btn": "btn-soldadinhos",

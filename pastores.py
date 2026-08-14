@@ -156,8 +156,8 @@ RESPONSAVEIS_EVENTO = {
         "lider": "Dança Maranata",
     },
     "soldadinhos": {
-        "titulo": "Soldadinho de Deus",
-        "lider": "Soldadinho de Deus",
+        "titulo": "Soldadinhos de Cristo",
+        "lider": "Soldadinhos de Cristo",
     },
 }
 
