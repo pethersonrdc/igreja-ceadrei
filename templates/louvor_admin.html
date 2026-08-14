@@ -134,7 +134,7 @@
 
   {% if escala %}
   <div class="batismo-table-wrap">
-    <table class="batismo-table escala-table">
+    <table class="batismo-table escala-table louvor-escala-table">
       <thead>
         <tr>
           <th>Data</th>
@@ -150,7 +150,7 @@
             <span class="admin-meta">{{ item.dia_semana }}</span>
             {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
           </td>
-          <td>{{ item.equipe or '—' }}</td>
+          <td class="louvor-equipe">{{ item.equipe or '—' }}</td>
           <td>
             <a class="btn btn-ghost-dark" href="{{ url_for('louvor_admin', aba='escala', ano=ano, mes=mes, editar_escala=item.id) }}">Editar</a>
             <form method="post" action="{{ url_for('louvor_apagar_escala', escala_id=item.id) }}" onsubmit="return confirm('Apagar este dia da escala?');" style="display:inline">

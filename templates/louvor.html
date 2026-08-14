@@ -33,7 +33,7 @@
     <div class="obreiros-hoje-grid louvor-escala-grid">
       <div>
         <span>Equipe</span>
-        <strong>{{ escala_destaque.equipe or '—' }}</strong>
+        <strong class="louvor-equipe">{{ escala_destaque.equipe or '—' }}</strong>
       </div>
     </div>
     {% if whatsapp_dia %}
@@ -78,7 +78,7 @@
             <span class="admin-meta">{{ item.dia_semana }}</span>
             {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
           </td>
-          <td>{{ item.equipe or '—' }}</td>
+          <td class="louvor-equipe">{{ item.equipe or '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
