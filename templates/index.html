@@ -152,6 +152,37 @@
 </section>
 {% endif %}
 
+{% if escala_louvor %}
+<section class="section home-topico-louvor">
+  <div class="section-head">
+    <p class="eyebrow">Grupo de Louvor</p>
+    <h2>Escala do louvor</h2>
+    <p>Quem serve na adoração neste culto.</p>
+  </div>
+
+  <article class="obreiros-hoje obreiros-hoje--destaque louvor-escala-home {% if escala_louvor.eh_hoje %}is-hoje{% endif %}">
+    <p class="eyebrow">{% if escala_louvor.eh_hoje %}Hoje no louvor{% else %}Próxima escala{% endif %}</p>
+    <h3>{{ escala_louvor.data_br }} · {{ escala_louvor.dia_semana }}</h3>
+    <div class="obreiros-hoje-grid louvor-escala-grid">
+      <div>
+        <span>Equipe</span>
+        <strong class="louvor-equipe">{{ escala_louvor.equipe or '—' }}</strong>
+      </div>
+    </div>
+    {% if whatsapp_escala_louvor %}
+    <p class="escala-share">
+      <a class="btn btn-whatsapp" href="{{ whatsapp_escala_louvor }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+    </p>
+    {% endif %}
+  </article>
+
+  <div class="hero-actions" style="margin-top:1.25rem">
+    <a class="btn btn-primary" href="{{ url_for('louvor_page') }}">Ver escala completa</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('louvor_login') }}">Acesso dos líderes</a>
+  </div>
+</section>
+{% endif %}
+
 <section class="section verse-section">
   <blockquote>
     <p>“{{ igreja.versiculo.texto }}”</p>
