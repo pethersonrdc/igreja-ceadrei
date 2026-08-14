@@ -4929,6 +4929,10 @@ body.tema-louvor .btn-primary {
   max-width: 28rem;
 }
 
+body.tema-louvor .obreiro-pick legend {
+  color: #e0b84d;
+}
+
 .louvor-escala-destaque {
   background: rgba(0, 0, 0, 0.42);
   border-color: rgba(201, 162, 74, 0.35);
