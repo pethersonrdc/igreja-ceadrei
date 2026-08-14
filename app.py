@@ -684,9 +684,10 @@ def _processar_evento_responsavel(origem: str) -> bool:
     info = pastores.RESPONSAVEIS_EVENTO.get(origem)
     if not info:
         return False
-    data_iso = request.form.get("data", "").strip()
+    data_bruta = request.form.get("data", "").strip()
+    data_iso = campanha_eventos.data_para_iso(data_bruta)
     if not data_iso:
-        flash("Informe a data do seu evento.", "erro")
+        flash("Informe a data no formato dd/mm/aaaa (ex.: 14/08/2026).", "erro")
         return True
     evento_id = request.form.get("evento_id", type=int)
     titulo = request.form.get("titulo", "").strip() or info["titulo"]
@@ -1830,7 +1831,13 @@ def campanha_admin(slug: str):
             return redirect(url_for("campanha_admin", slug=slug))
 
         if acao == "destaque":
-            data_iso = request.form.get("data", "").strip()
+            data_bruta = request.form.get("data", "").strip()
+            data_iso = ""
+            if data_bruta:
+                data_iso = campanha_eventos.data_para_iso(data_bruta)
+                if not data_iso:
+                    flash("Data inválida. Use dd/mm/aaaa (ex.: 14/08/2026).", "erro")
+                    return redirect(url_for("campanha_admin", slug=slug))
             mensagem = request.form.get("mensagem", "").strip()
             arquivo = request.files.get("imagem")
             nome_final = ""
@@ -2048,8 +2055,18 @@ def louvor_admin():
             tema = request.form.get("tema", "").strip()
             link = request.form.get("link", "").strip()
             arquivo = request.files.get("capa")
-            if not link or not louvor.link_valido(link):
-                flash("Informe um link válido (YouTube ou Vimeo).", "erro")
+            link_vazio = link.lower() in {
+                "",
+                "não tem",
+                "nao tem",
+                "sem link",
+                "n/a",
+                "-",
+            }
+            if link_vazio:
+                link = ""
+            elif not louvor.link_valido(link):
+                flash("Informe um link válido (YouTube ou Vimeo), ou deixe em branco.", "erro")
                 return redirect(url_for("louvor_admin", aba="videos"))
             nome_final = ""
             if arquivo and arquivo.filename:

@@ -226,13 +226,49 @@ def _enriquecer(item: dict) -> dict:
 
 
 def _parse_data(valor: str) -> date | None:
+    """Aceita yyyy-mm-dd, dd/mm/aaaa, ddmmaaaa ou ddmm (ano atual)."""
     texto = (valor or "").strip()
     if not texto:
         return None
     try:
         return date.fromisoformat(texto[:10])
     except ValueError:
-        return None
+        pass
+    for sep in ("/", "-", "."):
+        if sep in texto:
+            partes = [p.strip() for p in texto.split(sep) if p.strip()]
+            if len(partes) == 3:
+                try:
+                    dia, mes, ano = int(partes[0]), int(partes[1]), int(partes[2])
+                    if ano < 100:
+                        ano += 2000
+                    return date(ano, mes, dia)
+                except ValueError:
+                    return None
+    digitos = "".join(c for c in texto if c.isdigit())
+    if len(digitos) == 8:
+        try:
+            return date(int(digitos[4:8]), int(digitos[2:4]), int(digitos[0:2]))
+        except ValueError:
+            return None
+    # Ex.: 1408 → 14/08 do ano atual (digitação rápida no celular)
+    if len(digitos) == 4:
+        try:
+            return date(date.today().year, int(digitos[2:4]), int(digitos[0:2]))
+        except ValueError:
+            return None
+    return None
+
+
+def parse_data_flexivel(valor: str) -> date | None:
+    """Alias público para formulários (calendário / destaque)."""
+    return _parse_data(valor)
+
+
+def data_para_iso(valor: str) -> str:
+    """Converte entrada do formulário em yyyy-mm-dd ou string vazia."""
+    parsed = _parse_data(valor)
+    return parsed.isoformat() if parsed else ""
 
 
 def obter_destaque(slug: str) -> dict:

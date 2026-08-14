@@ -25,7 +25,17 @@
     <div class="pessoa-row">
       <div>
         <label for="data_evento">Data do evento</label>
-        <input id="data_evento" name="data" type="date" required value="{{ editar_evento.data if editar_evento else '' }}">
+        <input
+          id="data_evento"
+          name="data"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          required
+          placeholder="dd/mm/aaaa"
+          value="{{ editar_evento.data_br if editar_evento else '' }}"
+        >
+        <p class="admin-help">Digite como 14/08/2026 (ou só 1408 no ano atual).</p>
       </div>
       <div>
         <label for="horario_evento">Horário</label>
