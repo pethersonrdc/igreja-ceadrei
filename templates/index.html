@@ -236,25 +236,6 @@
 </section>
 {% endif %}
 
-{% if post_mocidade %}
-<section class="section">
-  <article class="mocidade-home-post">
-    <div class="mocidade-home-copy">
-      <p class="eyebrow">Filhos do Rei</p>
-      <h2>{{ post_mocidade.titulo }}</h2>
-      <p>{{ post_mocidade.texto }}</p>
-      <p class="admin-meta">Líderes: Diác. Natan e Diác. Ana Beatriz</p>
-      <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_page') }}">Ver Filhos do Rei</a>
-    </div>
-    {% if post_mocidade.foto %}
-    <figure class="mocidade-home-foto">
-      <img src="{{ url_for('static', filename='uploads/mocidade/' + post_mocidade.foto) }}" alt="{{ post_mocidade.titulo }}">
-    </figure>
-    {% endif %}
-  </article>
-</section>
-{% endif %}
-
 {% if arraial and arraial.mostrar_destaque %}
 <section class="section">
   <article class="arraial-home-aviso{% if arraial.mostrar_aviso %} is-urgente{% endif %}">
