@@ -35,6 +35,12 @@
         <span>Equipe</span>
         <strong class="louvor-equipe">{{ escala_destaque.equipe or '—' }}</strong>
       </div>
+      {% if escala_destaque.louvores %}
+      <div>
+        <span>Louvores</span>
+        <strong class="louvor-louvores">{{ escala_destaque.louvores }}</strong>
+      </div>
+      {% endif %}
     </div>
     {% if whatsapp_dia %}
     <p class="escala-share">
@@ -68,6 +74,7 @@
         <tr>
           <th>Data</th>
           <th>Equipe</th>
+          <th>Louvores</th>
         </tr>
       </thead>
       <tbody>
@@ -79,6 +86,7 @@
             {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
           </td>
           <td class="louvor-equipe">{{ item.equipe or '—' }}</td>
+          <td class="louvor-louvores">{{ item.louvores or '—' }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -121,17 +129,26 @@
           allowfullscreen
         ></iframe>
       </div>
+      {% elif video.arquivo %}
+      <div class="louvor-video-frame louvor-video-frame--arquivo">
+        <video class="louvor-video-player" controls preload="metadata"{% if video.capa %} poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}>
+          <source src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}">
+          Seu navegador não reproduz este vídeo.
+        </video>
+      </div>
       {% elif video.capa %}
-      <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">
+      <a href="{{ video.watch_url or video.link or '#' }}"{% if video.link %} target="_blank" rel="noopener noreferrer"{% endif %}>
         <img src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="{{ video.titulo }}">
       </a>
       {% endif %}
       <h3>{{ video.titulo }}</h3>
       {% if video.tema %}<p class="admin-meta">{{ video.tema }}</p>{% endif %}
-      {% if not video.embed_url %}
+      {% if not video.tem_player and video.link %}
       <p class="section-link">
         <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">Abrir vídeo</a>
       </p>
+      {% elif not video.tem_player and not video.capa %}
+      <p class="admin-meta">Vídeo ainda sem arquivo ou link.</p>
       {% endif %}
     </article>
     {% endfor %}

@@ -168,6 +168,12 @@
         <span>Equipe</span>
         <strong class="louvor-equipe">{{ escala_louvor.equipe or '—' }}</strong>
       </div>
+      {% if escala_louvor.louvores %}
+      <div>
+        <span>Louvores</span>
+        <strong class="louvor-louvores">{{ escala_louvor.louvores }}</strong>
+      </div>
+      {% endif %}
     </div>
     {% if whatsapp_escala_louvor %}
     <p class="escala-share">

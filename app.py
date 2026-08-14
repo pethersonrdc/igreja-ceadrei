@@ -2022,6 +2022,7 @@ def louvor_admin():
                 louvor.salvar_escala(
                     data_iso=data_iso,
                     equipe=louvor.juntar_nomes(*request.form.getlist("equipe")),
+                    louvores=request.form.get("louvores", ""),
                     escala_id=escala_id,
                 )
                 flash("Escala do louvor salva.", "ok")
@@ -2052,7 +2053,8 @@ def louvor_admin():
             titulo = request.form.get("titulo", "").strip() or "Vídeo do louvor"
             tema = request.form.get("tema", "").strip()
             link = request.form.get("link", "").strip()
-            arquivo = request.files.get("capa")
+            arquivo_capa = request.files.get("capa")
+            arquivo_video = request.files.get("arquivo_video")
             link_vazio = link.lower() in {
                 "",
                 "não tem",
@@ -2064,22 +2066,45 @@ def louvor_admin():
             if link_vazio:
                 link = ""
             elif not louvor.link_valido(link):
-                flash("Informe um link válido (YouTube ou Vimeo), ou deixe em branco.", "erro")
+                flash(
+                    "Informe um link válido (YouTube ou Vimeo), ou deixe em branco.",
+                    "erro",
+                )
                 return redirect(url_for("louvor_admin", aba="videos"))
-            nome_final = ""
-            if arquivo and arquivo.filename:
-                if not louvor.extensao_ok(arquivo.filename):
+
+            nome_capa = ""
+            if arquivo_capa and arquivo_capa.filename:
+                if not louvor.extensao_ok(arquivo_capa.filename):
                     flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
                     return redirect(url_for("louvor_admin", aba="videos"))
-                nome_seguro = secure_filename(arquivo.filename)
+                nome_seguro = secure_filename(arquivo_capa.filename)
                 extensao = Path(nome_seguro).suffix.lower()
-                nome_final = f"capa-{uuid.uuid4().hex}{extensao}"
-                arquivo.save(louvor.UPLOAD_DIR / nome_final)
+                nome_capa = f"capa-{uuid.uuid4().hex}{extensao}"
+                arquivo_capa.save(louvor.UPLOAD_DIR / nome_capa)
+
+            nome_video = ""
+            if arquivo_video and arquivo_video.filename:
+                if not louvor.extensao_video_ok(arquivo_video.filename):
+                    flash("Vídeo: use MP4, WEBM, OGG ou MOV.", "erro")
+                    return redirect(url_for("louvor_admin", aba="videos"))
+                nome_seguro = secure_filename(arquivo_video.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_video = f"video-{uuid.uuid4().hex}{extensao}"
+                arquivo_video.save(louvor.UPLOAD_DIR / nome_video)
+
+            if not link and not nome_video and not nome_capa:
+                flash(
+                    "Envie um arquivo de vídeo (MP4), um link do YouTube/Vimeo, ou uma capa.",
+                    "erro",
+                )
+                return redirect(url_for("louvor_admin", aba="videos"))
+
             louvor.criar_video(
                 titulo=titulo,
                 tema=tema,
                 link=link,
-                capa=nome_final,
+                capa=nome_capa,
+                arquivo=nome_video,
             )
             flash("Vídeo publicado!", "ok")
             return redirect(url_for("louvor_admin", aba="videos"))
