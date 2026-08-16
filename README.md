@@ -248,8 +248,10 @@ O código fica no GitHub e o site completo (com painel da mídia) roda no **Rend
 Senha do painel em produção (padrão do `render.yaml`): `ceasdrei`
 
 > No plano gratuito do Render, o site pode “dormir” após inatividade e demorar ~30s para acordar.
-> Uploads ficam no disco do servidor (efêmero): em um redeploy as fotos/dados podem sumir. Use disco persistente se precisar manter.
+> **Posts, fotos e vídeos sumiam no redeploy** porque o disco era efêmero. O `render.yaml` agora usa **Persistent Disk** em `/var/data` (`DATA_DIR`) no plano Starter — assim galeria, louvor, papo de altar e demais posts sobrevivem ao deploy.
 > A **escala de obreiros** e a lista de nomes ficam também em `data/escala_obreiros.json` e `data/obreiros_lista.json` (versionados no Git) e são restauradas automaticamente após o deploy.
+
+**Se o serviço ainda estiver no plano Free:** no Dashboard do Render → Disks → adicione um disco em `/var/data`, defina a env `DATA_DIR=/var/data` e suba para um plano com disco (Starter). Depois publique os posts de novo uma vez.
 
 Arquivos de deploy:
 - `Procfile` — inicia com Gunicorn

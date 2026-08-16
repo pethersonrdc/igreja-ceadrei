@@ -2,11 +2,16 @@ services:
   - type: web
     name: igreja-ceadrei
     runtime: python
-    plan: free
+    # Starter é necessário para Persistent Disk (plano free apaga posts no redeploy)
+    plan: starter
     region: oregon
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     healthCheckPath: /
+    disk:
+      name: igreja-data
+      mountPath: /var/data
+      sizeGB: 2
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.8"
@@ -14,3 +19,5 @@ services:
         generateValue: true
       - key: ADMIN_PASSWORD
         value: ceasdrei
+      - key: DATA_DIR
+        value: /var/data

@@ -9,8 +9,10 @@ import sqlite3
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import persistencia
+
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = persistencia.data_root()
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 DIAS_DESTAQUE_ANTES = 7
@@ -28,8 +30,6 @@ EVENTOS = {
         "lider": "Leoas da Fé",
         "origem": "leoas",
         "fundo": "images/leoas/fundo.png",
-        "upload_dir": BASE_DIR / "static" / "uploads" / "leoas",
-        "db_path": DATA_DIR / "leoas.db",
         "h1": "Leoas da Fé — campanha e calendário do culto.",
         "descricao": "Poste a campanha do culto (aniversário ou culto normal) e registre datas no calendário.",
         "tema": "tema-leoas",
@@ -42,8 +42,6 @@ EVENTOS = {
         "lider": "Leão de Judá",
         "origem": "leaodejuda",
         "fundo": "images/leaodejuda/fundo.png",
-        "upload_dir": BASE_DIR / "static" / "uploads" / "leaodejuda",
-        "db_path": DATA_DIR / "leaodejuda.db",
         "h1": "Leão de Judá — campanha e calendário do culto.",
         "descricao": "Poste a campanha do culto (aniversário ou culto normal) e registre datas no calendário.",
         "tema": "tema-leaodejuda",
@@ -56,8 +54,6 @@ EVENTOS = {
         "lider": "Dança Maranata",
         "origem": "maranata",
         "fundo": "images/maranata/fundo.png",
-        "upload_dir": BASE_DIR / "static" / "uploads" / "maranata",
-        "db_path": DATA_DIR / "maranata.db",
         "h1": "Dança Maranata — campanha e calendário do ministério.",
         "descricao": "Poste a campanha da dança e registre datas no calendário.",
         "tema": "tema-maranata",
@@ -70,8 +66,6 @@ EVENTOS = {
         "lider": "Soldadinhos de Cristo",
         "origem": "soldadinhos",
         "fundo": "images/soldadinhos/fundo.png",
-        "upload_dir": BASE_DIR / "static" / "uploads" / "soldadinhos",
-        "db_path": DATA_DIR / "soldadinhos.db",
         "h1": "Soldadinhos de Cristo — ministério infantil, campanha e calendário.",
         "descricao": "Poste a campanha das crianças e registre datas no calendário.",
         "tema": "tema-soldadinhos",
@@ -86,11 +80,14 @@ def config(slug: str) -> dict:
     info = EVENTOS.get(slug)
     if not info:
         raise KeyError(f"Evento desconhecido: {slug}")
-    return info
+    out = dict(info)
+    out["upload_dir"] = persistencia.upload_dir(slug)
+    out["db_path"] = persistencia.db_path(f"{slug}.db")
+    return out
 
 
 def _connect(slug: str) -> sqlite3.Connection:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    persistencia.data_root().mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(config(slug)["db_path"])
     conn.row_factory = sqlite3.Row
     return conn

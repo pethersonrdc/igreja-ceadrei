@@ -10,12 +10,14 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+import persistencia
+
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "galeria"
+DATA_DIR = persistencia.data_root()
+UPLOAD_DIR = persistencia.upload_dir("galeria")
 SEED_DIR = BASE_DIR / "static" / "images" / "galeria"
-DB_PATH = DATA_DIR / "galeria.db"
-AVISO_HOME_PATH = DATA_DIR / "aviso_home_midia.json"
+DB_PATH = persistencia.db_path("galeria.db")
+AVISO_HOME_PATH = persistencia.db_path("aviso_home_midia.json")
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
@@ -23,15 +25,19 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 def obter_aviso_home() -> dict:
     """Aviso de texto da mídia para a página inicial."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
-    if not AVISO_HOME_PATH.exists():
-        return {"texto": "", "ativo": False}
-    try:
-        dados = json.loads(AVISO_HOME_PATH.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError, ValueError):
-        return {"texto": "", "ativo": False}
-    texto = (dados.get("texto") or "").strip()
-    ativo = bool(dados.get("ativo")) and bool(texto)
-    return {"texto": texto, "ativo": ativo}
+    # Preferência: disco persistente; fallback do aviso versionado no repo
+    caminhos = [AVISO_HOME_PATH, BASE_DIR / "data" / "aviso_home_midia.json"]
+    for path in caminhos:
+        if not path.exists():
+            continue
+        try:
+            dados = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+        texto = (dados.get("texto") or "").strip()
+        ativo = bool(dados.get("ativo")) and bool(texto)
+        return {"texto": texto, "ativo": ativo}
+    return {"texto": "", "ativo": False}
 
 
 def salvar_aviso_home(texto: str, ativo: bool = True) -> dict:
@@ -58,6 +64,11 @@ def _connect() -> sqlite3.Connection:
 
 
 def init_db() -> None:
+    global UPLOAD_DIR, DATA_DIR, DB_PATH, AVISO_HOME_PATH
+    DATA_DIR = persistencia.data_root()
+    DB_PATH = persistencia.db_path("galeria.db")
+    AVISO_HOME_PATH = persistencia.db_path("aviso_home_midia.json")
+    UPLOAD_DIR = persistencia.upload_dir("galeria")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.executescript(

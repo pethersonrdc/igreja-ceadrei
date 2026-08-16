@@ -11,11 +11,13 @@ from calendar import monthrange
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+import persistencia
+
 BASE_DIR = Path(__file__).resolve().parent
 # Permite disco persistente no Render via DATA_DIR=/var/data
-DATA_DIR = Path(os.environ.get("DATA_DIR", str(BASE_DIR / "data")))
-UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "pastores"
-DB_PATH = Path(os.environ.get("PASTORES_DB_PATH", str(DATA_DIR / "pastores.db")))
+DATA_DIR = persistencia.data_root()
+UPLOAD_DIR = persistencia.upload_dir("pastores")
+DB_PATH = Path(os.environ.get("PASTORES_DB_PATH", str(persistencia.db_path("pastores.db"))))
 # JSON versionado no Git: restaura a escala após redeploy (disco efêmero do Render)
 ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_obreiros.json"
 OBREIROS_JSON_PATH = BASE_DIR / "data" / "obreiros_lista.json"
@@ -177,7 +179,11 @@ def _connect() -> sqlite3.Connection:
 
 def _ensure_schema() -> None:
     """Cria tabelas sem reimportar o JSON (evita sobrescrever um save)."""
-    global _db_schema_ok
+    global _db_schema_ok, DATA_DIR, UPLOAD_DIR, DB_PATH
+    DATA_DIR = persistencia.data_root()
+    UPLOAD_DIR = persistencia.upload_dir("pastores")
+    if not os.environ.get("PASTORES_DB_PATH"):
+        DB_PATH = persistencia.db_path("pastores.db")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.executescript(

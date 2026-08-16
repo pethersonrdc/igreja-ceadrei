@@ -34,10 +34,12 @@ import gallery
 import louvor
 import mocidade
 import pastores
+import persistencia
 import lideres_midia
 import porta_altar
 
 BASE_DIR = Path(__file__).resolve().parent
+# JSON de configuração versionados no Git (igreja, cultos, etc.)
 DATA_DIR = BASE_DIR / "data"
 
 app = Flask(__name__)
@@ -2283,7 +2285,8 @@ def data_files(filename: str):
     return send_from_directory(DATA_DIR, filename)
 
 
-# Garante pastas/banco mesmo com Gunicorn (produção)
+# Garante disco persistente (DATA_DIR) + pastas/banco mesmo com Gunicorn
+persistencia.preparar()
 gallery.init_db()
 gallery.seed_fotos_iniciais()
 batismo.init_db()
@@ -2291,6 +2294,11 @@ casais.init_db()
 pastores.init_db()
 arraial.init_db()
 mocidade.init_db()
+porta_altar.init_db()
+lideres_midia.init_db()
+louvor.init_db()
+for _slug in campanha_eventos.EVENTOS:
+    campanha_eventos.init_db(_slug)
 
 
 if __name__ == "__main__":
