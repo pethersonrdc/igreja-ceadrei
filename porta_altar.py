@@ -8,10 +8,12 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+import persistencia
+
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
-UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "porta_altar"
-DB_PATH = DATA_DIR / "porta_altar.db"
+DATA_DIR = persistencia.data_root()
+UPLOAD_DIR = persistencia.upload_dir("porta_altar")
+DB_PATH = persistencia.db_path("porta_altar.db")
 
 ALLOWED_VIDEO = {".mp4", ".webm", ".ogg", ".mov"}
 ALLOWED_CAPA = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
@@ -30,6 +32,10 @@ def _connect() -> sqlite3.Connection:
 
 
 def init_db() -> None:
+    global DATA_DIR, UPLOAD_DIR, DB_PATH
+    DATA_DIR = persistencia.data_root()
+    UPLOAD_DIR = persistencia.upload_dir("porta_altar")
+    DB_PATH = persistencia.db_path("porta_altar.db")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.executescript(

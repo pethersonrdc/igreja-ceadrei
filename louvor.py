@@ -13,10 +13,12 @@ from datetime import date, datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+import persistencia
+
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = Path(os.environ.get("DATA_DIR", str(BASE_DIR / "data")))
-UPLOAD_DIR = BASE_DIR / "static" / "uploads" / "louvor"
-DB_PATH = Path(os.environ.get("LOUVOR_DB_PATH", str(DATA_DIR / "louvor.db")))
+DATA_DIR = persistencia.data_root()
+UPLOAD_DIR = persistencia.upload_dir("louvor")
+DB_PATH = Path(os.environ.get("LOUVOR_DB_PATH", str(persistencia.db_path("louvor.db"))))
 ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_louvor.json"
 MEMBROS_JSON_PATH = BASE_DIR / "data" / "louvor_membros.json"
 
@@ -109,7 +111,11 @@ def _connect() -> sqlite3.Connection:
 
 
 def _ensure_schema() -> None:
-    global _db_schema_ok
+    global _db_schema_ok, DATA_DIR, UPLOAD_DIR, DB_PATH
+    DATA_DIR = persistencia.data_root()
+    UPLOAD_DIR = persistencia.upload_dir("louvor")
+    if not os.environ.get("LOUVOR_DB_PATH"):
+        DB_PATH = persistencia.db_path("louvor.db")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.execute(
