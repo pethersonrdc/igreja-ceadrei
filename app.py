@@ -640,6 +640,7 @@ def admin_galeria():
         posts=posts,
         perfis_lideres=lideres_midia.listar_perfis(),
         aviso_home=gallery.obter_aviso_home(),
+        disco_persistente=gallery.disco_persistente_ativo(),
     )
 
 

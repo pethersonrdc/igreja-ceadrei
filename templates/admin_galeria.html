@@ -17,6 +17,8 @@
     ·
     <a href="#nova-postagem">Publicar fotos</a>
     ·
+    <a href="#postagens">Postagens</a>
+    ·
     <a href="#aviso-home">Aviso da página inicial</a>
     ·
     <a href="#lideres">Fotos dos líderes</a>
@@ -25,7 +27,7 @@
   </p>
 </section>
 
-<section class="section" id="aviso-home">
+<section class="section" id="nova-postagem">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       {% for categoria, mensagem in messages %}
@@ -34,41 +36,22 @@
     {% endif %}
   {% endwith %}
 
-  <form class="admin-card admin-upload" method="post">
-    <h2>Aviso na página inicial</h2>
-    <p class="admin-help">Texto simples que aparece no início do site. Ex.: Terá escola dominical.</p>
-    <input type="hidden" name="acao" value="aviso_home">
+  {% if not disco_persistente %}
+  <p class="admin-msg admin-msg--erro">
+    Atenção: o servidor está sem disco persistente (`DATA_DIR`).
+    Posts e fotos podem sumir no próximo deploy. No Render, monte o disco em
+    <strong>/var/data</strong> e defina <strong>DATA_DIR=/var/data</strong>.
+  </p>
+  {% endif %}
 
-    <label for="aviso_texto">Texto do aviso</label>
-    <input
-      id="aviso_texto"
-      name="aviso_texto"
-      type="text"
-      maxlength="180"
-      placeholder="Ex.: Terá escola dominical"
-      value="{{ aviso_home.texto if aviso_home else '' }}"
-    >
-
-    <label class="check-line">
-      <input type="checkbox" name="aviso_ativo" value="1" {% if aviso_home and aviso_home.ativo %}checked{% endif %}>
-      <span>Mostrar na página inicial</span>
-    </label>
-
-    <div class="porta-altar-form-actions" style="margin-top:0.85rem">
-      <button class="btn btn-primary" type="submit">Salvar aviso</button>
-    </div>
-  </form>
-</section>
-
-<section class="section" id="nova-postagem">
   <div class="section-head">
-    <h2>Fotos do culto</h2>
-    <p>Apagou uma postagem? Envie as fotos de novo neste formulário.</p>
+    <h2>Publicar fotos do culto</h2>
+    <p>Use este formulário para postagem nova ou depois de apagar.</p>
   </div>
 
   <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
-    <h2>Publicar / republicar fotos</h2>
-    <p class="admin-help">Escolha as fotos e clique em <strong>Publicar fotos</strong>. Serve tanto para postagem nova quanto depois de apagar.</p>
+    <h2>Escolher e publicar fotos</h2>
+    <p class="admin-help">Selecione as imagens e clique em <strong>Publicar fotos</strong>.</p>
     <input type="hidden" name="acao" value="galeria">
 
     <label for="culto_titulo">Culto</label>
@@ -88,9 +71,9 @@
     <label for="titulo">Título da postagem</label>
     <input id="titulo" name="titulo" type="text" placeholder="Ex.: Fotos do culto · Café da Manhã — Escola Dominical">
 
-    <label for="fotos">Escolher fotos</label>
+    <label for="fotos">Fotos</label>
     <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
-    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP). Flyers em paisagem aparecem inteiros na home.</p>
+    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP).</p>
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
   </form>
@@ -99,7 +82,7 @@
 <section class="section" id="postagens">
   <div class="section-head">
     <h2>Postagens publicadas</h2>
-    <p>Ficam no ar até alguém da mídia apagar. <a href="#nova-postagem">Enviar fotos de novo</a></p>
+    <p>Ficam no ar até alguém da mídia apagar. <a href="#nova-postagem">Publicar de novo</a></p>
   </div>
 
   {% if posts %}
@@ -124,8 +107,7 @@
         {% endfor %}
       </div>
       <p class="admin-help" style="margin-top:0.75rem">
-        Para trocar estas fotos: apague esta postagem e use
-        <a href="#nova-postagem">Publicar / republicar fotos</a> acima.
+        Para trocar: apague e use <a href="#nova-postagem">Publicar fotos</a> no topo.
       </p>
     </li>
     {% endfor %}
@@ -133,15 +115,39 @@
   {% else %}
   <div class="admin-card">
     <h2>Nenhuma postagem no momento</h2>
-    <p>A galeria está vazia. Role um pouco para cima e use
-      <a href="#nova-postagem"><strong>Publicar / republicar fotos</strong></a>
-      para escolher as imagens de novo.
-    </p>
+    <p>A galeria está vazia. Use o formulário <strong>Publicar fotos do culto</strong> no topo desta página.</p>
     <p style="margin-top:1rem">
-      <a class="btn btn-primary" href="#nova-postagem">Ir para enviar fotos</a>
+      <a class="btn btn-primary" href="#nova-postagem">Ir para publicar fotos</a>
     </p>
   </div>
   {% endif %}
+</section>
+
+<section class="section" id="aviso-home">
+  <form class="admin-card admin-upload" method="post">
+    <h2>Aviso na página inicial</h2>
+    <p class="admin-help">Texto simples que aparece no início do site. Ex.: Terá escola dominical.</p>
+    <input type="hidden" name="acao" value="aviso_home">
+
+    <label for="aviso_texto">Texto do aviso</label>
+    <input
+      id="aviso_texto"
+      name="aviso_texto"
+      type="text"
+      maxlength="180"
+      placeholder="Ex.: Terá escola dominical"
+      value="{{ aviso_home.texto if aviso_home else '' }}"
+    >
+
+    <label class="check-line">
+      <input type="checkbox" name="aviso_ativo" value="1" {% if aviso_home and aviso_home.ativo %}checked{% endif %}>
+      <span>Mostrar na página inicial</span>
+    </label>
+
+    <div class="porta-altar-form-actions" style="margin-top:0.85rem">
+      <button class="btn btn-primary" type="submit">Salvar aviso</button>
+    </div>
+  </form>
 </section>
 
 <section class="section" id="lideres">
