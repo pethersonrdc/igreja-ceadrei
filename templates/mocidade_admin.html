@@ -28,7 +28,7 @@
   <form class="admin-card mocidade-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="destaque">
     <h2>Destaque do evento</h2>
-    <p class="admin-help">Imagem + mensagem. Na home, aparece sozinho 7 dias antes da data e some depois do evento.</p>
+    <p class="admin-help">Imagem + mensagem. Na home fica até o dia do evento (some no dia seguinte). Também pode limpar manualmente.</p>
 
     <label for="data_destaque">Data do evento</label>
     <input id="data_destaque" name="data" type="date" value="{{ destaque.data or '' }}">
