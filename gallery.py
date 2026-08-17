@@ -18,8 +18,33 @@ UPLOAD_DIR = persistencia.upload_dir("galeria")
 SEED_DIR = BASE_DIR / "static" / "images" / "galeria"
 DB_PATH = persistencia.db_path("galeria.db")
 AVISO_HOME_PATH = persistencia.db_path("aviso_home_midia.json")
+SEED_FLAG_PATH = persistencia.db_path("galeria_seed_ok.json")
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+
+def _seed_flag_path() -> Path:
+    return persistencia.db_path("galeria_seed_ok.json")
+
+
+def galeria_ja_gerenciada() -> bool:
+    """True se a mídia já publicou/apagou — não recriar seed automático."""
+    return _seed_flag_path().exists()
+
+
+def marcar_galeria_gerenciada(*, motivo: str = "") -> None:
+    path = _seed_flag_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "ok": True,
+        "motivo": (motivo or "").strip(),
+        "em": agora().isoformat(timespec="seconds"),
+    }
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def disco_persistente_ativo() -> bool:
+    return persistencia.usando_disco_persistente()
 
 
 def obter_aviso_home() -> dict:
@@ -169,7 +194,8 @@ def criar_post(culto_titulo: str, culto_dia: str, titulo: str, arquivos: list[st
                 "INSERT INTO fotos (post_id, arquivo) VALUES (?, ?)",
                 (post_id, arquivo),
             )
-        return post_id
+    marcar_galeria_gerenciada(motivo=f"criou_post_{post_id}")
+    return post_id
 
 
 def apagar_post(post_id: int) -> bool:
@@ -183,6 +209,8 @@ def apagar_post(post_id: int) -> bool:
     with _connect() as conn:
         conn.execute("DELETE FROM fotos WHERE post_id = ?", (post_id,))
         conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
+    # Impede o seed automático de recolocar as fotos no próximo restart
+    marcar_galeria_gerenciada(motivo=f"apagou_post_{post_id}")
     return True
 
 
@@ -192,13 +220,17 @@ def extensao_ok(nome: str) -> bool:
 
 def seed_fotos_iniciais() -> int | None:
     """
-    Se a galeria estiver vazia, publica as fotos versionadas em static/images/galeria/.
-    Assim o site no Render já sobe com as fotos do culto.
+    Só na primeira subida (galeria vazia e sem flag).
+    Depois que a mídia apaga ou publica, NÃO recria fotos sozinho.
     """
     import shutil
 
     init_db()
+    if galeria_ja_gerenciada():
+        return None
     if listar_posts_ativos():
+        # Já há conteúdo (ou DB antigo): marca para não reseedar no futuro
+        marcar_galeria_gerenciada(motivo="ja_tinha_posts")
         return None
     if not SEED_DIR.exists():
         return None
@@ -216,9 +248,11 @@ def seed_fotos_iniciais() -> int | None:
             shutil.copy2(origem, destino)
         salvos.append(origem.name)
 
-    return criar_post(
+    post_id = criar_post(
         culto_titulo="Culto da igreja",
         culto_dia="Recente",
         titulo="Fotos do culto",
         arquivos=salvos,
     )
+    marcar_galeria_gerenciada(motivo="seed_inicial")
+    return post_id
