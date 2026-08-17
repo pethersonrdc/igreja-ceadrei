@@ -44,13 +44,10 @@
     <input
       id="data_destaque"
       name="data"
-      type="text"
-      inputmode="numeric"
-      autocomplete="off"
-      placeholder="dd/mm/aaaa"
-      value="{{ destaque.data_br or '' }}"
+      type="date"
+      value="{{ destaque.data or '' }}"
     >
-    <p class="admin-help">Digite como 14/08/2026 (ou só 1408 no ano atual).</p>
+    <p class="admin-help">Escolha a data no calendário.</p>
 
     <label for="imagem_destaque">Imagem de destaque</label>
     <input id="imagem_destaque" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">

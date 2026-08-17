@@ -689,7 +689,7 @@ def _processar_evento_responsavel(origem: str) -> bool:
     data_bruta = request.form.get("data", "").strip()
     data_iso = campanha_eventos.data_para_iso(data_bruta)
     if not data_iso:
-        flash("Informe a data no formato dd/mm/aaaa (ex.: 14/08/2026).", "erro")
+        flash("Informe a data pelo calendário.", "erro")
         return True
     evento_id = request.form.get("evento_id", type=int)
     titulo = request.form.get("titulo", "").strip() or info["titulo"]
@@ -1838,7 +1838,7 @@ def campanha_admin(slug: str):
             if data_bruta:
                 data_iso = campanha_eventos.data_para_iso(data_bruta)
                 if not data_iso:
-                    flash("Data inválida. Use dd/mm/aaaa (ex.: 14/08/2026).", "erro")
+                    flash("Data inválida. Escolha a data no calendário.", "erro")
                     return redirect(url_for("campanha_admin", slug=slug))
             mensagem = request.form.get("mensagem", "").strip()
             arquivo = request.files.get("imagem")

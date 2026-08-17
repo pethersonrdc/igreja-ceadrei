@@ -28,14 +28,11 @@
         <input
           id="data_evento"
           name="data"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
+          type="date"
           required
-          placeholder="dd/mm/aaaa"
-          value="{{ editar_evento.data_br if editar_evento else '' }}"
+          value="{{ editar_evento.data if editar_evento else '' }}"
         >
-        <p class="admin-help">Digite como 14/08/2026 (ou só 1408 no ano atual).</p>
+        <p class="admin-help">Escolha a data no calendário.</p>
       </div>
       <div>
         <label for="horario_evento">Horário</label>
