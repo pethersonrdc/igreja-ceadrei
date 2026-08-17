@@ -1337,7 +1337,11 @@ def pastores_admin():
                     ),
                     escala_id=escala_id,
                 )
-                flash("Escala de obreiros salva.", "ok")
+                flash(
+                    "Escala de obreiros salva (banco + backup). "
+                    "Com DATA_DIR no Render, não some no deploy.",
+                    "ok",
+                )
             return redirect(url_for("pastores_admin", ano=ano, mes=mes, aba="escala"))
 
         if acao == "adicionar_obreiro":
