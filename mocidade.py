@@ -240,13 +240,13 @@ def limpar_destaque() -> None:
 
 
 def destaque_na_janela(hoje: date | None = None) -> bool:
+    """True enquanto o dia do evento não passou (some só no dia seguinte)."""
     hoje = hoje or date.today()
     item = obter_destaque()
     data_evt = item.get("data_obj")
     if not data_evt or not item.get("tem_conteudo"):
         return False
-    inicio = data_evt - timedelta(days=DIAS_DESTAQUE_ANTES)
-    return inicio <= hoje <= data_evt
+    return hoje <= data_evt
 
 
 def obter_destaque_publico(hoje: date | None = None) -> dict | None:

@@ -1681,7 +1681,7 @@ def mocidade_admin():
                 mensagem=mensagem,
                 imagem=nome_final,
             )
-            flash("Destaque salvo! Aparece na home 7 dias antes da data.", "ok")
+            flash("Destaque salvo! Fica na home até o dia do evento (ou até limpar no painel).", "ok")
             return redirect(url_for("mocidade_admin"))
 
         if acao == "limpar_destaque":
@@ -1858,7 +1858,7 @@ def campanha_admin(slug: str):
                 mensagem=mensagem,
                 imagem=nome_final,
             )
-            flash("Destaque salvo! Aparece na home 7 dias antes da data.", "ok")
+            flash("Destaque salvo! Fica na home até o dia do evento (ou até limpar no painel).", "ok")
             return redirect(url_for("campanha_admin", slug=slug))
 
         if acao == "limpar_destaque":
