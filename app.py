@@ -605,8 +605,8 @@ def admin_galeria():
                 flash("Aviso da página inicial removido.", "ok")
             return redirect(url_for("admin_galeria") + "#aviso-home")
 
-        culto_titulo = request.form.get("culto_titulo", "").strip()
-        culto_dia = request.form.get("culto_dia", "").strip()
+        culto_titulo = request.form.get("culto_titulo", "").strip() or "Culto da igreja"
+        culto_dia = request.form.get("culto_dia", "").strip() or "Recente"
         titulo = request.form.get("titulo", "").strip() or f"Fotos — {culto_titulo}"
         arquivos = request.files.getlist("fotos")
 
@@ -625,14 +625,12 @@ def admin_galeria():
             arquivo.save(destino)
             salvos.append(nome_final)
 
-        if not culto_titulo or not culto_dia:
-            flash("Escolha o culto e o dia.", "erro")
-        elif not salvos:
+        if not salvos:
             flash("Envie ao menos uma foto válida (JPG, PNG, WEBP ou GIF).", "erro")
-        else:
-            gallery.criar_post(culto_titulo, culto_dia, titulo, salvos)
-            flash("Postagem publicada! As fotos ficam no ar até você apagar no painel.", "ok")
-            return redirect(url_for("admin_galeria"))
+            return redirect(url_for("admin_galeria") + "#nova-postagem")
+        gallery.criar_post(culto_titulo, culto_dia, titulo, salvos)
+        flash("Postagem publicada! As fotos ficam no ar até você apagar no painel.", "ok")
+        return redirect(url_for("admin_galeria") + "#postagens")
 
     posts = gallery.listar_posts_ativos()
     return render_template(
@@ -649,10 +647,13 @@ def admin_galeria():
 @login_required
 def admin_apagar_post(post_id: int):
     if gallery.apagar_post(post_id):
-        flash("Postagem apagada.", "ok")
+        flash(
+            "Postagem apagada. Use «Publicar / republicar fotos» acima para enviar de novo.",
+            "ok",
+        )
     else:
         flash("Postagem não encontrada.", "erro")
-    return redirect(url_for("admin_galeria"))
+    return redirect(url_for("admin_galeria") + "#nova-postagem")
 
 
 # ---------- Evento Batismo ----------

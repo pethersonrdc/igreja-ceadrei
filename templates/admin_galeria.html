@@ -15,6 +15,8 @@
   <p class="section-link">
     <a href="{{ url_for('galeria_publica') }}">Ver galeria pública</a>
     ·
+    <a href="#nova-postagem">Publicar fotos</a>
+    ·
     <a href="#aviso-home">Aviso da página inicial</a>
     ·
     <a href="#lideres">Fotos dos líderes</a>
@@ -58,14 +60,21 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section" id="nova-postagem">
+  <div class="section-head">
+    <h2>Fotos do culto</h2>
+    <p>Apagou uma postagem? Envie as fotos de novo neste formulário.</p>
+  </div>
+
   <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
-    <h2>Nova postagem</h2>
+    <h2>Publicar / republicar fotos</h2>
+    <p class="admin-help">Escolha as fotos e clique em <strong>Publicar fotos</strong>. Serve tanto para postagem nova quanto depois de apagar.</p>
     <input type="hidden" name="acao" value="galeria">
 
     <label for="culto_titulo">Culto</label>
-    <select id="culto_titulo" name="culto_titulo" required>
-      <option value="">Selecione o culto</option>
+    <select id="culto_titulo" name="culto_titulo">
+      <option value="">Selecione o culto (opcional)</option>
+      <option value="Culto da igreja" data-dia="Recente">Culto da igreja — Recente</option>
       {% for culto in cultos %}
       <option value="{{ culto.titulo }}" data-dia="{{ culto.dia }}">
         {{ culto.dia }} — {{ culto.titulo }}
@@ -74,17 +83,65 @@
     </select>
 
     <label for="culto_dia">Dia</label>
-    <input id="culto_dia" name="culto_dia" type="text" required placeholder="Ex.: Domingo">
+    <input id="culto_dia" name="culto_dia" type="text" placeholder="Ex.: Domingo (se vazio: Recente)">
 
     <label for="titulo">Título da postagem</label>
-    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Café da Manhã — Escola Dominical">
+    <input id="titulo" name="titulo" type="text" placeholder="Ex.: Fotos do culto · Café da Manhã — Escola Dominical">
 
-    <label for="fotos">Fotos do culto</label>
+    <label for="fotos">Escolher fotos</label>
     <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
-    <p class="admin-help">Melhor em JPG ou WebP. Cartazes/flyers em formato paisagem (16:10). A arte aparece inteira na home, sem cortar. Use o título acima para a descrição.</p>
+    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP). Flyers em paisagem aparecem inteiros na home.</p>
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
   </form>
+</section>
+
+<section class="section" id="postagens">
+  <div class="section-head">
+    <h2>Postagens publicadas</h2>
+    <p>Ficam no ar até alguém da mídia apagar. <a href="#nova-postagem">Enviar fotos de novo</a></p>
+  </div>
+
+  {% if posts %}
+  <ul class="admin-posts">
+    {% for post in posts %}
+    <li class="admin-card">
+      <div class="admin-post-head">
+        <div>
+          <strong>{{ post.titulo }}</strong>
+          <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
+          <p class="admin-meta">
+            Publicado: {{ post.criado_em.replace('T', ' ') }}
+          </p>
+        </div>
+        <form method="post" action="{{ url_for('admin_apagar_post', post_id=post.id) }}" onsubmit="return confirm('Apagar esta postagem agora?');">
+          <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+        </form>
+      </div>
+      <div class="admin-thumbs">
+        {% for foto in post.fotos %}
+        <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="">
+        {% endfor %}
+      </div>
+      <p class="admin-help" style="margin-top:0.75rem">
+        Para trocar estas fotos: apague esta postagem e use
+        <a href="#nova-postagem">Publicar / republicar fotos</a> acima.
+      </p>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="admin-card">
+    <h2>Nenhuma postagem no momento</h2>
+    <p>A galeria está vazia. Role um pouco para cima e use
+      <a href="#nova-postagem"><strong>Publicar / republicar fotos</strong></a>
+      para escolher as imagens de novo.
+    </p>
+    <p style="margin-top:1rem">
+      <a class="btn btn-primary" href="#nova-postagem">Ir para enviar fotos</a>
+    </p>
+  </div>
+  {% endif %}
 </section>
 
 <section class="section" id="lideres">
@@ -129,41 +186,6 @@
     {% endfor %}
   </div>
 </section>
-
-<section class="section">
-  <div class="section-head">
-    <h2>Postagens publicadas</h2>
-    <p>Ficam no ar até alguém da mídia apagar.</p>
-  </div>
-
-  {% if posts %}
-  <ul class="admin-posts">
-    {% for post in posts %}
-    <li class="admin-card">
-      <div class="admin-post-head">
-        <div>
-          <strong>{{ post.titulo }}</strong>
-          <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
-          <p class="admin-meta">
-            Publicado: {{ post.criado_em.replace('T', ' ') }}
-          </p>
-        </div>
-        <form method="post" action="{{ url_for('admin_apagar_post', post_id=post.id) }}" onsubmit="return confirm('Apagar esta postagem agora?');">
-          <button class="btn btn-ghost-dark" type="submit">Apagar</button>
-        </form>
-      </div>
-      <div class="admin-thumbs">
-        {% for foto in post.fotos %}
-        <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="">
-        {% endfor %}
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p>Nenhuma postagem ativa no momento.</p>
-  {% endif %}
-</section>
 {% endblock %}
 
 {% block scripts %}
@@ -173,7 +195,9 @@
   if (select && dia) {
     select.addEventListener('change', () => {
       const opt = select.selectedOptions[0];
-      dia.value = opt && opt.dataset.dia ? opt.dataset.dia : '';
+      if (opt && opt.dataset.dia) {
+        dia.value = opt.dataset.dia;
+      }
     });
   }
 </script>
