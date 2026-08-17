@@ -6,11 +6,18 @@ As fotos só são apagadas manualmente pelo usuário no painel.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+from markupsafe import Markup, escape
+
 import persistencia
+
+_AVISO_HORA_RE = re.compile(
+    r"(?<![\d])(\d{1,2}\s*[:hH]\s*\d{2})(?!\d)",
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
@@ -47,6 +54,19 @@ def disco_persistente_ativo() -> bool:
     return persistencia.usando_disco_persistente()
 
 
+def formatar_aviso_html(texto: str) -> Markup:
+    """Destaca horários (ex.: 21:00, 19h30) no aviso da home."""
+    limpo = (texto or "").strip()
+    if not limpo:
+        return Markup("")
+    escapado = str(escape(limpo))
+
+    def _wrap(match: re.Match[str]) -> str:
+        return f'<span class="aviso-hora">{match.group(1)}</span>'
+
+    return Markup(_AVISO_HORA_RE.sub(_wrap, escapado))
+
+
 def obter_aviso_home() -> dict:
     """Aviso de texto da mídia para a página inicial."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -61,8 +81,12 @@ def obter_aviso_home() -> dict:
             continue
         texto = (dados.get("texto") or "").strip()
         ativo = bool(dados.get("ativo")) and bool(texto)
-        return {"texto": texto, "ativo": ativo}
-    return {"texto": "", "ativo": False}
+        return {
+            "texto": texto,
+            "ativo": ativo,
+            "texto_html": formatar_aviso_html(texto),
+        }
+    return {"texto": "", "ativo": False, "texto_html": Markup("")}
 
 
 def salvar_aviso_home(texto: str, ativo: bool = True) -> dict:

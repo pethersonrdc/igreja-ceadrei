@@ -60,6 +60,20 @@
     <label for="mensagem_destaque">Mensagem embaixo da imagem</label>
     <textarea id="mensagem_destaque" name="mensagem" rows="3" placeholder="Ex.: Culto especial — venha adorar conosco">{{ destaque.mensagem or '' }}</textarea>
 
+    {% if slug == 'leaodejuda' %}
+    <h3 class="admin-subhead">Preleitor</h3>
+    <p class="admin-help">Foto e nome aparecem embaixo do flyer (home e página do Leão).</p>
+    <label for="preleitor_nome">Nome do preleitor</label>
+    <input id="preleitor_nome" name="preleitor_nome" type="text" placeholder="Ex.: Pr. João" value="{{ destaque.preleitor_nome or '' }}">
+    <label for="preleitor_foto">Foto do preleitor</label>
+    <input id="preleitor_foto" name="preleitor_foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    {% if destaque.preleitor_foto %}
+    <p class="admin-help">Foto atual:
+      <img class="pregador-thumb" src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque.preleitor_foto) }}" alt="">
+    </p>
+    {% endif %}
+    {% endif %}
+
     <div class="hero-actions">
       <button class="btn btn-primary {{ info.btn }}" type="submit">Salvar destaque</button>
     </div>
@@ -70,6 +84,11 @@
     {% if destaque.tem_imagem %}
     <form method="post" action="{{ url_for('campanha_apagar_imagem_destaque', slug=slug) }}" onsubmit="return confirm('Apagar a imagem do destaque?');">
       <button class="btn btn-ghost-dark" type="submit">Apagar imagem</button>
+    </form>
+    {% endif %}
+    {% if slug == 'leaodejuda' and destaque.preleitor_foto %}
+    <form method="post" action="{{ url_for('campanha_apagar_foto_preleitor', slug=slug) }}" onsubmit="return confirm('Apagar a foto do preleitor?');">
+      <button class="btn btn-ghost-dark" type="submit">Apagar foto do preleitor</button>
     </form>
     {% endif %}
     <form method="post" onsubmit="return confirm('Limpar todo o destaque?');">

@@ -31,6 +31,19 @@
     {% if destaque_publico.mensagem %}
     <p class="ministerio-destaque-msg">{{ destaque_publico.mensagem }}</p>
     {% endif %}
+    {% if destaque_publico.tem_preleitor %}
+    <div class="preleitor-destaque">
+      {% if destaque_publico.preleitor_foto %}
+      <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.preleitor_foto) }}" alt="{{ destaque_publico.preleitor_nome or 'Preleitor' }}">
+      {% endif %}
+      <div>
+        <span class="preleitor-label">Preleitor</span>
+        {% if destaque_publico.preleitor_nome %}
+        <strong>{{ destaque_publico.preleitor_nome }}</strong>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
   </article>
 </section>
 {% endif %}

@@ -81,3 +81,6 @@ instrucoes.txt
 static/uploads/lideres/*
 !static/uploads/lideres/.gitkeep
 data/lideres_fotos.db
+
+# Flags de seed (runtime)
+data/*_seed*.json

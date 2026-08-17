@@ -22,7 +22,7 @@
 <section class="section home-aviso-midia">
   <article class="home-aviso-midia-card">
     <p class="eyebrow">Aviso da igreja</p>
-    <h2>{{ aviso_home.texto }}</h2>
+    <h2>{{ aviso_home.texto_html }}</h2>
   </article>
 </section>
 {% endif %}
@@ -57,6 +57,19 @@
       {% endif %}
       {% if item.mensagem %}
       <p class="ministerio-destaque-msg">{{ item.mensagem }}</p>
+      {% endif %}
+      {% if item.tem_preleitor %}
+      <div class="preleitor-destaque">
+        {% if item.preleitor_foto %}
+        <img src="{{ url_for('static', filename='uploads/' + item.slug + '/' + item.preleitor_foto) }}" alt="{{ item.preleitor_nome or 'Preleitor' }}">
+        {% endif %}
+        <div>
+          <span class="preleitor-label">Preleitor</span>
+          {% if item.preleitor_nome %}
+          <strong>{{ item.preleitor_nome }}</strong>
+          {% endif %}
+        </div>
+      </div>
       {% endif %}
       <p class="section-link">
         {% if item.slug == 'mocidade' %}

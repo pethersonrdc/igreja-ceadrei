@@ -1845,6 +1845,7 @@ def campanha_admin(slug: str):
                     flash("Data inválida. Escolha a data no calendário.", "erro")
                     return redirect(url_for("campanha_admin", slug=slug))
             mensagem = request.form.get("mensagem", "").strip()
+            preleitor_nome = request.form.get("preleitor_nome", "").strip()
             arquivo = request.files.get("imagem")
             nome_final = ""
             if arquivo and arquivo.filename:
@@ -1856,11 +1857,24 @@ def campanha_admin(slug: str):
                 nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
                 campanha_eventos.init_db(slug)
                 arquivo.save(info["upload_dir"] / nome_final)
+            preleitor_foto_final = ""
+            arquivo_preleitor = request.files.get("preleitor_foto")
+            if arquivo_preleitor and arquivo_preleitor.filename:
+                if not campanha_eventos.extensao_ok(arquivo_preleitor.filename):
+                    flash("Foto do preleitor: use JPG, PNG, WEBP ou GIF.", "erro")
+                    return redirect(url_for("campanha_admin", slug=slug))
+                nome_seguro = secure_filename(arquivo_preleitor.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                preleitor_foto_final = f"preleitor-{uuid.uuid4().hex}{extensao}"
+                campanha_eventos.init_db(slug)
+                arquivo_preleitor.save(info["upload_dir"] / preleitor_foto_final)
             campanha_eventos.salvar_destaque(
                 slug,
                 data_iso=data_iso,
                 mensagem=mensagem,
                 imagem=nome_final,
+                preleitor_nome=preleitor_nome,
+                preleitor_foto=preleitor_foto_final,
             )
             flash("Destaque salvo! Fica na home até o dia do evento (ou até limpar no painel).", "ok")
             return redirect(url_for("campanha_admin", slug=slug))
@@ -1928,6 +1942,16 @@ def campanha_apagar_imagem_destaque(slug: str):
         flash("Imagem do destaque apagada.", "ok")
     else:
         flash("Nenhuma imagem para apagar.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
+
+
+@app.route("/evento/<slug>/admin/destaque/apagar-preleitor", methods=["POST"])
+@campanha_login_required
+def campanha_apagar_foto_preleitor(slug: str):
+    if campanha_eventos.apagar_foto_preleitor(slug):
+        flash("Foto do preleitor apagada.", "ok")
+    else:
+        flash("Nenhuma foto do preleitor para apagar.", "erro")
     return redirect(url_for("campanha_admin", slug=slug))
 
 
