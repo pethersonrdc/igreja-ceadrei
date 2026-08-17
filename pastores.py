@@ -18,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
 UPLOAD_DIR = persistencia.upload_dir("pastores")
 DB_PATH = Path(os.environ.get("PASTORES_DB_PATH", str(persistencia.db_path("pastores.db"))))
-# JSON versionado no Git: restaura a escala após redeploy (disco efêmero do Render)
+# JSON versionado no Git + cópia no disco persistente (DATA_DIR)
 ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_obreiros.json"
 OBREIROS_JSON_PATH = BASE_DIR / "data" / "obreiros_lista.json"
 
@@ -350,8 +350,25 @@ def _escrever_json(path: Path, payload: dict | list) -> None:
     )
 
 
+def _caminhos_backup_escala() -> list[Path]:
+    """Disco persistente primeiro (Render), depois o JSON do repositório."""
+    caminhos: list[Path] = []
+    if persistencia.usando_disco_persistente():
+        caminhos.append(persistencia.db_path("escala_obreiros.json"))
+    caminhos.append(ESCALA_JSON_PATH)
+    return caminhos
+
+
+def _caminhos_backup_obreiros() -> list[Path]:
+    caminhos: list[Path] = []
+    if persistencia.usando_disco_persistente():
+        caminhos.append(persistencia.db_path("obreiros_lista.json"))
+    caminhos.append(OBREIROS_JSON_PATH)
+    return caminhos
+
+
 def exportar_escala_json() -> None:
-    """Salva a escala no JSON versionado (restauração após deploy)."""
+    """Salva a escala no JSON (repo + DATA_DIR no Render)."""
     _ensure_schema()
     with _connect() as conn:
         rows = conn.execute(
@@ -361,27 +378,33 @@ def exportar_escala_json() -> None:
             ORDER BY data ASC
             """
         ).fetchall()
-    _escrever_json(
-        ESCALA_JSON_PATH,
-        {"escala": [dict(r) for r in rows]},
-    )
+    payload = {"escala": [dict(r) for r in rows]}
+    for path in _caminhos_backup_escala():
+        try:
+            _escrever_json(path, payload)
+        except OSError:
+            continue
 
 
 def exportar_obreiros_json() -> None:
-    """Salva a lista de nomes do picklist no JSON versionado."""
+    """Salva a lista de nomes do picklist no JSON (repo + DATA_DIR)."""
     _ensure_schema()
     with _connect() as conn:
         rows = conn.execute(
             "SELECT nome FROM obreiros ORDER BY nome COLLATE NOCASE ASC"
         ).fetchall()
-    _escrever_json(
-        OBREIROS_JSON_PATH,
-        {"obreiros": [r["nome"] for r in rows]},
-    )
+    payload = {"obreiros": [r["nome"] for r in rows]}
+    for path in _caminhos_backup_obreiros():
+        try:
+            _escrever_json(path, payload)
+        except OSError:
+            continue
 
 
-def _importar_escala_json(conn: sqlite3.Connection) -> None:
-    payload = _ler_json(ESCALA_JSON_PATH)
+def _importar_escala_de(
+    conn: sqlite3.Connection, path: Path, *, sobrescrever: bool
+) -> None:
+    payload = _ler_json(path)
     if not isinstance(payload, dict):
         return
     items = payload.get("escala") or []
@@ -396,41 +419,77 @@ def _importar_escala_json(conn: sqlite3.Connection) -> None:
         criado = (item.get("criado_em") or "").strip() or agora().isoformat(
             timespec="seconds"
         )
-        conn.execute(
-            """
-            INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(data) DO UPDATE SET
-                porta_vidro = excluded.porta_vidro,
-                abertura = excluded.abertura,
-                porta_escada = excluded.porta_escada
-            """,
-            (
-                data_iso,
-                (item.get("porta_vidro") or "").strip(),
-                (item.get("abertura") or "").strip(),
-                (item.get("porta_escada") or "").strip(),
-                criado,
-            ),
-        )
+        if sobrescrever:
+            conn.execute(
+                """
+                INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(data) DO UPDATE SET
+                    porta_vidro = excluded.porta_vidro,
+                    abertura = excluded.abertura,
+                    porta_escada = excluded.porta_escada
+                """,
+                (
+                    data_iso,
+                    (item.get("porta_vidro") or "").strip(),
+                    (item.get("abertura") or "").strip(),
+                    (item.get("porta_escada") or "").strip(),
+                    criado,
+                ),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO escala
+                    (data, porta_vidro, abertura, porta_escada, criado_em)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    data_iso,
+                    (item.get("porta_vidro") or "").strip(),
+                    (item.get("abertura") or "").strip(),
+                    (item.get("porta_escada") or "").strip(),
+                    criado,
+                ),
+            )
+
+
+def _importar_escala_json(conn: sqlite3.Connection) -> None:
+    """
+    No Render: usa o JSON do disco persistente como fonte principal.
+    O JSON do Git só preenche datas que ainda não existem.
+    """
+    persist = (
+        persistencia.db_path("escala_obreiros.json")
+        if persistencia.usando_disco_persistente()
+        else None
+    )
+    if persist and persist.exists():
+        _importar_escala_de(conn, persist, sobrescrever=True)
+        _importar_escala_de(conn, ESCALA_JSON_PATH, sobrescrever=False)
+    else:
+        _importar_escala_de(conn, ESCALA_JSON_PATH, sobrescrever=True)
 
 
 def _importar_obreiros_json(conn: sqlite3.Connection) -> None:
-    payload = _ler_json(OBREIROS_JSON_PATH)
-    if not isinstance(payload, dict):
-        return
-    nomes = payload.get("obreiros") or []
-    if not isinstance(nomes, list):
-        return
-    criado = agora().isoformat(timespec="seconds")
-    for nome in nomes:
-        limpo = " ".join(str(nome or "").split())
-        if not limpo:
+    caminhos = _caminhos_backup_obreiros()
+    # Persistente primeiro (se existir), senão Git — só INSERT OR IGNORE
+    for path in caminhos:
+        payload = _ler_json(path)
+        if not isinstance(payload, dict):
             continue
-        conn.execute(
-            "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
-            (limpo, criado),
-        )
+        nomes = payload.get("obreiros") or []
+        if not isinstance(nomes, list):
+            continue
+        criado = agora().isoformat(timespec="seconds")
+        for nome in nomes:
+            limpo = " ".join(str(nome or "").split())
+            if not limpo:
+                continue
+            conn.execute(
+                "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
+                (limpo, criado),
+            )
 
 
 # ---------- Lista de obreiros (picklist) ----------
