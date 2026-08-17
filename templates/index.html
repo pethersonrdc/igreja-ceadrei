@@ -15,6 +15,17 @@
       <a class="btn btn-primary" href="{{ url_for('mensagem_dia_page') }}">Mensagem do Dia</a>
       <a class="btn btn-ghost" href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
     </div>
+    <nav class="hero-atalhos" aria-label="Páginas da igreja">
+      <a class="hero-atalho" href="{{ url_for('batismo_inscricao') }}">Batismo</a>
+      <a class="hero-atalho" href="{{ url_for('casais_page') }}">Encontro de Casais</a>
+      <a class="hero-atalho" href="{{ url_for('arraial_page') }}">Arraiá</a>
+      <a class="hero-atalho" href="{{ url_for('mocidade_page') }}">Filhos do Rei</a>
+      <a class="hero-atalho" href="{{ url_for('campanha_page', slug='leoas') }}">Leoas da Fé</a>
+      <a class="hero-atalho" href="{{ url_for('campanha_page', slug='leaodejuda') }}">Leão de Judá</a>
+      <a class="hero-atalho" href="{{ url_for('campanha_page', slug='maranata') }}">Dança Maranata</a>
+      <a class="hero-atalho" href="{{ url_for('campanha_page', slug='soldadinhos') }}">Soldadinhos de Cristo</a>
+      <a class="hero-atalho" href="{{ url_for('louvor_page') }}">Grupo de Louvor</a>
+    </nav>
   </div>
 </section>
 
@@ -57,7 +68,7 @@
 </section>
 {% endif %}
 
-<section class="section home-papo-altar">
+<section class="section home-papo-altar js-reveal">
   <div class="section-head">
     <p class="eyebrow">Conteúdo da mídia</p>
     <h2>Papo de Altar</h2>
@@ -68,8 +79,42 @@
   </p>
 </section>
 
+{% if videos_pos_culto %}
+<section class="section home-pos-culto js-reveal">
+  <div class="section-head">
+    <p class="eyebrow">Em destaque</p>
+    <h2>Vídeos pós-culto</h2>
+    <p>A palavra e os momentos liberados após o culto.</p>
+  </div>
+  <div class="porta-altar-grid home-pos-culto-grid">
+    {% for video in videos_pos_culto %}
+    <article class="porta-altar-card home-pos-culto-card">
+      {% if video.capa %}
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      {% endif %}
+      <div class="porta-altar-card-body">
+        <p class="eyebrow">{{ video.culto_titulo or 'Culto' }}</p>
+        <h3>{{ video.titulo }}</h3>
+        {% if video.palavra_culto %}
+        <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
+        {% endif %}
+        {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
+        <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
+          <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
+          Seu navegador não reproduz este vídeo.
+        </video>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  <p class="section-link">
+    <a class="btn btn-primary" href="{{ url_for('porta_altar_page') }}">Ver todos no Papo de Altar</a>
+  </p>
+</section>
+{% endif %}
+
 {% if ministerios_destaque %}
-<section class="section home-ministerios-destaque">
+<section class="section home-ministerios-destaque js-reveal">
   <div class="section-head">
     <p class="eyebrow">Ministérios em destaque</p>
     <h2>Ministério em destaque</h2>

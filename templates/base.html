@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="pagina-animada {% block body_class %}{% endblock %}">
   <header class="site-header">
     <a class="brand" href="{{ url_for('home') }}">
       <img class="brand-emblem" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="40" height="40">

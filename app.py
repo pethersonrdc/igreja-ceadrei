@@ -261,6 +261,7 @@ def home():
                 url_for("louvor_page", _external=True),
             )
         )
+    videos_pos_culto = porta_altar.listar_videos_publicos(tipo="pos_culto")[:2]
     return render_template(
         "index.html",
         igreja=igreja,
@@ -280,6 +281,7 @@ def home():
         whatsapp_escala_obreiros=whatsapp_escala_obreiros,
         escala_louvor=escala_louvor,
         whatsapp_escala_louvor=whatsapp_escala_louvor,
+        videos_pos_culto=videos_pos_culto,
     )
 
 
