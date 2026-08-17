@@ -1766,19 +1766,52 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   padding-bottom: 0;
 }
 
+.batismo-access-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 .batismo-access-card h2 {
   margin: 0 0 0.5rem;
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 3vw, 2.3rem);
+  width: 100%;
+  text-align: center;
 }
 
-.batismo-access-card p {
+.batismo-access-card > p {
   margin: 0;
   color: var(--ink-soft);
+  width: 100%;
+  text-align: center;
 }
 
 .batismo-access-card .hero-actions {
   margin-top: 1.1rem;
+  justify-content: center;
+  width: 100%;
+}
+
+.batismo-access-card .arraial-card-foto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.batismo-access-card .arraial-card-foto img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.batismo-access-card .arraial-card-foto figcaption {
+  text-align: center;
+  width: 100%;
 }
 
 .batismo-access-card:hover {
