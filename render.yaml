@@ -18,6 +18,6 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ADMIN_PASSWORD
-        value: ceasdrei
+        sync: false
       - key: DATA_DIR
         value: /var/data
