@@ -38,9 +38,11 @@
 
   {% if not disco_persistente %}
   <p class="admin-msg admin-msg--erro">
-    Atenção: o servidor está sem disco persistente (`DATA_DIR`).
-    Posts e fotos podem sumir no próximo deploy. No Render, monte o disco em
-    <strong>/var/data</strong> e defina <strong>DATA_DIR=/var/data</strong>.
+    Atenção: o servidor está sem disco persistente (<code>DATA_DIR</code>).
+    Posts e fotos podem sumir ao atualizar o site.
+    No VPS/Hostinger defina <strong>DATA_DIR=/var/data/igreja-ceadrei</strong>
+    (veja <code>deploy/hostinger/setup.sh</code>). No Render, monte o disco em
+    <strong>/var/data</strong> e use <strong>DATA_DIR=/var/data</strong>.
   </p>
   {% endif %}
 
