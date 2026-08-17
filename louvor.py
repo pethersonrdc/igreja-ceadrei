@@ -23,6 +23,8 @@ ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_louvor.json"
 MEMBROS_JSON_PATH = BASE_DIR / "data" / "louvor_membros.json"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
+CAPA_EXTENSIONS = ALLOWED_EXTENSIONS | VIDEO_EXTENSIONS
 
 H1_RESPONSAVEIS = (
     "Grupo de Louvor CEASDREI — adoração, ministério e comunhão. "
@@ -187,6 +189,15 @@ def hoje() -> date:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def extensao_capa_ok(nome: str) -> bool:
+    """Capa do vídeo: imagem ou arquivo de vídeo (MP4 etc.)."""
+    return Path(nome).suffix.lower() in CAPA_EXTENSIONS
+
+
+def arquivo_eh_video(nome: str) -> bool:
+    return Path(nome or "").suffix.lower() in VIDEO_EXTENSIONS
 
 
 def _formatar_data_br(iso: str) -> str:
@@ -543,6 +554,9 @@ def _enriquecer_video(item: dict) -> dict:
     item.update(info)
     item["tema"] = (item.get("tema") or "").strip()
     item["titulo"] = (item.get("titulo") or "").strip()
+    capa = (item.get("capa") or "").strip()
+    item["capa"] = capa
+    item["capa_eh_video"] = arquivo_eh_video(capa)
     return item
 
 

@@ -121,14 +121,20 @@
           allowfullscreen
         ></iframe>
       </div>
+      {% elif video.capa_eh_video %}
+      <div class="louvor-video-frame louvor-video-frame--file">
+        <video class="louvor-video-player" controls preload="metadata" playsinline>
+          <source src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}">
+        </video>
+      </div>
       {% elif video.capa %}
-      <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">
+      <a href="{{ video.watch_url or video.link or url_for('static', filename='uploads/louvor/' + video.capa) }}" target="_blank" rel="noopener noreferrer">
         <img src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="{{ video.titulo }}">
       </a>
       {% endif %}
       <h3>{{ video.titulo }}</h3>
       {% if video.tema %}<p class="admin-meta">{{ video.tema }}</p>{% endif %}
-      {% if not video.embed_url %}
+      {% if video.embed_url or video.link %}
       <p class="section-link">
         <a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">Abrir vídeo</a>
       </p>

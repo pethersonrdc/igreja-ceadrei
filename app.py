@@ -2100,13 +2100,17 @@ def louvor_admin():
                 return redirect(url_for("louvor_admin", aba="videos"))
             nome_final = ""
             if arquivo and arquivo.filename:
-                if not louvor.extensao_ok(arquivo.filename):
-                    flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
+                if not louvor.extensao_capa_ok(arquivo.filename):
+                    flash("Arquivo: use JPG/PNG/WEBP/GIF ou vídeo MP4/WEBM/MOV.", "erro")
                     return redirect(url_for("louvor_admin", aba="videos"))
                 nome_seguro = secure_filename(arquivo.filename)
                 extensao = Path(nome_seguro).suffix.lower()
-                nome_final = f"capa-{uuid.uuid4().hex}{extensao}"
+                prefixo = "video" if louvor.arquivo_eh_video(nome_seguro) else "capa"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
                 arquivo.save(louvor.UPLOAD_DIR / nome_final)
+            if not link and not nome_final:
+                flash("Informe o link do YouTube/Vimeo ou envie um arquivo de vídeo/capa.", "erro")
+                return redirect(url_for("louvor_admin", aba="videos"))
             louvor.criar_video(
                 titulo=titulo,
                 tema=tema,

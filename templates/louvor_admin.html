@@ -183,10 +183,11 @@
 
     <label for="link">Link do vídeo (opcional)</label>
     <input id="link" name="link" type="text" placeholder="https://www.youtube.com/watch?v=... ou deixe em branco">
-    <p class="admin-help">Pode publicar só com capa/título se ainda não tiver o link.</p>
+    <p class="admin-help">Pode publicar só com arquivo MP4/capa e título, sem link.</p>
 
-    <label for="capa">Capa (opcional)</label>
-    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    <label for="capa">Capa ou vídeo (opcional)</label>
+    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <p class="admin-help">Imagem de capa ou arquivo de vídeo (MP4, WEBM, MOV).</p>
 
     <button class="btn btn-primary btn-louvor" type="submit">Publicar vídeo</button>
   </form>
@@ -211,7 +212,13 @@
         </form>
       </div>
       {% if video.capa %}
+      {% if video.capa_eh_video %}
+      <video class="louvor-video-player mocidade-preview" controls preload="metadata" playsinline>
+        <source src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}">
+      </video>
+      {% else %}
       <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="">
+      {% endif %}
       {% endif %}
     </li>
     {% endfor %}
