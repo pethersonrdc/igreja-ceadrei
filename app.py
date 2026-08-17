@@ -1899,12 +1899,13 @@ def campanha_admin(slug: str):
             arquivo = request.files.get("imagem")
             nome_final = ""
             if arquivo and arquivo.filename:
-                if not campanha_eventos.extensao_ok(arquivo.filename):
-                    flash("Imagem: use JPG, PNG, WEBP ou GIF.", "erro")
+                if not campanha_eventos.extensao_destaque_ok(arquivo.filename):
+                    flash("Destaque: use JPG/PNG/WEBP/GIF ou vídeo MP4/WEBM/MOV.", "erro")
                     return redirect(url_for("campanha_admin", slug=slug))
                 nome_seguro = secure_filename(arquivo.filename)
                 extensao = Path(nome_seguro).suffix.lower()
-                nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
+                prefixo = "video" if campanha_eventos.arquivo_eh_video(nome_seguro) else "destaque"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
                 campanha_eventos.init_db(slug)
                 arquivo.save(info["upload_dir"] / nome_final)
             preleitor_foto_final = ""

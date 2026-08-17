@@ -15,6 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
+DESTAQUE_EXTENSIONS = ALLOWED_EXTENSIONS | VIDEO_EXTENSIONS
 DIAS_DESTAQUE_ANTES = 7
 # Slugs que entram no bloco "Ministérios em destaque" da home
 DESTAQUE_HOME_SLUGS = ("leoas", "leaodejuda", "maranata")
@@ -156,6 +158,15 @@ def agora() -> datetime:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def extensao_destaque_ok(nome: str) -> bool:
+    """Destaque do evento: imagem ou vídeo (MP4 etc.)."""
+    return Path(nome).suffix.lower() in DESTAQUE_EXTENSIONS
+
+
+def arquivo_eh_video(nome: str) -> bool:
+    return Path(nome or "").suffix.lower() in VIDEO_EXTENSIONS
 
 
 def criar_post(
@@ -351,6 +362,7 @@ def obter_destaque(slug: str) -> dict:
     item["data_obj"] = data_evt
     item["data_br"] = data_evt.strftime("%d/%m/%Y") if data_evt else ""
     item["tem_imagem"] = bool((item.get("imagem") or "").strip())
+    item["imagem_eh_video"] = arquivo_eh_video(item.get("imagem") or "")
     item["mensagem"] = (item.get("mensagem") or "").strip()
     item["preleitor_nome"] = (item.get("preleitor_nome") or "").strip()
     item["preleitor_foto"] = (item.get("preleitor_foto") or "").strip()

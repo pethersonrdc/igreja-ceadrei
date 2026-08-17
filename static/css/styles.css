@@ -4977,6 +4977,16 @@ body.tema-porta-altar .admin-msg--erro {
   box-shadow: 0 16px 40px rgba(13, 36, 54, 0.14);
 }
 
+.ministerio-destaque-player {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  margin: 0;
+  border-radius: 1.1rem;
+  background: #111;
+  box-shadow: 0 16px 40px rgba(13, 36, 54, 0.14);
+}
+
 .ministerio-destaque-msg {
   margin: 0.75rem 0 0.35rem;
   font-size: 1.05rem;
