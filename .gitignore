@@ -84,3 +84,7 @@ data/lideres_fotos.db
 
 # Flags de seed (runtime)
 data/*_seed*.json
+
+# Post da página inicial
+static/uploads/home/*
+!static/uploads/home/.gitkeep

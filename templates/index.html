@@ -27,6 +27,36 @@
 </section>
 {% endif %}
 
+{% if post_home %}
+<section class="section home-post-midia">
+  <article class="home-post-midia-card">
+    <p class="eyebrow">Post da igreja</p>
+    {% if post_home.titulo %}
+    <h2>{{ post_home.titulo }}</h2>
+    {% endif %}
+    {% if post_home.tem_arquivo %}
+    <div class="home-post-midia-media">
+      {% if post_home.arquivo_eh_video %}
+      <video class="home-post-midia-player" controls preload="metadata" playsinline>
+        <source src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
+      </video>
+      {% else %}
+      <img src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="{{ post_home.titulo or 'Post da igreja' }}">
+      {% endif %}
+    </div>
+    {% endif %}
+    {% if post_home.texto %}
+    <p class="home-post-midia-texto">{{ post_home.texto }}</p>
+    {% endif %}
+    {% if post_home.link %}
+    <p class="section-link">
+      <a class="btn btn-primary" href="{{ post_home.link }}" target="_blank" rel="noopener noreferrer">Abrir link</a>
+    </p>
+    {% endif %}
+  </article>
+</section>
+{% endif %}
+
 <section class="section home-papo-altar">
   <div class="section-head">
     <p class="eyebrow">Conteúdo da mídia</p>

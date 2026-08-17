@@ -2625,6 +2625,63 @@ body.tema-pastores .btn-primary:hover {
   box-shadow: none;
 }
 
+.home-post-midia {
+  padding-top: 0.35rem;
+}
+
+.home-post-midia-card {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 1.35rem 1.5rem 1.5rem;
+  border-radius: 1.1rem;
+  text-align: center;
+  background:
+    linear-gradient(160deg, rgba(184, 137, 58, 0.12), rgba(255, 255, 255, 0.7)),
+    rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(143, 106, 40, 0.2);
+  box-shadow: 0 16px 40px rgba(13, 36, 54, 0.08);
+}
+
+.home-post-midia-card .eyebrow {
+  margin-bottom: 0.45rem;
+  color: var(--gold-deep);
+}
+
+.home-post-midia-card h2 {
+  margin: 0 0 0.85rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.home-post-midia-media {
+  margin: 0.35rem 0 0.85rem;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  background: #111;
+}
+
+.home-post-midia-media img,
+.home-post-midia-player {
+  display: block;
+  width: 100%;
+  max-height: 480px;
+  object-fit: contain;
+  background: #111;
+}
+
+.home-post-midia-texto {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.home-post-midia-card .section-link {
+  margin-top: 0.85rem;
+}
+
 .obreiros-hoje {
   padding: 1.5rem;
   border-radius: 24px;

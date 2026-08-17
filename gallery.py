@@ -28,6 +28,10 @@ AVISO_HOME_PATH = persistencia.db_path("aviso_home_midia.json")
 SEED_FLAG_PATH = persistencia.db_path("galeria_seed_ok.json")
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
+HOME_MEDIA_EXTENSIONS = ALLOWED_EXTENSIONS | VIDEO_EXTENSIONS
+HOME_UPLOAD_DIR = persistencia.upload_dir("home")
+POST_HOME_PATH = persistencia.db_path("post_home_midia.json")
 
 
 def _seed_flag_path() -> Path:
@@ -104,6 +108,156 @@ def salvar_aviso_home(texto: str, ativo: bool = True) -> dict:
     return {"texto": payload["texto"], "ativo": payload["ativo"]}
 
 
+def _post_home_vazio() -> dict:
+    return {
+        "titulo": "",
+        "texto": "",
+        "link": "",
+        "arquivo": "",
+        "ativo": False,
+        "atualizado_em": "",
+        "tem_arquivo": False,
+        "arquivo_eh_video": False,
+        "tem_conteudo": False,
+    }
+
+
+def _enriquecer_post_home(dados: dict) -> dict:
+    item = _post_home_vazio()
+    item["titulo"] = (dados.get("titulo") or "").strip()
+    item["texto"] = (dados.get("texto") or "").strip()
+    item["link"] = (dados.get("link") or "").strip()
+    item["arquivo"] = (dados.get("arquivo") or "").strip()
+    item["ativo"] = bool(dados.get("ativo"))
+    item["atualizado_em"] = (dados.get("atualizado_em") or "").strip()
+    item["tem_arquivo"] = bool(item["arquivo"])
+    item["arquivo_eh_video"] = Path(item["arquivo"]).suffix.lower() in VIDEO_EXTENSIONS
+    item["tem_conteudo"] = bool(
+        item["titulo"] or item["texto"] or item["arquivo"] or item["link"]
+    )
+    if item["ativo"] and not item["tem_conteudo"]:
+        item["ativo"] = False
+    return item
+
+
+def obter_post_home() -> dict:
+    """Post rico (título/texto/mídia) da mídia para a página inicial."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    HOME_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    caminhos = [POST_HOME_PATH, BASE_DIR / "data" / "post_home_midia.json"]
+    for path in caminhos:
+        if not path.exists():
+            continue
+        try:
+            dados = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+        if isinstance(dados, dict):
+            return _enriquecer_post_home(dados)
+    return _post_home_vazio()
+
+
+def obter_post_home_publico() -> dict | None:
+    item = obter_post_home()
+    if item.get("ativo") and item.get("tem_conteudo"):
+        return item
+    return None
+
+
+def salvar_post_home(
+    *,
+    titulo: str,
+    texto: str,
+    link: str = "",
+    arquivo: str | None = None,
+    ativo: bool = True,
+) -> dict:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    HOME_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    atual = obter_post_home()
+    if arquivo is None:
+        arquivo_final = atual.get("arquivo") or ""
+    else:
+        arquivo_final = arquivo.strip()
+    payload = {
+        "titulo": (titulo or "").strip(),
+        "texto": (texto or "").strip(),
+        "link": (link or "").strip(),
+        "arquivo": arquivo_final,
+        "ativo": bool(ativo),
+        "atualizado_em": agora().isoformat(timespec="seconds"),
+    }
+    enriquecido = _enriquecer_post_home(payload)
+    POST_HOME_PATH.write_text(
+        json.dumps(
+            {
+                "titulo": enriquecido["titulo"],
+                "texto": enriquecido["texto"],
+                "link": enriquecido["link"],
+                "arquivo": enriquecido["arquivo"],
+                "ativo": enriquecido["ativo"],
+                "atualizado_em": enriquecido["atualizado_em"],
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return enriquecido
+
+
+def apagar_arquivo_post_home() -> bool:
+    atual = obter_post_home()
+    nome = (atual.get("arquivo") or "").strip()
+    if not nome:
+        return False
+    caminho = HOME_UPLOAD_DIR / nome
+    if caminho.exists():
+        caminho.unlink()
+    salvar_post_home(
+        titulo=atual.get("titulo") or "",
+        texto=atual.get("texto") or "",
+        link=atual.get("link") or "",
+        arquivo="",
+        ativo=bool(atual.get("ativo")),
+    )
+    return True
+
+
+def limpar_post_home() -> None:
+    atual = obter_post_home()
+    nome = (atual.get("arquivo") or "").strip()
+    if nome:
+        caminho = HOME_UPLOAD_DIR / nome
+        if caminho.exists():
+            caminho.unlink()
+    POST_HOME_PATH.write_text(
+        json.dumps(
+            {
+                "titulo": "",
+                "texto": "",
+                "link": "",
+                "arquivo": "",
+                "ativo": False,
+                "atualizado_em": agora().isoformat(timespec="seconds"),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def extensao_home_ok(nome: str) -> bool:
+    return Path(nome).suffix.lower() in HOME_MEDIA_EXTENSIONS
+
+
+def arquivo_home_eh_video(nome: str) -> bool:
+    return Path(nome or "").suffix.lower() in VIDEO_EXTENSIONS
+
+
 def _connect() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -113,12 +267,15 @@ def _connect() -> sqlite3.Connection:
 
 
 def init_db() -> None:
-    global UPLOAD_DIR, DATA_DIR, DB_PATH, AVISO_HOME_PATH
+    global UPLOAD_DIR, DATA_DIR, DB_PATH, AVISO_HOME_PATH, HOME_UPLOAD_DIR, POST_HOME_PATH
     DATA_DIR = persistencia.data_root()
     DB_PATH = persistencia.db_path("galeria.db")
     AVISO_HOME_PATH = persistencia.db_path("aviso_home_midia.json")
+    POST_HOME_PATH = persistencia.db_path("post_home_midia.json")
     UPLOAD_DIR = persistencia.upload_dir("galeria")
+    HOME_UPLOAD_DIR = persistencia.upload_dir("home")
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    HOME_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         conn.executescript(
             """

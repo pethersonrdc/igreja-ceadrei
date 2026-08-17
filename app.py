@@ -234,6 +234,7 @@ def home():
     eventos_destaque = pastores.eventos_destaque_home(6)
     info_arraial = arraial.info_evento()
     aviso_home = gallery.obter_aviso_home()
+    post_home = gallery.obter_post_home_publico()
     ministerios_destaque = campanha_eventos.listar_destaques_home()
     mocidade_destaque = mocidade.obter_destaque_publico()
     if mocidade_destaque:
@@ -275,6 +276,7 @@ def home():
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
         aviso_home=aviso_home,
+        post_home=post_home,
         whatsapp_escala_obreiros=whatsapp_escala_obreiros,
         escala_louvor=escala_louvor,
         whatsapp_escala_louvor=whatsapp_escala_louvor,
@@ -605,6 +607,41 @@ def admin_galeria():
                 flash("Aviso da página inicial removido.", "ok")
             return redirect(url_for("admin_galeria") + "#aviso-home")
 
+        if acao == "post_home":
+            titulo = request.form.get("post_titulo", "").strip()
+            texto = request.form.get("post_texto", "").strip()
+            link = request.form.get("post_link", "").strip()
+            ativo = request.form.get("post_ativo") == "1"
+            arquivo = request.files.get("post_arquivo")
+            nome_final = None
+            gallery.init_db()
+            if arquivo and arquivo.filename:
+                if not gallery.extensao_home_ok(arquivo.filename):
+                    flash("Arquivo do post: use imagem (JPG/PNG) ou vídeo (MP4/WEBM/MOV).", "erro")
+                    return redirect(url_for("admin_galeria") + "#post-home")
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                prefixo = "video" if gallery.arquivo_home_eh_video(nome_seguro) else "img"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
+                arquivo.save(gallery.HOME_UPLOAD_DIR / nome_final)
+            if not titulo and not texto and not nome_final and not link and not gallery.obter_post_home().get("arquivo"):
+                flash("Informe título, texto, link ou envie uma imagem/vídeo.", "erro")
+                return redirect(url_for("admin_galeria") + "#post-home")
+            gallery.salvar_post_home(
+                titulo=titulo,
+                texto=texto,
+                link=link,
+                arquivo=nome_final,
+                ativo=ativo,
+            )
+            flash("Post da página inicial salvo.", "ok")
+            return redirect(url_for("admin_galeria") + "#post-home")
+
+        if acao == "limpar_post_home":
+            gallery.limpar_post_home()
+            flash("Post da página inicial removido.", "ok")
+            return redirect(url_for("admin_galeria") + "#post-home")
+
         culto_titulo = request.form.get("culto_titulo", "").strip() or "Culto da igreja"
         culto_dia = request.form.get("culto_dia", "").strip() or "Recente"
         titulo = request.form.get("titulo", "").strip() or f"Fotos — {culto_titulo}"
@@ -640,8 +677,19 @@ def admin_galeria():
         posts=posts,
         perfis_lideres=lideres_midia.listar_perfis(),
         aviso_home=gallery.obter_aviso_home(),
+        post_home=gallery.obter_post_home(),
         disco_persistente=gallery.disco_persistente_ativo(),
     )
+
+
+@app.route("/admin/galeria/post-home/apagar-arquivo", methods=["POST"])
+@login_required
+def admin_apagar_arquivo_post_home():
+    if gallery.apagar_arquivo_post_home():
+        flash("Arquivo do post da home apagado.", "ok")
+    else:
+        flash("Nenhum arquivo para apagar.", "erro")
+    return redirect(url_for("admin_galeria") + "#post-home")
 
 
 @app.route("/admin/galeria/<int:post_id>/apagar", methods=["POST"])

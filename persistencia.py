@@ -29,6 +29,7 @@ UPLOAD_SUBDIRS = (
     "leaodejuda",
     "maranata",
     "soldadinhos",
+    "home",
 )
 
 
