@@ -236,9 +236,48 @@ Reinicie o servidor Flask (se estiver rodando) para ver as mudanças.
 
 ---
 
+## Hospedagem (Hostinger VPS) — recomendado
+
+Com VPS o disco é fixo: posts e fotos **não somem** ao atualizar (use `DATA_DIR`).
+
+1. No painel Hostinger, anote o IP (ex.: `177.7.46.244`)
+2. No seu PC (ou no terminal do hPanel):
+   ```bash
+   ssh root@SEU_IP
+   ```
+3. No servidor, rode:
+   ```bash
+   apt-get update -y && apt-get install -y git
+   git clone https://github.com/pethersonrdc/igreja-ceadrei.git /tmp/igreja-setup
+   bash /tmp/igreja-setup/deploy/hostinger/setup.sh
+   ```
+4. No DNS do domínio (`igrejaceasdrei.com.br`), aponte o registro **A** para o IP do VPS
+5. (Opcional HTTPS) depois do DNS propagar:
+   ```bash
+   apt-get install -y certbot python3-certbot-nginx
+   certbot --nginx -d igrejaceasdrei.com.br -d www.igrejaceasdrei.com.br
+   ```
+
+**Atualizar o site depois:**
+```bash
+bash /var/www/igreja-ceadrei/deploy/hostinger/update.sh
+```
+
+Arquivos:
+- `deploy/hostinger/setup.sh` — instalação
+- `deploy/hostinger/update.sh` — update
+- `deploy/hostinger/nginx.conf` — Nginx
+- `deploy/hostinger/igreja-ceadrei.service` — Gunicorn
+
+Dados persistentes: `/var/data/igreja-ceadrei` (`DATA_DIR`).
+
+Senha do painel da mídia (padrão): `ceasdrei` (troque no arquivo `/var/www/igreja-ceadrei/.env`).
+
+---
+
 ## Hospedagem (Render)
 
-O código fica no GitHub e o site completo (com painel da mídia) roda no **Render**.
+O código fica no GitHub e o site completo (com painel da mídia) pode rodar no **Render**.
 
 1. Abra o deploy: [Criar no Render com este repositório](https://dashboard.render.com/blueprint/new?repo=https://github.com/pethersonrdc/igreja-ceadrei)
 2. Faça login no Render com a conta do GitHub
