@@ -63,8 +63,33 @@
     {% endif %}
     {% if whatsapp_dia %}
     <p class="escala-share">
-      <a class="btn btn-whatsapp" href="{{ whatsapp_dia }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+      <button
+        type="button"
+        class="btn btn-whatsapp js-escala-share"
+        data-hint="#escala-comunicado-share-hint"
+        data-payload='{{ {
+          "igreja": igreja.nome,
+          "eyebrow": "Escala dos Obreiros",
+          "data": (escala_destaque.data_br or "") ~ " · " ~ (escala_destaque.dia_semana or ""),
+          "linhas": [
+            {"label": "Porta vidro", "valor": escala_destaque.porta_vidro or "—"},
+            {"label": "Abertura", "valor": escala_destaque.abertura or "—"},
+            {"label": "Porta escada", "valor": escala_destaque.porta_escada or "—"}
+          ],
+          "logo": url_for("static", filename="images/emblema.png", _external=True),
+          "rodape": igreja.lema or "Uma casa de oração, comunhão e esperança",
+          "texto": (
+            "*Escala dos Obreiros — " ~ igreja.nome ~ "*\n\n"
+            ~ (escala_destaque.data_br or "") ~ " · " ~ (escala_destaque.dia_semana or "") ~ "\n"
+            ~ "Porta vidro: " ~ (escala_destaque.porta_vidro or "—") ~ "\n"
+            ~ "Abertura: " ~ (escala_destaque.abertura or "—") ~ "\n"
+            ~ "Porta escada: " ~ (escala_destaque.porta_escada or "—") ~ "\n\n"
+            ~ url_for("comunicado_obreiros", _external=True)
+          )
+        }|tojson }}'
+      >Compartilhar no WhatsApp</button>
     </p>
+    <p class="escala-share-hint admin-help" id="escala-comunicado-share-hint" hidden></p>
     {% endif %}
   </article>
 </section>
@@ -135,4 +160,10 @@
   <p>A escala deste mês ainda não foi publicada pelos pastores.</p>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if escala_destaque %}
+<script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>
+{% endif %}
 {% endblock %}

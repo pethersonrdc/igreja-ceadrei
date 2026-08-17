@@ -136,11 +136,34 @@
         <strong>{{ escala_hoje.porta_escada or '—' }}</strong>
       </div>
     </div>
-    {% if whatsapp_escala_obreiros %}
     <p class="escala-share">
-      <a class="btn btn-whatsapp" href="{{ whatsapp_escala_obreiros }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+      <button
+        type="button"
+        class="btn btn-whatsapp js-escala-share"
+        data-hint="#escala-obreiros-share-hint"
+        data-payload='{{ {
+          "igreja": igreja.nome,
+          "eyebrow": "Escala dos Obreiros",
+          "data": (escala_hoje.data_br or "") ~ " · " ~ (escala_hoje.dia_semana or ""),
+          "linhas": [
+            {"label": "Porta vidro", "valor": escala_hoje.porta_vidro or "—"},
+            {"label": "Abertura", "valor": escala_hoje.abertura or "—"},
+            {"label": "Porta escada", "valor": escala_hoje.porta_escada or "—"}
+          ],
+          "logo": url_for("static", filename="images/emblema.png", _external=True),
+          "rodape": igreja.lema or "Uma casa de oração, comunhão e esperança",
+          "texto": (
+            "*Escala dos Obreiros — " ~ igreja.nome ~ "*\n\n"
+            ~ (escala_hoje.data_br or "") ~ " · " ~ (escala_hoje.dia_semana or "") ~ "\n"
+            ~ "Porta vidro: " ~ (escala_hoje.porta_vidro or "—") ~ "\n"
+            ~ "Abertura: " ~ (escala_hoje.abertura or "—") ~ "\n"
+            ~ "Porta escada: " ~ (escala_hoje.porta_escada or "—") ~ "\n\n"
+            ~ url_for("comunicado_obreiros", _external=True)
+          )
+        }|tojson }}'
+      >Compartilhar no WhatsApp</button>
     </p>
-    {% endif %}
+    <p class="escala-share-hint admin-help" id="escala-obreiros-share-hint" hidden></p>
   </article>
   {% endif %}
 
@@ -382,5 +405,8 @@
 {% set tem_carousel_casais = casais_fotos and casais_fotos|length > 1 %}
 {% if tem_carousel_culto or tem_carousel_batismo or tem_carousel_casais %}
 <script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+{% endif %}
+{% if escala_hoje %}
+<script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>
 {% endif %}
 {% endblock %}
