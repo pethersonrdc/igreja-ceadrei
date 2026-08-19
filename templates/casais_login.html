@@ -12,14 +12,22 @@
 </section>
 
 <section class="section arraial-login-layout">
-  <form class="admin-card casais-card" method="post" action="{{ url_for('casais_login', next=request.args.get('next', '')) }}">
-    <label for="senha">Senha de acesso</label>
-    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
-    {% if erro %}
-    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
-    {% endif %}
-    <button class="btn btn-primary btn-casais" type="submit">Entrar</button>
-  </form>
+  <div class="campanha-login-stage campanha-login-stage--casais">
+    <div class="login-anim login-anim--casais" aria-hidden="true">
+      <span class="login-anim-coracao login-anim-coracao--1"></span>
+      <span class="login-anim-coracao login-anim-coracao--2"></span>
+      <span class="login-anim-spark login-anim-spark--1"></span>
+      <span class="login-anim-spark login-anim-spark--2"></span>
+    </div>
+    <form class="admin-card casais-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('casais_login', next=request.args.get('next', '')) }}">
+      <label for="senha">Senha de acesso</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary btn-casais" type="submit">Entrar</button>
+    </form>
+  </div>
 
   <figure class="arraial-lider-foto casais-lider-foto">
     <img src="{{ url_for('static', filename=foto_lider) }}" alt="Diac. Robson e Diac. Luana">

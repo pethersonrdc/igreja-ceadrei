@@ -37,7 +37,7 @@ EVENTOS = {
         "tema": "tema-leoas",
         "btn": "btn-leoas",
         "card": "leoas-card",
-        "login_anim": "",
+        "login_anim": "leoas",
     },
     "leaodejuda": {
         "titulo": "Leão de Judá",
@@ -49,7 +49,7 @@ EVENTOS = {
         "tema": "tema-leaodejuda",
         "btn": "btn-leaodejuda",
         "card": "leaodejuda-card",
-        "login_anim": "",
+        "login_anim": "leaodejuda",
     },
     "maranata": {
         "titulo": "Dança Maranata",
