@@ -722,7 +722,7 @@ def batismo_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("batismo_ok"):
         return redirect(url_for("batismo_admin"))
-    return render_template("batismo_login.html", igreja=igreja, erro=erro)
+    return render_template("batismo_login.html", igreja=igreja, erro=erro, foto_lider=lideres_midia.foto("batismo"))
 
 
 @app.route("/batismo/logout")
@@ -1058,7 +1058,12 @@ def casais_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("casais_ok"):
         return redirect(url_for("casais_admin"))
-    return render_template("casais_login.html", igreja=igreja, erro=erro)
+    return render_template(
+        "casais_login.html",
+        igreja=igreja,
+        erro=erro,
+        foto_lider=lideres_midia.foto("casais"),
+    )
 
 
 @app.route("/casais/logout")
@@ -1169,6 +1174,7 @@ def casais_page():
         fotos=casais.listar_fotos(),
         programacao=casais.obter_programacao(),
         h1_responsaveis=casais.H1_RESPONSAVEIS,
+        foto_lider=lideres_midia.foto("casais"),
     )
 
 
@@ -1348,7 +1354,12 @@ def pastores_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("pastores_ok"):
         return redirect(url_for("pastores_admin"))
-    return render_template("pastores_login.html", igreja=igreja, erro=erro)
+    return render_template(
+        "pastores_login.html",
+        igreja=igreja,
+        erro=erro,
+        foto_lider=lideres_midia.foto("pastores"),
+    )
 
 
 @app.route("/pastores/logout")
@@ -1695,7 +1706,7 @@ def mocidade_login():
         igreja=igreja,
         erro=erro,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
     )
 
 
@@ -1775,7 +1786,7 @@ def mocidade_admin():
         "mocidade_admin.html",
         igreja=igreja,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
         posts=mocidade.listar_posts(),
         post_ativo=mocidade.obter_post_ativo(),
         destaque=mocidade.obter_destaque(),
@@ -1832,7 +1843,7 @@ def mocidade_page():
         "mocidade.html",
         igreja=igreja,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
         post_ativo=mocidade.obter_post_ativo(),
         destaque_publico=mocidade.obter_destaque_publico(),
     )
@@ -1863,6 +1874,8 @@ def campanha_login(slug: str):
         erro=erro,
         slug=slug,
         info=info,
+        foto_lider=lideres_midia.foto(slug),
+        nome_lider=lideres_midia.foto_meta(slug).get("nome") or info["titulo"],
     )
 
 
@@ -2072,6 +2085,7 @@ def louvor_login():
         igreja=igreja,
         erro=erro,
         h1_responsaveis=louvor.H1_RESPONSAVEIS,
+        foto_lider=lideres_midia.foto("louvor"),
     )
 
 

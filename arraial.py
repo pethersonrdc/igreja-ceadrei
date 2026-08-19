@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import persistencia
+import lideres_midia
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
@@ -177,7 +178,7 @@ def info_evento() -> dict:
         "pedido": _get("pedido") or DEFAULTS["pedido"],
         "convite": _get("convite") or DEFAULTS["convite"],
         "flyer": flyer_path(),
-        "foto_lider": FOTO_LIDER_REL,
+        "foto_lider": lideres_midia.foto("arraial"),
         "mostrar_destaque": mostrar_destaque_home(),
         "mostrar_aviso": mostrar_aviso_home(),
         "h1": h1,

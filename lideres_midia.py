@@ -120,20 +120,31 @@ def _mapa_arquivos() -> dict[str, str]:
 
 def listar_perfis() -> list[dict]:
     """Lista perfis com caminho relativo em static/ para a foto atual."""
-    arquivos = _mapa_arquivos()
+    init_db()
+    with _connect() as conn:
+        rows = {
+            r["perfil_id"]: dict(r)
+            for r in conn.execute(
+                "SELECT perfil_id, arquivo, atualizado_em FROM fotos"
+            ).fetchall()
+        }
     resultado = []
     for perfil in PERFIS:
         pid = perfil["id"]
-        upload = arquivos.get(pid, "")
+        reg = rows.get(pid) or {}
+        upload = (reg.get("arquivo") or "").strip()
         if upload and (UPLOAD_DIR / upload).exists():
             caminho = f"uploads/lideres/{upload}"
             custom = True
+            versao = (reg.get("atualizado_em") or "").strip()
         else:
             padrao = BASE_DIR / "static" / perfil["padrao"]
             caminho = perfil["padrao"] if padrao.exists() else "images/emblema.png"
             custom = False
+            versao = ""
         item = dict(perfil)
         item["foto"] = caminho
+        item["foto_versao"] = versao
         item["custom"] = custom
         resultado.append(item)
     return resultado
@@ -142,6 +153,31 @@ def listar_perfis() -> list[dict]:
 def mapa_fotos() -> dict[str, str]:
     """id -> caminho static relativo."""
     return {p["id"]: p["foto"] for p in listar_perfis()}
+
+
+def mapa_fotos_meta() -> dict[str, dict]:
+    """id -> {foto, foto_versao, nome}."""
+    return {
+        p["id"]: {
+            "foto": p["foto"],
+            "foto_versao": p.get("foto_versao") or "",
+            "nome": p["nome"],
+        }
+        for p in listar_perfis()
+    }
+
+
+def foto(perfil_id: str) -> str:
+    """Caminho static da foto atual (upload da mídia ou padrão)."""
+    return mapa_fotos().get(perfil_id) or "images/emblema.png"
+
+
+def foto_meta(perfil_id: str) -> dict:
+    return mapa_fotos_meta().get(perfil_id) or {
+        "foto": "images/emblema.png",
+        "foto_versao": "",
+        "nome": "",
+    }
 
 
 def atualizar_foto(perfil_id: str, nome_arquivo: str) -> bool:

@@ -49,6 +49,12 @@
       {% endif %}
       <button class="btn btn-primary {{ info.btn }}" type="submit">Entrar</button>
     </form>
+    {% if foto_lider %}
+    <figure class="arraial-lider-foto">
+      <img src="{{ url_for('static', filename=foto_lider) }}" alt="{{ nome_lider }}">
+      <figcaption>{{ nome_lider }}</figcaption>
+    </figure>
+    {% endif %}
   </div>
 </section>
 {% endblock %}
