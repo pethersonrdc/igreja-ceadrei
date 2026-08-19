@@ -187,6 +187,15 @@ def louvor_login_required(view):
     return wrapped
 
 
+def _css_asset_version() -> str:
+    """Bust browser/nginx cache of styles.css after deploy."""
+    try:
+        path = Path(app.static_folder) / "css" / "styles.css"
+        return str(int(path.stat().st_mtime))
+    except OSError:
+        return "1"
+
+
 @app.context_processor
 def inject_admin():
     return {
@@ -201,6 +210,7 @@ def inject_admin():
         "maranata_logado": bool(session.get("maranata_ok")),
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
+        "css_asset_version": _css_asset_version(),
     }
 
 

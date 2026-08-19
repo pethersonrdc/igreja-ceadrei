@@ -2335,14 +2335,16 @@ body.tema-casais.pagina-fundo .pagina-fundo-content .section-head h2 {
   box-shadow: 0 8px 24px rgba(74, 28, 42, 0.12);
 }
 
-/* Título dos responsáveis (só este texto) — vinho dos botões */
-body.tema-casais.pagina-fundo .page-hero.casais-hero.pagina-fundo-content h1 {
-  color: #7a3042 !important;
+/* Título dos responsáveis (só este texto) — rosa vinho #a85a6a */
+body.tema-casais.pagina-fundo .page-hero.casais-hero.pagina-fundo-content h1,
+body.tema-casais .casais-titulo-responsaveis,
+h1.casais-titulo-responsaveis {
+  color: #a85a6a !important;
   background: transparent !important;
   box-shadow: none !important;
   padding: 0;
   display: block;
-  text-shadow: 0 1px 2px rgba(255, 248, 245, 0.65);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 body.tema-casais.pagina-fundo .pagina-fundo-content .page-hero p,
