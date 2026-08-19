@@ -23,14 +23,7 @@
 
 <section class="section admin-login-wrap pagina-fundo-content">
   <div class="campanha-login-stage campanha-login-stage--midia">
-    <div class="login-anim login-anim--midia" aria-hidden="true">
-      <span class="login-anim-lente"></span>
-      <span class="login-anim-flash login-anim-flash--1"></span>
-      <span class="login-anim-flash login-anim-flash--2"></span>
-      <span class="login-anim-dot login-anim-dot--1"></span>
-      <span class="login-anim-dot login-anim-dot--2"></span>
-      <span class="login-anim-dot login-anim-dot--3"></span>
-    </div>
+    {% include "includes/login_anim_louvor.html" %}
     <form class="admin-card midia-login-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('admin_login', next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">

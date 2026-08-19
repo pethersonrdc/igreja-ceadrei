@@ -23,12 +23,7 @@
 
 <section class="section admin-login-wrap pagina-fundo-content">
   <div class="campanha-login-stage campanha-login-stage--pastores">
-    <div class="login-anim login-anim--pastores" aria-hidden="true">
-      <span class="login-anim-cruz login-anim-cruz--1"></span>
-      <span class="login-anim-cruz login-anim-cruz--2"></span>
-      <span class="login-anim-estrela login-anim-estrela--1"></span>
-      <span class="login-anim-estrela login-anim-estrela--2"></span>
-    </div>
+    {% include "includes/login_anim_louvor.html" %}
     <form class="admin-card pastores-login-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('pastores_login', next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
@@ -38,7 +33,7 @@
       <button class="btn btn-primary btn-pastores" type="submit">Entrar</button>
     </form>
   </div>
-  <figure class="arraial-lider-foto">
+  <figure class="arraial-lider-foto login-lider-foto--anim">
     <img src="{{ url_for('static', filename=foto_lider) }}" alt="Pas. Solange e Pas. Jose Luiz">
     <figcaption>Pas. Solange &amp; Pas. Jose Luiz</figcaption>
   </figure>

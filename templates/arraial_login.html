@@ -13,13 +13,7 @@
 
 <section class="section arraial-login-layout">
   <div class="campanha-login-stage campanha-login-stage--arraial">
-    <div class="login-anim login-anim--arraial" aria-hidden="true">
-      <span class="login-anim-bandeira login-anim-bandeira--1"></span>
-      <span class="login-anim-bandeira login-anim-bandeira--2"></span>
-      <span class="login-anim-bandeira login-anim-bandeira--3"></span>
-      <span class="login-anim-balao login-anim-balao--1"></span>
-      <span class="login-anim-balao login-anim-balao--2"></span>
-    </div>
+    {% include "includes/login_anim_louvor.html" %}
     <form class="admin-card arraial-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('arraial_login', next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
@@ -30,7 +24,7 @@
     </form>
   </div>
 
-  <figure class="arraial-lider-foto">
+  <figure class="arraial-lider-foto login-lider-foto--anim">
     <img src="{{ url_for('static', filename=info.foto_lider) }}" alt="Diac. Cássia">
     <figcaption>Diac. Cássia</figcaption>
   </figure>

@@ -37,7 +37,7 @@ EVENTOS = {
         "tema": "tema-leoas",
         "btn": "btn-leoas",
         "card": "leoas-card",
-        "login_anim": "leoas",
+        "login_anim": "louvor",
     },
     "leaodejuda": {
         "titulo": "Leão de Judá",
@@ -49,7 +49,7 @@ EVENTOS = {
         "tema": "tema-leaodejuda",
         "btn": "btn-leaodejuda",
         "card": "leaodejuda-card",
-        "login_anim": "leaodejuda",
+        "login_anim": "louvor",
     },
     "maranata": {
         "titulo": "Dança Maranata",
@@ -61,7 +61,7 @@ EVENTOS = {
         "tema": "tema-maranata",
         "btn": "btn-maranata",
         "card": "maranata-card",
-        "login_anim": "maranata",
+        "login_anim": "louvor",
     },
     "soldadinhos": {
         "titulo": "Soldadinhos de Cristo",
@@ -73,7 +73,7 @@ EVENTOS = {
         "tema": "tema-soldadinhos",
         "btn": "btn-soldadinhos",
         "card": "soldadinhos-card",
-        "login_anim": "soldadinhos",
+        "login_anim": "louvor",
     },
 }
 

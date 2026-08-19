@@ -23,13 +23,7 @@
 
 <section class="section admin-login-wrap pagina-fundo-content">
   <div class="campanha-login-stage campanha-login-stage--batismo">
-    <div class="login-anim login-anim--batismo" aria-hidden="true">
-      <span class="login-anim-gota login-anim-gota--1"></span>
-      <span class="login-anim-gota login-anim-gota--2"></span>
-      <span class="login-anim-gota login-anim-gota--3"></span>
-      <span class="login-anim-onda login-anim-onda--1"></span>
-      <span class="login-anim-onda login-anim-onda--2"></span>
-    </div>
+    {% include "includes/login_anim_louvor.html" %}
     <form class="admin-card batismo-login-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('batismo_login', next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
@@ -40,7 +34,7 @@
     </form>
   </div>
 
-  <figure class="arraial-lider-foto">
+  <figure class="arraial-lider-foto login-lider-foto--anim">
     <img src="{{ url_for('static', filename=foto_lider) }}" alt="Evangelista Sueli">
     <figcaption>Evangelista Sueli</figcaption>
   </figure>
