@@ -73,6 +73,7 @@ Thumbs.db
 # Arquivos antigos da pasta (não fazem parte do site)
 *.TTF
 *.ttf
+!static/fonts/*.ttf
 *.dll
 *.reg
 instrucoes.txt
