@@ -996,54 +996,9 @@ def batismo_exportar_excel():
 @app.route("/batismo/admin/exportar.pdf")
 @batismo_login_required
 def batismo_exportar_pdf():
-    from fpdf import FPDF
+    import pdf_relatorios
 
-    inscricoes = batismo.listar_inscricoes()
-    pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=12)
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Evento Batismo CEASDREI", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(
-        0,
-        8,
-        "Responsavel: Evangelista Sueli",
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
-    pdf.ln(2)
-
-    colunas = [
-        ("ID", 12),
-        ("Familia", 50),
-        ("Pessoas", 90),
-        ("Telefone", 35),
-        ("Status", 40),
-    ]
-    pdf.set_font("Helvetica", "B", 8)
-    for titulo, largura in colunas:
-        pdf.cell(largura, 8, titulo, border=1)
-    pdf.ln()
-
-    pdf.set_font("Helvetica", "", 7)
-    for item in inscricoes:
-        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
-        valores = [
-            str(item["id"]),
-            (item.get("nome_completo") or "")[:45],
-            pessoas[:80],
-            item["telefone"][:22],
-            item["status_texto"][:28],
-        ]
-        for valor, (_, largura) in zip(valores, colunas):
-            pdf.cell(largura, 7, valor, border=1)
-        pdf.ln()
-
-    if not inscricoes:
-        pdf.cell(0, 10, "Nenhuma inscricao registrada.", new_x="LMARGIN", new_y="NEXT")
-
-    buffer = io.BytesIO(pdf.output())
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_batismo(batismo.listar_inscricoes()))
     buffer.seek(0)
     return send_file(
         buffer,
@@ -1289,57 +1244,9 @@ def casais_exportar_excel():
 @app.route("/casais/admin/exportar.pdf")
 @casais_login_required
 def casais_exportar_pdf():
-    from fpdf import FPDF
+    import pdf_relatorios
 
-    inscricoes = casais.listar_inscricoes()
-    pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=12)
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Encontro de Casais CEASDREI", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(
-        0,
-        8,
-        "Responsaveis: Diac. Robson e Diac. Luana",
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
-    pdf.ln(2)
-
-    colunas = [
-        ("ID", 12),
-        ("Marido", 50),
-        ("Tel. marido", 35),
-        ("Mulher", 50),
-        ("Tel. mulher", 35),
-        ("Status", 40),
-        ("Enviado em", 40),
-    ]
-    pdf.set_font("Helvetica", "B", 8)
-    for titulo, largura in colunas:
-        pdf.cell(largura, 8, titulo, border=1)
-    pdf.ln()
-
-    pdf.set_font("Helvetica", "", 7)
-    for item in inscricoes:
-        valores = [
-            str(item["id"]),
-            item["nome_marido"][:40],
-            item["telefone_marido"][:24],
-            item["nome_mulher"][:40],
-            item["telefone_mulher"][:24],
-            item["status_texto"][:30],
-            item["criado_em"].replace("T", " ")[:22],
-        ]
-        for valor, (_, largura) in zip(valores, colunas):
-            pdf.cell(largura, 7, valor, border=1)
-        pdf.ln()
-
-    if not inscricoes:
-        pdf.cell(0, 10, "Nenhuma inscricao registrada.", new_x="LMARGIN", new_y="NEXT")
-
-    buffer = io.BytesIO(pdf.output())
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_casais(casais.listar_inscricoes()))
     buffer.seek(0)
     return send_file(
         buffer,

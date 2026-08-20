@@ -4925,6 +4925,7 @@ body.tema-porta-altar .admin-msg--erro {
   position: relative;
   z-index: 2;
   animation: campanha-login-rise 0.85s ease both;
+  box-shadow: 0 0 0 1px rgba(240, 199, 94, 0.28), 0 0 28px rgba(240, 199, 94, 0.18);
 }
 
 .login-anim {
@@ -5763,10 +5764,6 @@ body.tema-louvor .louvor-escala-table td {
     0 14px 30px rgba(18, 40, 79, 0.18),
     0 0 0 2px rgba(240, 199, 94, 0.25),
     0 0 22px rgba(240, 199, 94, 0.35);
-}
-
-.campanha-login-card--anim {
-  box-shadow: 0 0 0 1px rgba(240, 199, 94, 0.28), 0 0 28px rgba(240, 199, 94, 0.18);
 }
 
 @keyframes login-emblema-float {
