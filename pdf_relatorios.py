@@ -9,6 +9,7 @@ from datetime import datetime
 from pathlib import Path
 
 from fpdf import FPDF
+from fpdf.enums import MethodReturnValue, XPos, YPos
 from PIL import Image, ImageEnhance
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -31,6 +32,12 @@ def _fundo_para_pdf(caminho: Path, tamanho=(1684, 1190), clarear: float = 0.78) 
     misturado.save(buf, format="JPEG", quality=88, optimize=True)
     buf.seek(0)
     return buf
+
+
+def _formatar_pessoas(texto: str) -> str:
+    """Um nome por linha (quebra em vírgula) para caber completo na coluna."""
+    partes = [p.strip() for p in (texto or "").replace(";", ",").split(",") if p.strip()]
+    return "\n".join(partes) if partes else ""
 
 
 class RelatorioInscricoesPDF(FPDF):
@@ -96,13 +103,7 @@ class RelatorioInscricoesPDF(FPDF):
         self.cell(0, 7, responsavel, new_x="LMARGIN", new_y="NEXT")
         self.ln(6)
 
-    def tabela(
-        self,
-        colunas: list[tuple[str, float]],
-        linhas: list[list[str]],
-        vazio: str = "Nenhuma inscrição registrada.",
-    ) -> None:
-        # Cabeçalho
+    def _desenhar_cabecalho_tabela(self, colunas: list[tuple[str, float]]) -> None:
         self.fonte("B", 10)
         self.set_fill_color(*self.COR_CAB_BG)
         self.set_text_color(*self.COR_CAB_TXT)
@@ -112,6 +113,31 @@ class RelatorioInscricoesPDF(FPDF):
             self.cell(largura, 9, titulo, border=1, fill=True, align="C")
         self.ln()
 
+    def _altura_celula(self, texto: str, largura: float, line_h: float) -> float:
+        if not (texto or "").strip():
+            return line_h + 2
+        altura = self.multi_cell(
+            largura,
+            line_h,
+            texto,
+            dry_run=True,
+            output=MethodReturnValue.HEIGHT,
+        )
+        return max(float(altura), line_h) + 2
+
+    def tabela(
+        self,
+        colunas: list[tuple[str, float]],
+        linhas: list[list[str]],
+        vazio: str = "Nenhuma inscrição registrada.",
+        wrap_cols: set[int] | None = None,
+    ) -> None:
+        """
+        wrap_cols: índices das colunas que podem quebrar linha (ex.: Pessoas, Família).
+        """
+        wrap_cols = wrap_cols or set()
+        self._desenhar_cabecalho_tabela(colunas)
+
         if not linhas:
             self.set_text_color(*self.COR_TEXTO)
             self.fonte("B", 11)
@@ -120,26 +146,55 @@ class RelatorioInscricoesPDF(FPDF):
             self.ln()
             return
 
+        line_h = 4.5
         self.fonte("", 9)
         self.set_text_color(*self.COR_TEXTO)
-        altura = 8
+
         for i, valores in enumerate(linhas):
-            if self.get_y() + altura > self.h - 16:
+            # Altura da linha = maior célula (com wrap)
+            alturas = []
+            for idx, (valor, (_, largura)) in enumerate(zip(valores, colunas)):
+                if idx in wrap_cols:
+                    alturas.append(self._altura_celula(valor, largura - 2, line_h))
+                else:
+                    alturas.append(line_h + 2)
+            row_h = max(alturas)
+
+            if self.get_y() + row_h > self.h - 16:
                 self.add_page()
-                self.fonte("B", 10)
-                self.set_fill_color(*self.COR_CAB_BG)
-                self.set_text_color(*self.COR_CAB_TXT)
-                for titulo, largura in colunas:
-                    self.cell(largura, 9, titulo, border=1, fill=True, align="C")
-                self.ln()
+                self._desenhar_cabecalho_tabela(colunas)
                 self.fonte("", 9)
                 self.set_text_color(*self.COR_TEXTO)
 
             bg = self.COR_LINHA_A if i % 2 == 0 else self.COR_LINHA_B
             self.set_fill_color(*bg)
-            for valor, (_, largura) in zip(valores, colunas):
-                self.cell(largura, altura, valor, border=1, fill=True)
-            self.ln()
+            self.set_draw_color(*self.COR_BORDA)
+
+            x0 = self.get_x()
+            y0 = self.get_y()
+            x = x0
+
+            for idx, (valor, (_, largura)) in enumerate(zip(valores, colunas)):
+                # Fundo + borda da célula
+                self.rect(x, y0, largura, row_h, style="DF")
+                if idx in wrap_cols:
+                    self.set_xy(x + 1, y0 + 1)
+                    self.multi_cell(
+                        largura - 2,
+                        line_h,
+                        valor or "",
+                        border=0,
+                        align="L",
+                        new_x=XPos.RIGHT,
+                        new_y=YPos.TOP,
+                    )
+                else:
+                    # Centraliza verticalmente texto de uma linha
+                    self.set_xy(x + 1, y0 + (row_h - line_h) / 2)
+                    self.cell(largura - 2, line_h, valor or "", border=0)
+                x += largura
+
+            self.set_xy(x0, y0 + row_h)
 
     def rodape_relatorio(self) -> None:
         self.set_y(-12)
@@ -160,10 +215,10 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
 
     colunas = [
         ("ID", 12),
-        ("Família", 55),
-        ("Pessoas", 100),
-        ("Telefone", 38),
-        ("Status", 52),
+        ("Família", 58),
+        ("Pessoas", 110),
+        ("Telefone", 36),
+        ("Status", 41),
     ]
     linhas = []
     for item in inscricoes:
@@ -171,14 +226,15 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
         linhas.append(
             [
                 str(item.get("id", "")),
-                (item.get("nome_completo") or "")[:48],
-                pessoas[:95],
-                (item.get("telefone") or "")[:24],
-                (item.get("status_texto") or "")[:32],
+                (item.get("nome_completo") or "").strip(),
+                _formatar_pessoas(pessoas),
+                (item.get("telefone") or "").strip(),
+                (item.get("status_texto") or "").strip(),
             ]
         )
 
-    pdf.tabela(colunas, linhas)
+    # Família (1) e Pessoas (2) quebram linha e mostram o texto completo
+    pdf.tabela(colunas, linhas, wrap_cols={1, 2})
     pdf.rodape_relatorio()
     return bytes(pdf.output())
 
@@ -200,27 +256,27 @@ def gerar_pdf_casais(inscricoes: list[dict]) -> bytes:
 
     colunas = [
         ("ID", 10),
-        ("Marido", 42),
+        ("Marido", 48),
         ("Tel. marido", 32),
-        ("Mulher", 42),
+        ("Mulher", 48),
         ("Tel. mulher", 32),
         ("Status", 38),
-        ("Enviado em", 41),
+        ("Enviado em", 29),
     ]
     linhas = []
     for item in inscricoes:
         linhas.append(
             [
                 str(item.get("id", "")),
-                (item.get("nome_marido") or "")[:38],
-                (item.get("telefone_marido") or "")[:22],
-                (item.get("nome_mulher") or "")[:38],
-                (item.get("telefone_mulher") or "")[:22],
-                (item.get("status_texto") or "")[:28],
+                (item.get("nome_marido") or "").strip(),
+                (item.get("telefone_marido") or "").strip(),
+                (item.get("nome_mulher") or "").strip(),
+                (item.get("telefone_mulher") or "").strip(),
+                (item.get("status_texto") or "").strip(),
                 (item.get("criado_em") or "").replace("T", " ")[:22],
             ]
         )
 
-    pdf.tabela(colunas, linhas)
+    pdf.tabela(colunas, linhas, wrap_cols={1, 3, 5})
     pdf.rodape_relatorio()
     return bytes(pdf.output())
