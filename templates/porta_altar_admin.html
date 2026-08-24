@@ -106,7 +106,19 @@
     <textarea id="descricao" name="descricao" rows="3" placeholder="Recado opcional sobre o vídeo">{{ edit_video.descricao if edit_video else '' }}</textarea>
 
     <label for="video">Arquivo de vídeo{% if edit_video %} (deixe em branco para manter){% endif %}</label>
-    <input id="video" name="video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*" {% if not edit_video %}required{% endif %}>
+    <input
+      id="video"
+      name="video"
+      type="file"
+      accept=".mp4,.webm,.ogg,.mov,video/*"
+      data-max-mb="{{ max_upload_mb }}"
+      {% if not edit_video %}required{% endif %}
+    >
+    <p class="admin-help">
+      MP4, WEBM, OGG ou MOV. Pode durar vários minutos (não há limite de 3 min).
+      Tamanho máximo: {{ max_upload_mb }} MB. Em celular, 1080p costuma caber melhor que 4K.
+    </p>
+    <p class="admin-help" id="video-info" hidden></p>
 
     <label for="capa">Capa / thumbnail (opcional)</label>
     <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
@@ -305,6 +317,83 @@ Assista no Papo de Altar: {{ url_for('porta_altar_page', _external=True) }}
           setTimeout(function () { ok.hidden = true; }, 2200);
         }
       });
+    });
+  }
+
+  var videoInput = document.getElementById("video");
+  var videoInfo = document.getElementById("video-info");
+  var formVideo = document.getElementById("form-video");
+  var maxMb = videoInput ? parseInt(videoInput.getAttribute("data-max-mb") || "1024", 10) : 1024;
+  var maxBytes = maxMb * 1024 * 1024;
+
+  function formatarDuracao(segundos) {
+    if (!isFinite(segundos) || segundos < 0) return "";
+    var total = Math.round(segundos);
+    var min = Math.floor(total / 60);
+    var sec = total % 60;
+    if (min >= 60) {
+      var horas = Math.floor(min / 60);
+      min = min % 60;
+      return horas + " h " + min + " min";
+    }
+    return min + " min " + (sec < 10 ? "0" : "") + sec + " s";
+  }
+
+  function mostrarInfoVideo(texto, erro) {
+    if (!videoInfo) return;
+    videoInfo.hidden = !texto;
+    videoInfo.textContent = texto || "";
+    videoInfo.classList.toggle("admin-msg--erro", !!erro);
+  }
+
+  if (videoInput) {
+    videoInput.addEventListener("change", function () {
+      var arquivo = videoInput.files && videoInput.files[0];
+      if (!arquivo) {
+        mostrarInfoVideo("", false);
+        return;
+      }
+      var tamanhoMb = arquivo.size / (1024 * 1024);
+      if (arquivo.size > maxBytes) {
+        mostrarInfoVideo(
+          "Este arquivo tem " + tamanhoMb.toFixed(1) + " MB. O limite é " + maxMb + " MB. Exporte em MP4 1080p ou comprima e tente de novo.",
+          true
+        );
+        videoInput.value = "";
+        return;
+      }
+      var url = URL.createObjectURL(arquivo);
+      var probe = document.createElement("video");
+      probe.preload = "metadata";
+      probe.onloadedmetadata = function () {
+        URL.revokeObjectURL(url);
+        var duracao = formatarDuracao(probe.duration);
+        mostrarInfoVideo(
+          "Pronto para enviar: " + duracao + " · " + tamanhoMb.toFixed(1) + " MB (vídeos longos são aceitos).",
+          false
+        );
+      };
+      probe.onerror = function () {
+        URL.revokeObjectURL(url);
+        mostrarInfoVideo(
+          "Arquivo de " + tamanhoMb.toFixed(1) + " MB selecionado. A duração será conferida no envio.",
+          false
+        );
+      };
+      probe.src = url;
+    });
+  }
+
+  if (formVideo && videoInput) {
+    formVideo.addEventListener("submit", function (evento) {
+      var arquivo = videoInput.files && videoInput.files[0];
+      if (arquivo && arquivo.size > maxBytes) {
+        evento.preventDefault();
+        mostrarInfoVideo(
+          "Este arquivo passa de " + maxMb + " MB. Comprima ou exporte em 1080p antes de enviar.",
+          true
+        );
+      }
     });
   }
 

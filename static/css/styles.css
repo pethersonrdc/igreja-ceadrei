@@ -1761,6 +1761,12 @@ body.tema-porta-altar .porta-altar-form textarea:hover {
   color: var(--ink-soft);
 }
 
+#video-info.admin-msg--erro {
+  margin-top: 0.35rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 12px;
+}
+
 .admin-thumbs--batismo {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
