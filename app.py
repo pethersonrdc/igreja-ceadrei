@@ -44,7 +44,9 @@ DATA_DIR = BASE_DIR / "data"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
-app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
+# Vídeos de celular com mais de ~3 min passam fácil de 120 MB e falhavam no envio.
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "1024"))
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ceasdrei")
@@ -201,7 +203,27 @@ def inject_admin():
         "maranata_logado": bool(session.get("maranata_ok")),
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
+        "max_upload_mb": MAX_UPLOAD_MB,
     }
+
+
+@app.errorhandler(413)
+def request_entity_too_large(_error):
+    """Arquivo maior que MAX_CONTENT_LENGTH — vídeos longos da mídia."""
+    flash(
+        f"O arquivo é grande demais (limite {MAX_UPLOAD_MB} MB). "
+        "Vídeos com mais de 3 minutos são permitidos. Se o celular gravou em 4K, "
+        "exporte em MP4 1080p ou comprima um pouco e envie de novo.",
+        "erro",
+    )
+    path = request.path or ""
+    if path.startswith("/porta-do-altar"):
+        destino = url_for("porta_altar_admin")
+    elif path.startswith("/admin"):
+        destino = url_for("admin_galeria")
+    else:
+        destino = url_for("home")
+    return redirect(destino)
 
 
 def mensagem_do_dia() -> dict:

@@ -9,7 +9,7 @@ Group=www-data
 WorkingDirectory=/var/www/igreja-ceadrei
 EnvironmentFile=-/var/www/igreja-ceadrei/.env
 Environment=DATA_DIR=/var/data/igreja-ceadrei
-ExecStart=/var/www/igreja-ceadrei/.venv/bin/gunicorn app:app --bind 127.0.0.1:8000 --workers 2 --timeout 120
+ExecStart=/var/www/igreja-ceadrei/.venv/bin/gunicorn app:app --bind 127.0.0.1:8000 --workers 2 --timeout 600
 Restart=always
 RestartSec=3
 
