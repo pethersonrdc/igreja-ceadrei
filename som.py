@@ -1,5 +1,5 @@
 """
-Equipe de Som CEASDREI — inventário, manutenção e relatórios por culto.
+Equipe de Som CEASDREI — inventário, manutenção, gastos e relatórios por culto.
 Painel restrito (senha SOM_PASSWORD).
 """
 
@@ -36,56 +36,56 @@ SEVERIDADE = {
     "critica": "Crítica",
 }
 
-# Inventário inicial (igreja / PA típico)
+# Inventário inicial (nome…, status, obs, custo_unitário R$)
 SEED_CABOS = [
-    ("XLR macho-fêmea", "XLR", 5, 8, "Microfones / DI", "ok", "Cabos de microfone curtos"),
-    ("XLR macho-fêmea", "XLR", 10, 12, "Palco → mesa", "ok", "Linha principal de vocal"),
-    ("XLR macho-fêmea", "XLR", 15, 6, "Palco longo", "ok", ""),
-    ("XLR macho-fêmea", "XLR", 20, 4, "Coros / fundo", "atencao", "Conferir conectores"),
-    ("P10 mono TS", "P10", 3, 10, "Instrumentos", "ok", "Guitarra / baixo / teclado"),
-    ("P10 mono TS", "P10", 6, 6, "Instrumentos", "ok", ""),
-    ("P10 stereo TRS", "P10", 3, 4, "Teclado / retorno", "ok", ""),
-    ("Speakon NL4", "Speakon", 10, 4, "Caixas principais", "ok", "PA L/R"),
-    ("Speakon NL4", "Speakon", 15, 2, "Subwoofer", "ok", ""),
-    ("Speakon NL4", "Speakon", 5, 4, "Monitores", "ok", ""),
-    ("Powercon / força", "Força", 5, 6, "Amplificadores", "ok", "Distribuir com cuidado"),
-    ("Multicabo stagebox", "Multicabo", 20, 1, "Palco → rack", "ok", "Snake principal"),
-    ("HDMI / vídeo", "HDMI", 10, 2, "Projeção / mídia", "ok", ""),
-    ("Cat6 / rede", "Rede", 15, 3, "Ui24R / Wi-Fi", "ok", "Controle da mesa"),
+    ("XLR macho-fêmea", "XLR", 5, 8, "Microfones / DI", "ok", "Cabos de microfone curtos", 45),
+    ("XLR macho-fêmea", "XLR", 10, 12, "Palco → mesa", "ok", "Linha principal de vocal", 70),
+    ("XLR macho-fêmea", "XLR", 15, 6, "Palco longo", "ok", "", 95),
+    ("XLR macho-fêmea", "XLR", 20, 4, "Coros / fundo", "atencao", "Conferir conectores", 120),
+    ("P10 mono TS", "P10", 3, 10, "Instrumentos", "ok", "Guitarra / baixo / teclado", 25),
+    ("P10 mono TS", "P10", 6, 6, "Instrumentos", "ok", "", 40),
+    ("P10 stereo TRS", "P10", 3, 4, "Teclado / retorno", "ok", "", 35),
+    ("Speakon NL4", "Speakon", 10, 4, "Caixas principais", "ok", "PA L/R", 90),
+    ("Speakon NL4", "Speakon", 15, 2, "Subwoofer", "ok", "", 130),
+    ("Speakon NL4", "Speakon", 5, 4, "Monitores", "ok", "", 60),
+    ("Powercon / força", "Força", 5, 6, "Amplificadores", "ok", "Distribuir com cuidado", 80),
+    ("Multicabo stagebox", "Multicabo", 20, 1, "Palco → rack", "ok", "Snake principal", 1800),
+    ("HDMI / vídeo", "HDMI", 10, 2, "Projeção / mídia", "ok", "", 50),
+    ("Cat6 / rede", "Rede", 15, 3, "Ui24R / Wi-Fi", "ok", "Controle da mesa", 40),
 ]
 
 SEED_CAIXAS = [
-    ("PA Principal L", "JBL", "PRX812W", "Principal", "ok", "Torre esquerda"),
-    ("PA Principal R", "JBL", "PRX812W", "Principal", "ok", "Torre direita"),
-    ("Subwoofer 1", "JBL", "PRX818XLF", "Sub", "ok", ""),
-    ("Subwoofer 2", "JBL", "PRX818XLF", "Sub", "ok", ""),
-    ("Monitor pastor", "Yamaha", "DXR10", "Monitor", "ok", "Centro do palco"),
-    ("Monitor louvor L", "Yamaha", "DXR10", "Monitor", "ok", ""),
-    ("Monitor louvor R", "Yamaha", "DXR10", "Monitor", "atencao", "Conferir woofer"),
-    ("Monitor coro", "Behringer", "Eurolive B212D", "Monitor", "ok", ""),
-    ("Caixa sidefill", "JBL", "EON615", "Side", "ok", "Opcional eventos"),
-    ("Caixa portátil", "JBL", "EON One Compact", "Portátil", "ok", "Externos / ensaio"),
+    ("PA Principal L", "JBL", "PRX812W", "Principal", "ok", "Torre esquerda", 6500),
+    ("PA Principal R", "JBL", "PRX812W", "Principal", "ok", "Torre direita", 6500),
+    ("Subwoofer 1", "JBL", "PRX818XLF", "Sub", "ok", "", 7500),
+    ("Subwoofer 2", "JBL", "PRX818XLF", "Sub", "ok", "", 7500),
+    ("Monitor pastor", "Yamaha", "DXR10", "Monitor", "ok", "Centro do palco", 4800),
+    ("Monitor louvor L", "Yamaha", "DXR10", "Monitor", "ok", "", 4800),
+    ("Monitor louvor R", "Yamaha", "DXR10", "Monitor", "atencao", "Conferir woofer", 4800),
+    ("Monitor coro", "Behringer", "Eurolive B212D", "Monitor", "ok", "", 1800),
+    ("Caixa sidefill", "JBL", "EON615", "Side", "ok", "Opcional eventos", 3200),
+    ("Caixa portátil", "JBL", "EON One Compact", "Portátil", "ok", "Externos / ensaio", 4500),
 ]
 
 SEED_EQUIPAMENTOS = [
-    ("Mesa digital", "Soundcraft", "Ui24R", "Rack / FOH", "ok", "Mesa principal da igreja"),
-    ("Stagebox / I/O", "Soundcraft", "Ui24R I/O", "Palco", "ok", "Entradas no palco"),
-    ("Microfone pastor", "Shure", "SM58", "Vocal", "ok", "Com clip e cachimbo"),
-    ("Microfone vocal 2", "Shure", "SM58", "Vocal", "ok", ""),
-    ("Microfone vocal 3", "Shure", "SM58", "Vocal", "ok", ""),
-    ("Microfone coral", "Shure", "SM81", "Coral", "ok", "Condensador"),
-    ("Microfone bateria kick", "AKG", "D112", "Bateria", "ok", ""),
-    ("Microfone overhead", "Rode", "M5 pair", "Bateria", "ok", "Par"),
-    ("DI box ativa", "Radial", "J48", "Instrumento", "ok", "2 unidades"),
-    ("DI box passiva", "Behringer", "Ultra-DI", "Instrumento", "ok", "4 unidades"),
-    ("Amplificador guitarra", "Fender", "Hot Rod Deluxe", "Backline", "ok", ""),
-    ("Amplificador baixo", "Ampeg", "BA-115", "Backline", "ok", ""),
-    ("In-ear / retorno pessoal", "Shure", "PSM 300", "Monitor", "atencao", "Conferir antena"),
-    ("Roteador Wi-Fi mesa", "Soundcraft", "Ui built-in", "Rede", "ok", "Controle tablets"),
-    ("Nobreak rack", "APC", "1500VA", "Energia", "ok", "Proteção do rack"),
-    ("Suporte pedestal boom", "On-Stage", "MS7701B", "Suporte", "ok", "6 unidades"),
-    ("Suporte caixa", "On-Stage", "SS7745", "Suporte", "ok", "4 unidades"),
-    ("Case / rack voador", "Genérico", "12U", "Rack", "ok", "Organizar cabos reserva"),
+    ("Mesa digital", "Soundcraft", "Ui24R", "Rack / FOH", "ok", "Mesa principal da igreja", 18000),
+    ("Stagebox / I/O", "Soundcraft", "Ui24R I/O", "Palco", "ok", "Entradas no palco", 2500),
+    ("Microfone pastor", "Shure", "SM58", "Vocal", "ok", "Com clip e cachimbo", 850),
+    ("Microfone vocal 2", "Shure", "SM58", "Vocal", "ok", "", 850),
+    ("Microfone vocal 3", "Shure", "SM58", "Vocal", "ok", "", 850),
+    ("Microfone coral", "Shure", "SM81", "Coral", "ok", "Condensador", 2200),
+    ("Microfone bateria kick", "AKG", "D112", "Bateria", "ok", "", 1100),
+    ("Microfone overhead", "Rode", "M5 pair", "Bateria", "ok", "Par", 1400),
+    ("DI box ativa", "Radial", "J48", "Instrumento", "ok", "2 unidades", 2400),
+    ("DI box passiva", "Behringer", "Ultra-DI", "Instrumento", "ok", "4 unidades", 600),
+    ("Amplificador guitarra", "Fender", "Hot Rod Deluxe", "Backline", "ok", "", 5500),
+    ("Amplificador baixo", "Ampeg", "BA-115", "Backline", "ok", "", 3200),
+    ("In-ear / retorno pessoal", "Shure", "PSM 300", "Monitor", "atencao", "Conferir antena", 4500),
+    ("Roteador Wi-Fi mesa", "Soundcraft", "Ui built-in", "Rede", "ok", "Controle tablets", 0),
+    ("Nobreak rack", "APC", "1500VA", "Energia", "ok", "Proteção do rack", 1200),
+    ("Suporte pedestal boom", "On-Stage", "MS7701B", "Suporte", "ok", "6 unidades", 1080),
+    ("Suporte caixa", "On-Stage", "SS7745", "Suporte", "ok", "4 unidades", 800),
+    ("Case / rack voador", "Genérico", "12U", "Rack", "ok", "Organizar cabos reserva", 1500),
 ]
 
 SEED_CHECKLIST_PALCO = [
@@ -101,12 +101,56 @@ SEED_CHECKLIST_PALCO = [
     ("Após o culto: desligar, enrolar cabos, checklist de danos", 10),
 ]
 
+SEED_MELHORIAS = [
+    (
+        "Reserva de XLR 10m (6 unidades)",
+        "Evitar emendas e falhas em cultos lotados.",
+        "media",
+        420,
+    ),
+    (
+        "Troca do woofer do monitor louvor R",
+        "Item em atenção — reposição do falante.",
+        "alta",
+        650,
+    ),
+    (
+        "Segundo sistema in-ear (PSM)",
+        "Melhor retorno para vocal principal sem volume no palco.",
+        "alta",
+        4500,
+    ),
+    (
+        "Case organizado para cabos",
+        "Separar XLR / Speakon / P10 por metragem.",
+        "baixa",
+        350,
+    ),
+]
+
 
 def _connect() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _ensure_column(conn: sqlite3.Connection, tabela: str, coluna: str, ddl: str) -> None:
+    cols = {row["name"] for row in conn.execute(f"PRAGMA table_info({tabela})").fetchall()}
+    if coluna not in cols:
+        conn.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {ddl}")
+
+
+def _money(valor) -> float:
+    try:
+        return max(0.0, float(str(valor).replace(",", ".").strip() or 0))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _brl(valor: float) -> str:
+    return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 
 def init_db() -> None:
@@ -122,6 +166,7 @@ def init_db() -> None:
                 uso TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'ok',
                 obs TEXT NOT NULL DEFAULT '',
+                custo_unitario REAL NOT NULL DEFAULT 0,
                 atualizado_em TEXT NOT NULL DEFAULT ''
             );
             CREATE TABLE IF NOT EXISTS caixas (
@@ -132,6 +177,7 @@ def init_db() -> None:
                 funcao TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'ok',
                 obs TEXT NOT NULL DEFAULT '',
+                custo_unitario REAL NOT NULL DEFAULT 0,
                 atualizado_em TEXT NOT NULL DEFAULT ''
             );
             CREATE TABLE IF NOT EXISTS equipamentos (
@@ -142,6 +188,7 @@ def init_db() -> None:
                 categoria TEXT NOT NULL DEFAULT '',
                 status TEXT NOT NULL DEFAULT 'ok',
                 obs TEXT NOT NULL DEFAULT '',
+                custo_unitario REAL NOT NULL DEFAULT 0,
                 atualizado_em TEXT NOT NULL DEFAULT ''
             );
             CREATE TABLE IF NOT EXISTS checklist_palco (
@@ -157,6 +204,7 @@ def init_db() -> None:
                 descricao TEXT NOT NULL DEFAULT '',
                 prioridade TEXT NOT NULL DEFAULT 'media',
                 status TEXT NOT NULL DEFAULT 'aberta',
+                custo_estimado REAL NOT NULL DEFAULT 0,
                 criado_em TEXT NOT NULL DEFAULT ''
             );
             CREATE TABLE IF NOT EXISTS relatorios (
@@ -171,27 +219,35 @@ def init_db() -> None:
             );
             """
         )
+        _ensure_column(conn, "cabos", "custo_unitario", "REAL NOT NULL DEFAULT 0")
+        _ensure_column(conn, "caixas", "custo_unitario", "REAL NOT NULL DEFAULT 0")
+        _ensure_column(conn, "equipamentos", "custo_unitario", "REAL NOT NULL DEFAULT 0")
+        _ensure_column(conn, "melhorias", "custo_estimado", "REAL NOT NULL DEFAULT 0")
+
+        agora = datetime.now().isoformat(timespec="seconds")
         n_cabos = conn.execute("SELECT COUNT(*) AS c FROM cabos").fetchone()["c"]
         if n_cabos == 0:
-            agora = datetime.now().isoformat(timespec="seconds")
             conn.executemany(
                 """
-                INSERT INTO cabos (nome, tipo, metros, quantidade, uso, status, obs, atualizado_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO cabos
+                  (nome, tipo, metros, quantidade, uso, status, obs, custo_unitario, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [(*row, agora) for row in SEED_CABOS],
             )
             conn.executemany(
                 """
-                INSERT INTO caixas (nome, marca, modelo, funcao, status, obs, atualizado_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO caixas
+                  (nome, marca, modelo, funcao, status, obs, custo_unitario, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [(*row, agora) for row in SEED_CAIXAS],
             )
             conn.executemany(
                 """
-                INSERT INTO equipamentos (nome, marca, modelo, categoria, status, obs, atualizado_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO equipamentos
+                  (nome, marca, modelo, categoria, status, obs, custo_unitario, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 [(*row, agora) for row in SEED_EQUIPAMENTOS],
             )
@@ -202,10 +258,59 @@ def init_db() -> None:
                 """,
                 [(item, ordem, agora) for item, ordem in SEED_CHECKLIST_PALCO],
             )
-
-
-def _row(r: sqlite3.Row | None) -> dict:
-    return dict(r) if r else {}
+            conn.executemany(
+                """
+                INSERT INTO melhorias
+                  (titulo, descricao, prioridade, status, custo_estimado, criado_em)
+                VALUES (?, ?, ?, 'aberta', ?, ?)
+                """,
+                [(*row, agora) for row in SEED_MELHORIAS],
+            )
+        else:
+            # Backfill de custos em bases já existentes (sem apagar dados)
+            soma = conn.execute(
+                "SELECT COALESCE(SUM(custo_unitario),0) AS s FROM cabos"
+            ).fetchone()["s"]
+            if float(soma or 0) <= 0:
+                for row in SEED_CABOS:
+                    nome, tipo, metros, _q, _u, _st, _obs, custo = row
+                    conn.execute(
+                        """
+                        UPDATE cabos SET custo_unitario = ?
+                        WHERE nome = ? AND tipo = ? AND metros = ? AND custo_unitario = 0
+                        """,
+                        (custo, nome, tipo, metros),
+                    )
+                for row in SEED_CAIXAS:
+                    nome, marca, modelo, _f, _st, _obs, custo = row
+                    conn.execute(
+                        """
+                        UPDATE caixas SET custo_unitario = ?
+                        WHERE nome = ? AND marca = ? AND modelo = ? AND custo_unitario = 0
+                        """,
+                        (custo, nome, marca, modelo),
+                    )
+                for row in SEED_EQUIPAMENTOS:
+                    nome, marca, modelo, _c, _st, _obs, custo = row
+                    conn.execute(
+                        """
+                        UPDATE equipamentos SET custo_unitario = ?
+                        WHERE nome = ? AND marca = ? AND modelo = ? AND custo_unitario = 0
+                        """,
+                        (custo, nome, marca, modelo),
+                    )
+            n_melhorias = conn.execute(
+                "SELECT COUNT(*) AS c FROM melhorias"
+            ).fetchone()["c"]
+            if n_melhorias == 0:
+                conn.executemany(
+                    """
+                    INSERT INTO melhorias
+                      (titulo, descricao, prioridade, status, custo_estimado, criado_em)
+                    VALUES (?, ?, ?, 'aberta', ?, ?)
+                    """,
+                    [(*row, agora) for row in SEED_MELHORIAS],
+                )
 
 
 def listar_cabos() -> list[dict]:
@@ -214,14 +319,31 @@ def listar_cabos() -> list[dict]:
         rows = conn.execute(
             "SELECT * FROM cabos ORDER BY tipo, metros, nome"
         ).fetchall()
-    return [dict(r) for r in rows]
+    out = []
+    for r in rows:
+        item = dict(r)
+        qtd = int(item.get("quantidade") or 1)
+        unit = float(item.get("custo_unitario") or 0)
+        item["custo_total"] = unit * qtd
+        item["custo_total_brl"] = _brl(item["custo_total"])
+        item["custo_unitario_brl"] = _brl(unit)
+        out.append(item)
+    return out
 
 
 def listar_caixas() -> list[dict]:
     init_db()
     with _connect() as conn:
         rows = conn.execute("SELECT * FROM caixas ORDER BY funcao, nome").fetchall()
-    return [dict(r) for r in rows]
+    out = []
+    for r in rows:
+        item = dict(r)
+        unit = float(item.get("custo_unitario") or 0)
+        item["custo_total"] = unit
+        item["custo_total_brl"] = _brl(unit)
+        item["custo_unitario_brl"] = _brl(unit)
+        out.append(item)
+    return out
 
 
 def listar_equipamentos() -> list[dict]:
@@ -230,7 +352,15 @@ def listar_equipamentos() -> list[dict]:
         rows = conn.execute(
             "SELECT * FROM equipamentos ORDER BY categoria, nome"
         ).fetchall()
-    return [dict(r) for r in rows]
+    out = []
+    for r in rows:
+        item = dict(r)
+        unit = float(item.get("custo_unitario") or 0)
+        item["custo_total"] = unit
+        item["custo_total_brl"] = _brl(unit)
+        item["custo_unitario_brl"] = _brl(unit)
+        out.append(item)
+    return out
 
 
 def listar_checklist() -> list[dict]:
@@ -248,7 +378,13 @@ def listar_melhorias() -> list[dict]:
         rows = conn.execute(
             "SELECT * FROM melhorias ORDER BY id DESC"
         ).fetchall()
-    return [dict(r) for r in rows]
+    out = []
+    for r in rows:
+        item = dict(r)
+        custo = float(item.get("custo_estimado") or 0)
+        item["custo_estimado_brl"] = _brl(custo)
+        out.append(item)
+    return out
 
 
 def listar_relatorios() -> list[dict]:
@@ -322,6 +458,108 @@ def resumo_status() -> dict:
     }
 
 
+def analise_gastos() -> dict:
+    """Totais e séries para gráficos de patrimônio / reposição / melhorias."""
+    cabos = listar_cabos()
+    caixas = listar_caixas()
+    equipamentos = listar_equipamentos()
+    melhorias = listar_melhorias()
+
+    def total_itens(itens: list[dict]) -> float:
+        return sum(float(i.get("custo_total") or 0) for i in itens)
+
+    def total_risco(itens: list[dict]) -> float:
+        return sum(
+            float(i.get("custo_total") or 0)
+            for i in itens
+            if i.get("status") in {"atencao", "manutencao", "fora"}
+        )
+
+    tot_cabos = total_itens(cabos)
+    tot_caixas = total_itens(caixas)
+    tot_equip = total_itens(equipamentos)
+    patrimonio = tot_cabos + tot_caixas + tot_equip
+
+    risco_cabos = total_risco(cabos)
+    risco_caixas = total_risco(caixas)
+    risco_equip = total_risco(equipamentos)
+    reposicao = risco_cabos + risco_caixas + risco_equip
+
+    melhorias_abertas = [m for m in melhorias if m.get("status") != "feita"]
+    orcamento_melhorias = sum(float(m.get("custo_estimado") or 0) for m in melhorias_abertas)
+
+    # Top itens por valor
+    ranking = []
+    for i in cabos:
+        ranking.append(
+            {
+                "label": f"{i['nome']} ({i.get('metros')}m ×{i.get('quantidade')})",
+                "valor": float(i.get("custo_total") or 0),
+                "grupo": "Cabos",
+            }
+        )
+    for i in caixas:
+        ranking.append(
+            {
+                "label": f"{i['nome']} · {i.get('marca')}",
+                "valor": float(i.get("custo_total") or 0),
+                "grupo": "Caixas",
+            }
+        )
+    for i in equipamentos:
+        ranking.append(
+            {
+                "label": f"{i['nome']} · {i.get('marca')}",
+                "valor": float(i.get("custo_total") or 0),
+                "grupo": "Equipamentos",
+            }
+        )
+    ranking.sort(key=lambda x: x["valor"], reverse=True)
+    top = ranking[:8]
+
+    melhorias_chart = [
+        {
+            "label": (m.get("titulo") or "")[:42],
+            "valor": float(m.get("custo_estimado") or 0),
+            "prioridade": m.get("prioridade") or "media",
+        }
+        for m in melhorias_abertas
+        if float(m.get("custo_estimado") or 0) > 0
+    ]
+
+    return {
+        "patrimonio": patrimonio,
+        "patrimonio_brl": _brl(patrimonio),
+        "reposicao": reposicao,
+        "reposicao_brl": _brl(reposicao),
+        "orcamento_melhorias": orcamento_melhorias,
+        "orcamento_melhorias_brl": _brl(orcamento_melhorias),
+        "previsto_total": patrimonio + orcamento_melhorias,
+        "previsto_total_brl": _brl(patrimonio + orcamento_melhorias),
+        "por_categoria": {
+            "labels": ["Cabos", "Caixas", "Equipamentos"],
+            "valores": [round(tot_cabos, 2), round(tot_caixas, 2), round(tot_equip, 2)],
+            "cores": ["#3db8e8", "#f0c75e", "#4fd18b"],
+        },
+        "risco": {
+            "labels": ["Cabos", "Caixas", "Equipamentos"],
+            "valores": [round(risco_cabos, 2), round(risco_caixas, 2), round(risco_equip, 2)],
+            "cores": ["#e8872a", "#e85d5d", "#c084fc"],
+        },
+        "top_itens": {
+            "labels": [t["label"][:36] for t in top],
+            "valores": [round(t["valor"], 2) for t in top],
+        },
+        "melhorias": {
+            "labels": [m["label"] for m in melhorias_chart],
+            "valores": [round(m["valor"], 2) for m in melhorias_chart],
+        },
+        "tot_cabos_brl": _brl(tot_cabos),
+        "tot_caixas_brl": _brl(tot_caixas),
+        "tot_equip_brl": _brl(tot_equip),
+    }
+
+
 def adicionar_cabo(
     *,
     nome: str,
@@ -331,13 +569,15 @@ def adicionar_cabo(
     uso: str,
     status: str,
     obs: str,
+    custo_unitario: float = 0,
 ) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
-            INSERT INTO cabos (nome, tipo, metros, quantidade, uso, status, obs, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO cabos
+              (nome, tipo, metros, quantidade, uso, status, obs, custo_unitario, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome.strip(),
@@ -347,6 +587,7 @@ def adicionar_cabo(
                 uso.strip(),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
+                _money(custo_unitario),
                 datetime.now().isoformat(timespec="seconds"),
             ),
         )
@@ -365,15 +606,34 @@ def atualizar_status_item(tabela: str, item_id: int, status: str) -> None:
         )
 
 
+def atualizar_custo_item(tabela: str, item_id: int, custo_unitario: float) -> None:
+    if tabela not in {"cabos", "caixas", "equipamentos"}:
+        raise ValueError("tabela inválida")
+    init_db()
+    with _connect() as conn:
+        conn.execute(
+            f"UPDATE {tabela} SET custo_unitario = ?, atualizado_em = ? WHERE id = ?",
+            (_money(custo_unitario), datetime.now().isoformat(timespec="seconds"), item_id),
+        )
+
+
 def adicionar_caixa(
-    *, nome: str, marca: str, modelo: str, funcao: str, status: str, obs: str
+    *,
+    nome: str,
+    marca: str,
+    modelo: str,
+    funcao: str,
+    status: str,
+    obs: str,
+    custo_unitario: float = 0,
 ) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
-            INSERT INTO caixas (nome, marca, modelo, funcao, status, obs, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO caixas
+              (nome, marca, modelo, funcao, status, obs, custo_unitario, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome.strip(),
@@ -382,6 +642,7 @@ def adicionar_caixa(
                 funcao.strip(),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
+                _money(custo_unitario),
                 datetime.now().isoformat(timespec="seconds"),
             ),
         )
@@ -395,14 +656,15 @@ def adicionar_equipamento(
     categoria: str,
     status: str,
     obs: str,
+    custo_unitario: float = 0,
 ) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO equipamentos
-              (nome, marca, modelo, categoria, status, obs, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+              (nome, marca, modelo, categoria, status, obs, custo_unitario, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome.strip(),
@@ -411,6 +673,7 @@ def adicionar_equipamento(
                 categoria.strip(),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
+                _money(custo_unitario),
                 datetime.now().isoformat(timespec="seconds"),
             ),
         )
@@ -440,18 +703,22 @@ def reset_checklist() -> None:
         )
 
 
-def adicionar_melhoria(*, titulo: str, descricao: str, prioridade: str) -> None:
+def adicionar_melhoria(
+    *, titulo: str, descricao: str, prioridade: str, custo_estimado: float = 0
+) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
-            INSERT INTO melhorias (titulo, descricao, prioridade, status, criado_em)
-            VALUES (?, ?, ?, 'aberta', ?)
+            INSERT INTO melhorias
+              (titulo, descricao, prioridade, status, custo_estimado, criado_em)
+            VALUES (?, ?, ?, 'aberta', ?, ?)
             """,
             (
                 titulo.strip(),
                 descricao.strip(),
                 prioridade if prioridade in SEVERIDADE else "media",
+                _money(custo_estimado),
                 datetime.now().isoformat(timespec="seconds"),
             ),
         )

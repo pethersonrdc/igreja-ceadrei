@@ -16,6 +16,7 @@
     </div>
     <nav class="som-tabs" aria-label="Seções do console">
       <a href="#visao" class="som-tab is-active" data-som-tab>Visão</a>
+      <a href="#gastos" class="som-tab" data-som-tab>Gastos</a>
       <a href="#cabos" class="som-tab" data-som-tab>Cabos</a>
       <a href="#caixas" class="som-tab" data-som-tab>Caixas</a>
       <a href="#equip" class="som-tab" data-som-tab>Equipamentos</a>
@@ -91,6 +92,10 @@
     </div>
 
     <div class="som-modulos-grid">
+      <a class="som-modulo" href="#gastos" style="--mod:#f0c75e">
+        <strong>Análise de gastos</strong>
+        <span>Patrimônio, reposição e orçamento</span>
+      </a>
       <a class="som-modulo" href="#cabos" style="--mod:#3db8e8">
         <strong>Manutenção de cabos</strong>
         <span>Lista, metragem, tipo e status</span>
@@ -118,6 +123,56 @@
     </div>
   </section>
 
+  {# ---------- GASTOS / GRÁFICOS ---------- #}
+  <section id="gastos" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Análise de gastos</h2>
+      <p>Estimativa com base no inventário da igreja (valores de referência em R$). Ajuste os custos nos itens se precisar.</p>
+    </div>
+
+    <div class="som-kpi-row">
+      <article class="som-kpi">
+        <span>Patrimônio sonoro</span>
+        <strong>{{ gastos.patrimonio_brl }}</strong>
+        <small>Cabos {{ gastos.tot_cabos_brl }} · Caixas {{ gastos.tot_caixas_brl }} · Equip. {{ gastos.tot_equip_brl }}</small>
+      </article>
+      <article class="som-kpi som-kpi--warn">
+        <span>Reposição em alerta</span>
+        <strong>{{ gastos.reposicao_brl }}</strong>
+        <small>Itens em atenção / manutenção / fora</small>
+      </article>
+      <article class="som-kpi som-kpi--plan">
+        <span>Orçamento de melhorias</span>
+        <strong>{{ gastos.orcamento_melhorias_brl }}</strong>
+        <small>Melhorias abertas com custo estimado</small>
+      </article>
+      <article class="som-kpi som-kpi--total">
+        <span>Visão combinada</span>
+        <strong>{{ gastos.previsto_total_brl }}</strong>
+        <small>Patrimônio + melhorias planejadas</small>
+      </article>
+    </div>
+
+    <div class="som-charts-grid">
+      <figure class="som-chart-card">
+        <figcaption>Patrimônio por categoria</figcaption>
+        <canvas id="chart-categoria" height="220"></canvas>
+      </figure>
+      <figure class="som-chart-card">
+        <figcaption>Valor em risco (precisa atenção)</figcaption>
+        <canvas id="chart-risco" height="220"></canvas>
+      </figure>
+      <figure class="som-chart-card som-chart-card--wide">
+        <figcaption>Maiores investimentos do inventário</figcaption>
+        <canvas id="chart-top" height="260"></canvas>
+      </figure>
+      <figure class="som-chart-card som-chart-card--wide">
+        <figcaption>Custo estimado das melhorias abertas</figcaption>
+        <canvas id="chart-melhorias" height="220"></canvas>
+      </figure>
+    </div>
+  </section>
+
   {# ---------- CABOS ---------- #}
   <section id="cabos" class="som-panel">
     <div class="som-panel-head">
@@ -133,6 +188,8 @@
             <th>Metros</th>
             <th>Qtd</th>
             <th>Uso</th>
+            <th>Custo un.</th>
+            <th>Total</th>
             <th>Status</th>
             <th>Obs</th>
             <th></th>
@@ -146,6 +203,14 @@
             <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
             <td>{{ item.quantidade }}</td>
             <td>{{ item.uso }}</td>
+            <td>
+              <form method="post" class="som-inline-form som-custo-form">
+                <input type="hidden" name="acao" value="custo_cabo">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}" title="Salvar com Enter">
+              </form>
+            </td>
+            <td>{{ item.custo_total_brl }}</td>
             <td>
               <form method="post" class="som-inline-form">
                 <input type="hidden" name="acao" value="status_cabo">
@@ -179,6 +244,7 @@
         <label>Metros <input name="metros" type="number" step="0.5" min="0" required value="10"></label>
         <label>Qtd <input name="quantidade" type="number" min="1" required value="1"></label>
         <label>Uso <input name="uso" placeholder="Palco → mesa"></label>
+        <label>Custo un. (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
           <select name="status">
             {% for chave, rotulo in status_opcoes.items() %}
@@ -206,6 +272,7 @@
             <th>Marca</th>
             <th>Modelo</th>
             <th>Função</th>
+            <th>Custo</th>
             <th>Status</th>
             <th>Obs</th>
             <th></th>
@@ -218,6 +285,13 @@
             <td>{{ item.marca }}</td>
             <td>{{ item.modelo }}</td>
             <td>{{ item.funcao }}</td>
+            <td>
+              <form method="post" class="som-inline-form som-custo-form">
+                <input type="hidden" name="acao" value="custo_caixa">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </form>
+            </td>
             <td>
               <form method="post" class="som-inline-form">
                 <input type="hidden" name="acao" value="status_caixa">
@@ -250,6 +324,7 @@
         <label>Marca <input name="marca" required placeholder="JBL / Yamaha"></label>
         <label>Modelo <input name="modelo" placeholder="PRX812W"></label>
         <label>Função <input name="funcao" placeholder="Principal / Monitor / Sub"></label>
+        <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
           <select name="status">
             {% for chave, rotulo in status_opcoes.items() %}
@@ -277,6 +352,7 @@
             <th>Marca</th>
             <th>Modelo</th>
             <th>Categoria</th>
+            <th>Custo</th>
             <th>Status</th>
             <th>Obs</th>
             <th></th>
@@ -289,6 +365,13 @@
             <td>{{ item.marca }}</td>
             <td>{{ item.modelo }}</td>
             <td>{{ item.categoria }}</td>
+            <td>
+              <form method="post" class="som-inline-form som-custo-form">
+                <input type="hidden" name="acao" value="custo_equip">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </form>
+            </td>
             <td>
               <form method="post" class="som-inline-form">
                 <input type="hidden" name="acao" value="status_equip">
@@ -321,6 +404,7 @@
         <label>Marca <input name="marca" required></label>
         <label>Modelo <input name="modelo"></label>
         <label>Categoria <input name="categoria" placeholder="Vocal / Rack / Suporte"></label>
+        <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
           <select name="status">
             {% for chave, rotulo in status_opcoes.items() %}
@@ -371,7 +455,7 @@
       <article class="som-note som-prio-{{ item.prioridade }}">
         <header>
           <strong>{{ item.titulo }}</strong>
-          <span>{{ item.prioridade }} · {{ item.status }}</span>
+          <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
         </header>
         <p>{{ item.descricao }}</p>
         <form method="post" class="som-inline-form">
@@ -400,6 +484,7 @@
             {% endfor %}
           </select>
         </label>
+        <label>Custo estimado (R$) <input name="custo_estimado" type="number" step="0.01" min="0" value="0"></label>
         <label class="som-span-2">Descrição <textarea name="descricao" rows="3" placeholder="Detalhe o motivo e o benefício"></textarea></label>
       </div>
       <button class="btn btn-primary btn-som" type="submit">Registrar melhoria</button>
@@ -471,6 +556,107 @@
   tabs.forEach((t) => t.addEventListener("click", () => setTimeout(sync, 0)));
   window.addEventListener("hashchange", sync);
   sync();
+
+  document.querySelectorAll(".som-custo-form input[name='custo_unitario']").forEach((input) => {
+    input.addEventListener("change", () => input.form.submit());
+  });
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script id="som-gastos-data" type="application/json">{{ gastos|tojson }}</script>
+<script>
+(function () {
+  const raw = document.getElementById("som-gastos-data");
+  if (!raw || typeof Chart === "undefined") return;
+  const gastos = JSON.parse(raw.textContent);
+  const tick = { color: "rgba(232,238,248,0.7)" };
+  const grid = { color: "rgba(255,255,255,0.08)" };
+  const money = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 0 });
+
+  function doughnut(id, labels, valores, cores) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    new Chart(el, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [{ data: valores, backgroundColor: cores, borderWidth: 0 }]
+      },
+      options: {
+        plugins: {
+          legend: { labels: { color: "#e8eef8" } },
+          tooltip: { callbacks: { label: (c) => " " + money(c.raw) } }
+        }
+      }
+    });
+  }
+
+  function bar(id, labels, valores, cor, horizontal) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    new Chart(el, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          data: valores,
+          backgroundColor: cor,
+          borderRadius: 8,
+          maxBarThickness: 28
+        }]
+      },
+      options: {
+        indexAxis: horizontal ? "y" : "x",
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => money(c.raw) } }
+        },
+        scales: {
+          x: { ticks: tick, grid },
+          y: { ticks: tick, grid }
+        }
+      }
+    });
+  }
+
+  doughnut(
+    "chart-categoria",
+    gastos.por_categoria.labels,
+    gastos.por_categoria.valores,
+    gastos.por_categoria.cores
+  );
+  bar(
+    "chart-risco",
+    gastos.risco.labels,
+    gastos.risco.valores,
+    gastos.risco.cores,
+    false
+  );
+  bar(
+    "chart-top",
+    gastos.top_itens.labels,
+    gastos.top_itens.valores,
+    "#e8872a",
+    true
+  );
+  if (gastos.melhorias.labels.length) {
+    bar(
+      "chart-melhorias",
+      gastos.melhorias.labels,
+      gastos.melhorias.valores,
+      "#c084fc",
+      true
+    );
+  } else {
+    const empty = document.getElementById("chart-melhorias");
+    if (empty) {
+      empty.replaceWith(Object.assign(document.createElement("p"), {
+        className: "som-empty",
+        textContent: "Nenhuma melhoria com custo estimado ainda."
+      }));
+    }
+  }
 })();
 </script>
 {% endblock %}

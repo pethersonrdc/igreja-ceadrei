@@ -2352,11 +2352,17 @@ def som_admin():
                 uso=request.form.get("uso", ""),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Cabo adicionado.", "ok")
         elif acao == "status_cabo" and item_id:
             som.atualizar_status_item("cabos", item_id, request.form.get("status", "ok"))
             flash("Status do cabo atualizado.", "ok")
+        elif acao == "custo_cabo" and item_id:
+            som.atualizar_custo_item(
+                "cabos", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo do cabo atualizado.", "ok")
         elif acao == "excluir_cabo" and item_id:
             som.excluir_item("cabos", item_id)
             flash("Cabo removido.", "ok")
@@ -2368,11 +2374,17 @@ def som_admin():
                 funcao=request.form.get("funcao", ""),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Caixa adicionada.", "ok")
         elif acao == "status_caixa" and item_id:
             som.atualizar_status_item("caixas", item_id, request.form.get("status", "ok"))
             flash("Status da caixa atualizado.", "ok")
+        elif acao == "custo_caixa" and item_id:
+            som.atualizar_custo_item(
+                "caixas", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo da caixa atualizado.", "ok")
         elif acao == "excluir_caixa" and item_id:
             som.excluir_item("caixas", item_id)
             flash("Caixa removida.", "ok")
@@ -2384,6 +2396,7 @@ def som_admin():
                 categoria=request.form.get("categoria", ""),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Equipamento adicionado.", "ok")
         elif acao == "status_equip" and item_id:
@@ -2391,6 +2404,11 @@ def som_admin():
                 "equipamentos", item_id, request.form.get("status", "ok")
             )
             flash("Status do equipamento atualizado.", "ok")
+        elif acao == "custo_equip" and item_id:
+            som.atualizar_custo_item(
+                "equipamentos", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo do equipamento atualizado.", "ok")
         elif acao == "excluir_equip" and item_id:
             som.excluir_item("equipamentos", item_id)
             flash("Equipamento removido.", "ok")
@@ -2404,6 +2422,7 @@ def som_admin():
                 titulo=request.form.get("titulo", ""),
                 descricao=request.form.get("descricao", ""),
                 prioridade=request.form.get("prioridade", "media"),
+                custo_estimado=request.form.get("custo_estimado") or 0,
             )
             flash("Melhoria registrada.", "ok")
         elif acao == "status_melhoria" and item_id:
@@ -2430,6 +2449,7 @@ def som_admin():
         "som_admin.html",
         igreja=load_json("igreja.json"),
         resumo=som.resumo_status(),
+        gastos=som.analise_gastos(),
         cabos=som.listar_cabos(),
         caixas=som.listar_caixas(),
         equipamentos=som.listar_equipamentos(),
