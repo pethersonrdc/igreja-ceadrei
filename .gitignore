@@ -36,6 +36,7 @@ data/pastores.db
 static/uploads/arraial/*
 !static/uploads/arraial/.gitkeep
 data/arraial.db
+data/som.db
 
 # Mocidade
 static/uploads/mocidade/*
