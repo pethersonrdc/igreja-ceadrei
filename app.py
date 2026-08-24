@@ -1141,6 +1141,20 @@ def casais_inscricao():
         elif status not in casais.STATUS_OPCOES:
             erro = "Selecione uma confirmação válida."
         else:
+            existente = casais.buscar_inscricao_existente(
+                nome_marido=nome_marido,
+                telefone_marido=telefone_marido,
+                nome_mulher=nome_mulher,
+                telefone_mulher=telefone_mulher,
+            )
+            if existente:
+                return redirect(
+                    url_for(
+                        "casais_confirmacao",
+                        inscricao_id=existente["id"],
+                        ja=1,
+                    )
+                )
             inscricao_id = casais.criar_inscricao(
                 nome_marido=nome_marido,
                 telefone_marido=telefone_marido,
@@ -1168,11 +1182,30 @@ def casais_confirmacao(inscricao_id: int):
     if not inscricao:
         flash("Inscrição não encontrada.", "erro")
         return redirect(url_for("casais_inscricao"))
+    ja_cadastrado = request.args.get("ja") == "1"
     return render_template(
         "casais_confirmacao.html",
         igreja=igreja,
         inscricao=inscricao,
         h1_responsaveis=casais.H1_RESPONSAVEIS,
+        ja_cadastrado=ja_cadastrado,
+        msg_ja_cadastrado=casais.MSG_JA_CADASTRADO,
+    )
+
+
+@app.route("/casais/confirmacao/<int:inscricao_id>/convite.pdf")
+def casais_baixar_convite(inscricao_id: int):
+    igreja = load_json("igreja.json")
+    inscricao = casais.obter_inscricao(inscricao_id)
+    if not inscricao:
+        flash("Inscrição não encontrada.", "erro")
+        return redirect(url_for("casais_inscricao"))
+    buffer = casais.gerar_bilhete_pdf(inscricao, igreja)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"convite-encontro-casais-{inscricao_id:04d}.pdf",
+        mimetype="application/pdf",
     )
 
 
