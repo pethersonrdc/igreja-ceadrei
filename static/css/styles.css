@@ -6448,6 +6448,19 @@ body.tema-som .btn-primary.btn-som:hover {
   gap: 0.15rem;
 }
 
+.som-note-head {
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.som-note-head > div {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
 .som-note header span {
   color: var(--som-muted);
   font-size: 0.8rem;

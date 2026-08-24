@@ -2480,6 +2480,9 @@ def som_admin():
             ]
             n = som.salvar_melhorias_lote(linhas)
             flash(f"{n} melhoria(s) salvas.", "ok")
+        elif acao == "excluir_melhoria" and item_id:
+            som.excluir_item("melhorias", item_id)
+            flash("Melhoria removida.", "ok")
         elif acao == "status_melhoria" and item_id:
             som.marcar_melhoria(item_id, request.form.get("status", "aberta"))
             flash("Status da melhoria atualizado.", "ok")

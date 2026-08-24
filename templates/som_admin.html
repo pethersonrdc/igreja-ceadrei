@@ -532,15 +532,25 @@
       <h2>Melhorias de equipamentos sonoros</h2>
       <p>Ideias de upgrade, compra e organização. Altere os status e clique em Salvar.</p>
     </div>
+    {% for item in melhorias %}
+    <form id="excluir-melhoria-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_melhoria">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
+    </form>
+    {% endfor %}
     <form method="post" class="som-bloco-form" id="form-salvar-melhorias">
       <input type="hidden" name="acao" value="salvar_melhorias">
       <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
       <div class="som-cards">
         {% for item in melhorias %}
         <article class="som-note som-prio-{{ item.prioridade }}">
-          <header>
-            <strong>{{ item.titulo }}</strong>
-            <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
+          <header class="som-note-head">
+            <div>
+              <strong>{{ item.titulo }}</strong>
+              <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
+            </div>
+            <button type="submit" class="som-btn-mini" form="excluir-melhoria-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" title="Remover melhoria" onclick="return confirm('Remover esta melhoria?')">×</button>
           </header>
           <p>{{ item.descricao }}</p>
           <input type="hidden" name="id" value="{{ item.id }}">
