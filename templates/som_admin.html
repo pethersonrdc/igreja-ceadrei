@@ -177,35 +177,45 @@
   <section id="cabos" class="som-panel">
     <div class="som-panel-head">
       <h2>Manutenção de cabos</h2>
-      <p>Inventário com tipo, metragem e quantidade.</p>
+      <p>Inventário com tipo, metragem e quantidade. Altere várias linhas e clique em Salvar.</p>
     </div>
-    <div class="som-table-wrap">
-      <table class="som-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Tipo</th>
-            <th>Metros</th>
-            <th>Qtd</th>
-            <th>Uso</th>
-            <th>Custo un.</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Obs</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in cabos %}
-          <tr class="som-status-{{ item.status }}">
-            <td>{{ item.nome }}</td>
-            <td>{{ item.tipo }}</td>
-            <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
-            <td>
-              <form method="post" class="som-inline-form">
-                <input type="hidden" name="acao" value="qtd_cabo">
+    {% for item in cabos %}
+    <form id="excluir-cabo-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_cabo">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-cabos">
+      <input type="hidden" name="acao" value="salvar_cabos">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Metros</th>
+              <th>Qtd</th>
+              <th>Uso</th>
+              <th>Custo un.</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cabos %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
                 <input type="hidden" name="id" value="{{ item.id }}">
-                <select name="quantidade" onchange="this.form.submit()" title="Quantidade (1 a 20)">
+              </td>
+              <td>{{ item.tipo }}</td>
+              <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
+              <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (1 a 20)">
                   {% set qtd_atual = item.quantidade|int %}
                   {% for n in range(1, 21) %}
                   <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
@@ -214,43 +224,37 @@
                   <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
                   {% endif %}
                 </select>
-              </form>
-            </td>
-            <td>{{ item.uso }}</td>
-            <td>
-              <form method="post" class="som-inline-form som-custo-form">
-                <input type="hidden" name="acao" value="custo_cabo">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}" title="Salvar com Enter">
-              </form>
-            </td>
-            <td>{{ item.custo_total_brl }}</td>
-            <td>
-              <form method="post" class="som-inline-form">
-                <input type="hidden" name="acao" value="status_cabo">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <select name="status" onchange="this.form.submit()">
+              </td>
+              <td>{{ item.uso }}</td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
+              <td>
+                <select name="status_{{ item.id }}">
                   {% for chave, rotulo in status_opcoes.items() %}
                   <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
                   {% endfor %}
                 </select>
-              </form>
-            </td>
-            <td>{{ item.obs }}</td>
-            <td>
-              <form method="post" onsubmit="return confirm('Excluir este cabo?')">
-                <input type="hidden" name="acao" value="excluir_cabo">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <button type="submit" class="som-btn-mini">×</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-cabo-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir este cabo?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar cabos</button>
+      </div>
+    </form>
     <form class="som-form-add" method="post">
       <input type="hidden" name="acao" value="add_cabo">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
       <h3>Adicionar cabo</h3>
       <div class="som-form-grid">
         <label>Nome <input name="nome" required placeholder="Ex.: XLR macho-fêmea"></label>
@@ -274,7 +278,7 @@
         </label>
         <label class="som-span-2">Obs <input name="obs" placeholder="Observação"></label>
       </div>
-      <button class="btn btn-primary btn-som" type="submit">Salvar cabo</button>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar cabo</button>
     </form>
   </section>
 
@@ -282,62 +286,70 @@
   <section id="caixas" class="som-panel">
     <div class="som-panel-head">
       <h2>Manutenção de caixas</h2>
-      <p>Nome, marca, modelo e função no sistema de som.</p>
+      <p>Nome, marca, modelo e função no sistema de som. Altere várias linhas e clique em Salvar.</p>
     </div>
-    <div class="som-table-wrap">
-      <table class="som-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Função</th>
-            <th>Custo</th>
-            <th>Status</th>
-            <th>Obs</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in caixas %}
-          <tr class="som-status-{{ item.status }}">
-            <td>{{ item.nome }}</td>
-            <td>{{ item.marca }}</td>
-            <td>{{ item.modelo }}</td>
-            <td>{{ item.funcao }}</td>
-            <td>
-              <form method="post" class="som-inline-form som-custo-form">
-                <input type="hidden" name="acao" value="custo_caixa">
+    {% for item in caixas %}
+    <form id="excluir-caixa-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_caixa">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-caixas">
+      <input type="hidden" name="acao" value="salvar_caixas">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Função</th>
+              <th>Custo</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in caixas %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
                 <input type="hidden" name="id" value="{{ item.id }}">
-                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
-              </form>
-            </td>
-            <td>
-              <form method="post" class="som-inline-form">
-                <input type="hidden" name="acao" value="status_caixa">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <select name="status" onchange="this.form.submit()">
+              </td>
+              <td>{{ item.marca }}</td>
+              <td>{{ item.modelo }}</td>
+              <td>{{ item.funcao }}</td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td>
+                <select name="status_{{ item.id }}">
                   {% for chave, rotulo in status_opcoes.items() %}
                   <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
                   {% endfor %}
                 </select>
-              </form>
-            </td>
-            <td>{{ item.obs }}</td>
-            <td>
-              <form method="post" onsubmit="return confirm('Excluir esta caixa?')">
-                <input type="hidden" name="acao" value="excluir_caixa">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <button type="submit" class="som-btn-mini">×</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-caixa-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir esta caixa?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar caixas</button>
+      </div>
+    </form>
     <form class="som-form-add" method="post">
       <input type="hidden" name="acao" value="add_caixa">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
       <h3>Adicionar caixa</h3>
       <div class="som-form-grid">
         <label>Nome <input name="nome" required placeholder="PA Principal L"></label>
@@ -354,7 +366,7 @@
         </label>
         <label>Obs <input name="obs"></label>
       </div>
-      <button class="btn btn-primary btn-som" type="submit">Salvar caixa</button>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar caixa</button>
     </form>
   </section>
 
@@ -362,62 +374,70 @@
   <section id="equip" class="som-panel">
     <div class="som-panel-head">
       <h2>Equipamentos e suporte de som</h2>
-      <p>Ui24R, microfones, DI, pedestais e energia.</p>
+      <p>Ui24R, microfones, DI, pedestais e energia. Altere várias linhas e clique em Salvar.</p>
     </div>
-    <div class="som-table-wrap">
-      <table class="som-table">
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Marca</th>
-            <th>Modelo</th>
-            <th>Categoria</th>
-            <th>Custo</th>
-            <th>Status</th>
-            <th>Obs</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in equipamentos %}
-          <tr class="som-status-{{ item.status }}">
-            <td>{{ item.nome }}</td>
-            <td>{{ item.marca }}</td>
-            <td>{{ item.modelo }}</td>
-            <td>{{ item.categoria }}</td>
-            <td>
-              <form method="post" class="som-inline-form som-custo-form">
-                <input type="hidden" name="acao" value="custo_equip">
+    {% for item in equipamentos %}
+    <form id="excluir-equip-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_equip">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-equip">
+      <input type="hidden" name="acao" value="salvar_equip">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Categoria</th>
+              <th>Custo</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in equipamentos %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
                 <input type="hidden" name="id" value="{{ item.id }}">
-                <input type="number" name="custo_unitario" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
-              </form>
-            </td>
-            <td>
-              <form method="post" class="som-inline-form">
-                <input type="hidden" name="acao" value="status_equip">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <select name="status" onchange="this.form.submit()">
+              </td>
+              <td>{{ item.marca }}</td>
+              <td>{{ item.modelo }}</td>
+              <td>{{ item.categoria }}</td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td>
+                <select name="status_{{ item.id }}">
                   {% for chave, rotulo in status_opcoes.items() %}
                   <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
                   {% endfor %}
                 </select>
-              </form>
-            </td>
-            <td>{{ item.obs }}</td>
-            <td>
-              <form method="post" onsubmit="return confirm('Excluir este item?')">
-                <input type="hidden" name="acao" value="excluir_equip">
-                <input type="hidden" name="id" value="{{ item.id }}">
-                <button type="submit" class="som-btn-mini">×</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-equip-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir este item?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar equipamentos</button>
+      </div>
+    </form>
     <form class="som-form-add" method="post">
       <input type="hidden" name="acao" value="add_equip">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
       <h3>Adicionar equipamento</h3>
       <div class="som-form-grid">
         <label>Nome <input name="nome" required></label>
@@ -434,7 +454,7 @@
         </label>
         <label>Obs <input name="obs"></label>
       </div>
-      <button class="btn btn-primary btn-som" type="submit">Salvar equipamento</button>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar equipamento</button>
     </form>
   </section>
 
@@ -468,32 +488,39 @@
   <section id="melhorias" class="som-panel">
     <div class="som-panel-head">
       <h2>Melhorias de equipamentos sonoros</h2>
-      <p>Ideias de upgrade, compra e organização.</p>
+      <p>Ideias de upgrade, compra e organização. Altere os status e clique em Salvar.</p>
     </div>
-    <div class="som-cards">
-      {% for item in melhorias %}
-      <article class="som-note som-prio-{{ item.prioridade }}">
-        <header>
-          <strong>{{ item.titulo }}</strong>
-          <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
-        </header>
-        <p>{{ item.descricao }}</p>
-        <form method="post" class="som-inline-form">
-          <input type="hidden" name="acao" value="status_melhoria">
+    <form method="post" class="som-bloco-form" id="form-salvar-melhorias">
+      <input type="hidden" name="acao" value="salvar_melhorias">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
+      <div class="som-cards">
+        {% for item in melhorias %}
+        <article class="som-note som-prio-{{ item.prioridade }}">
+          <header>
+            <strong>{{ item.titulo }}</strong>
+            <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
+          </header>
+          <p>{{ item.descricao }}</p>
           <input type="hidden" name="id" value="{{ item.id }}">
-          <select name="status" onchange="this.form.submit()">
+          <select name="status_{{ item.id }}">
             <option value="aberta" {% if item.status == 'aberta' %}selected{% endif %}>Aberta</option>
             <option value="andamento" {% if item.status == 'andamento' %}selected{% endif %}>Em andamento</option>
             <option value="feita" {% if item.status == 'feita' %}selected{% endif %}>Feita</option>
           </select>
-        </form>
-      </article>
-      {% else %}
-      <p class="som-empty">Nenhuma melhoria cadastrada ainda.</p>
-      {% endfor %}
-    </div>
+        </article>
+        {% else %}
+        <p class="som-empty">Nenhuma melhoria cadastrada ainda.</p>
+        {% endfor %}
+      </div>
+      {% if melhorias %}
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar melhorias</button>
+      </div>
+      {% endif %}
+    </form>
     <form class="som-form-add" method="post">
       <input type="hidden" name="acao" value="add_melhoria">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
       <h3>Nova melhoria</h3>
       <div class="som-form-grid">
         <label class="som-span-2">Título <input name="titulo" required placeholder="Ex.: Comprar mais 4 XLR de 10m"></label>
@@ -576,10 +603,6 @@
   tabs.forEach((t) => t.addEventListener("click", () => setTimeout(sync, 0)));
   window.addEventListener("hashchange", sync);
   sync();
-
-  document.querySelectorAll(".som-custo-form input[name='custo_unitario']").forEach((input) => {
-    input.addEventListener("change", () => input.form.submit());
-  });
 })();
 </script>
 

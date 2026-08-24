@@ -641,6 +641,135 @@ def atualizar_quantidade_cabo(item_id: int, quantidade: int) -> None:
         )
 
 
+def salvar_cabos_lote(linhas: list[dict]) -> int:
+    """Salva várias linhas de cabos de uma vez (qtd, custo, status, obs)."""
+    init_db()
+    agora = datetime.now().isoformat(timespec="seconds")
+    salvos = 0
+    with _connect() as conn:
+        for linha in linhas:
+            try:
+                item_id = int(linha.get("id") or 0)
+            except (TypeError, ValueError):
+                continue
+            if not item_id:
+                continue
+            status = linha.get("status") or "ok"
+            if status not in STATUS_OPCOES:
+                status = "ok"
+            conn.execute(
+                """
+                UPDATE cabos
+                   SET quantidade = ?,
+                       custo_unitario = ?,
+                       status = ?,
+                       obs = ?,
+                       atualizado_em = ?
+                 WHERE id = ?
+                """,
+                (
+                    _clamp_quantidade(linha.get("quantidade") or 1),
+                    _money(linha.get("custo_unitario") or 0),
+                    status,
+                    str(linha.get("obs") or "").strip(),
+                    agora,
+                    item_id,
+                ),
+            )
+            salvos += 1
+    return salvos
+
+
+def salvar_caixas_lote(linhas: list[dict]) -> int:
+    """Salva várias linhas de caixas de uma vez (custo, status, obs)."""
+    init_db()
+    agora = datetime.now().isoformat(timespec="seconds")
+    salvos = 0
+    with _connect() as conn:
+        for linha in linhas:
+            try:
+                item_id = int(linha.get("id") or 0)
+            except (TypeError, ValueError):
+                continue
+            if not item_id:
+                continue
+            status = linha.get("status") or "ok"
+            if status not in STATUS_OPCOES:
+                status = "ok"
+            conn.execute(
+                """
+                UPDATE caixas
+                   SET custo_unitario = ?,
+                       status = ?,
+                       obs = ?,
+                       atualizado_em = ?
+                 WHERE id = ?
+                """,
+                (
+                    _money(linha.get("custo_unitario") or 0),
+                    status,
+                    str(linha.get("obs") or "").strip(),
+                    agora,
+                    item_id,
+                ),
+            )
+            salvos += 1
+    return salvos
+
+
+def salvar_equipamentos_lote(linhas: list[dict]) -> int:
+    """Salva várias linhas de equipamentos de uma vez (custo, status, obs)."""
+    init_db()
+    agora = datetime.now().isoformat(timespec="seconds")
+    salvos = 0
+    with _connect() as conn:
+        for linha in linhas:
+            try:
+                item_id = int(linha.get("id") or 0)
+            except (TypeError, ValueError):
+                continue
+            if not item_id:
+                continue
+            status = linha.get("status") or "ok"
+            if status not in STATUS_OPCOES:
+                status = "ok"
+            conn.execute(
+                """
+                UPDATE equipamentos
+                   SET custo_unitario = ?,
+                       status = ?,
+                       obs = ?,
+                       atualizado_em = ?
+                 WHERE id = ?
+                """,
+                (
+                    _money(linha.get("custo_unitario") or 0),
+                    status,
+                    str(linha.get("obs") or "").strip(),
+                    agora,
+                    item_id,
+                ),
+            )
+            salvos += 1
+    return salvos
+
+
+def salvar_melhorias_lote(linhas: list[dict]) -> int:
+    """Salva o status de várias melhorias de uma vez."""
+    init_db()
+    salvos = 0
+    for linha in linhas:
+        try:
+            item_id = int(linha.get("id") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not item_id:
+            continue
+        marcar_melhoria(item_id, linha.get("status") or "aberta")
+        salvos += 1
+    return salvos
+
+
 def adicionar_caixa(
     *,
     nome: str,

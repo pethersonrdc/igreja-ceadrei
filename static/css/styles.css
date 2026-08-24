@@ -6295,13 +6295,30 @@ body.tema-som .btn-primary.btn-som:hover {
 .som-inline-form select,
 .som-form-add input,
 .som-form-add select,
-.som-form-add textarea {
+.som-form-add textarea,
+.som-bloco-form select,
+.som-bloco-form input[type="number"],
+.som-bloco-form input[type="text"] {
   width: 100%;
   background: #0b0e14;
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--som-text);
   border-radius: 0.55rem;
   padding: 0.45rem 0.55rem;
+}
+
+.som-hidden-form {
+  display: none;
+}
+
+.som-salvar-bloco {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0.85rem 0 1.1rem;
+}
+
+.som-salvar-bloco .btn-som {
+  min-width: 11rem;
 }
 
 .som-btn-mini {

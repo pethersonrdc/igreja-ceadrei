@@ -2355,6 +2355,20 @@ def som_admin():
                 custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Cabo adicionado.", "ok")
+        elif acao == "salvar_cabos":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_cabos_lote(linhas)
+            flash(f"{n} cabo(s) salvos.", "ok")
         elif acao == "status_cabo" and item_id:
             som.atualizar_status_item("cabos", item_id, request.form.get("status", "ok"))
             flash("Status do cabo atualizado.", "ok")
@@ -2380,6 +2394,19 @@ def som_admin():
                 custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Caixa adicionada.", "ok")
+        elif acao == "salvar_caixas":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_caixas_lote(linhas)
+            flash(f"{n} caixa(s) salvas.", "ok")
         elif acao == "status_caixa" and item_id:
             som.atualizar_status_item("caixas", item_id, request.form.get("status", "ok"))
             flash("Status da caixa atualizado.", "ok")
@@ -2402,6 +2429,19 @@ def som_admin():
                 custo_unitario=request.form.get("custo_unitario") or 0,
             )
             flash("Equipamento adicionado.", "ok")
+        elif acao == "salvar_equip":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_equipamentos_lote(linhas)
+            flash(f"{n} equipamento(s) salvos.", "ok")
         elif acao == "status_equip" and item_id:
             som.atualizar_status_item(
                 "equipamentos", item_id, request.form.get("status", "ok")
@@ -2428,6 +2468,14 @@ def som_admin():
                 custo_estimado=request.form.get("custo_estimado") or 0,
             )
             flash("Melhoria registrada.", "ok")
+        elif acao == "salvar_melhorias":
+            ids = request.form.getlist("id")
+            linhas = [
+                {"id": sid, "status": request.form.get(f"status_{sid}")}
+                for sid in ids
+            ]
+            n = som.salvar_melhorias_lote(linhas)
+            flash(f"{n} melhoria(s) salvas.", "ok")
         elif acao == "status_melhoria" and item_id:
             som.marcar_melhoria(item_id, request.form.get("status", "aberta"))
             flash("Status da melhoria atualizado.", "ok")
