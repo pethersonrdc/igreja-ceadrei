@@ -4,13 +4,18 @@
 
 {% block content %}
 <section class="page-hero">
-  <p class="eyebrow">Inscrição recebida</p>
+  <p class="eyebrow">{% if ja_cadastrado %}Cadastro já realizado{% else %}Inscrição recebida{% endif %}</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
-  <p>Obrigado! Suas informações foram registradas.</p>
+  {% if ja_cadastrado %}
+  <p class="admin-msg admin-msg--ok casais-ja-msg">{{ msg_ja_cadastrado }}</p>
+  {% else %}
+  <p>Obrigado! Suas informações foram registradas. Baixe o convite para guardar a confirmação.</p>
+  {% endif %}
 </section>
 
 <section class="section admin-login-wrap">
   <article class="admin-card batismo-resumo">
+    <p class="casais-protocolo">Protocolo Nº {{ '%04d'|format(inscricao.id) }}</p>
     <h2>Resumo da sua inscrição</h2>
     <p><strong>Pessoas da família:</strong></p>
     {% if inscricao.pessoas_objs or inscricao.filhos_objs or inscricao.nome_marido or inscricao.nome_mulher %}
@@ -46,9 +51,12 @@
       <strong>Situação:</strong>
       <span class="status-pill status-pill--{{ inscricao.status }}">{{ inscricao.status_texto }}</span>
     </p>
-    <div class="hero-actions">
-      <a class="btn btn-primary" href="{{ url_for('home') }}">Ir para o início</a>
-      <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Nova inscrição</a>
+    <div class="hero-actions casais-convite-acoes">
+      <a
+        class="btn btn-primary"
+        href="{{ url_for('batismo_baixar_convite', inscricao_id=inscricao.id) }}"
+      >Baixar convite (PDF)</a>
+      <a class="btn btn-ghost-dark" href="{{ url_for('home') }}">Ir para o início</a>
     </div>
   </article>
 </section>

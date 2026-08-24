@@ -4,12 +4,14 @@ Evento Batismo — fotos do sítio e inscrições das famílias.
 
 from __future__ import annotations
 
+import io
 import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 import persistencia
+from telefones import nome_chave, telefones_iguais
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
@@ -17,6 +19,16 @@ UPLOAD_DIR = persistencia.upload_dir("batismo")
 DB_PATH = persistencia.db_path("batismo.db")
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+
+H1_RESPONSAVEL = (
+    "Evangelista Sueli é a Responsável pelo evento dúvida entre em contato."
+)
+MSG_JA_CADASTRADO = (
+    "Você já realizou o cadastro com sucesso. "
+    "Aguarde o contato do Líder do evento para demais informações."
+)
+FONT_DIR = BASE_DIR / "static" / "fonts"
+EMBLEMA_PATH = BASE_DIR / "static" / "images" / "emblema.png"
 
 STATUS_OPCOES = {
     "vou": "Vou para o batismo",
@@ -269,6 +281,31 @@ def criar_inscricao(
         return int(cur.lastrowid)
 
 
+def _nomes_da_familia(item: dict) -> set[str]:
+    nomes: list[str] = []
+    for campo in ("nome_marido", "nome_mulher"):
+        nomes.append(item.get(campo) or "")
+    for pessoa in item.get("filhos_objs") or item.get("pessoas_objs") or []:
+        if isinstance(pessoa, dict):
+            nomes.append(pessoa.get("nome") or "")
+    return {nome_chave(n) for n in nomes if nome_chave(n)}
+
+
+def buscar_inscricao_existente(
+    *,
+    telefone: str,
+    nomes: list[str] | None = None,
+) -> dict | None:
+    """O telefone manda: nome diferente não abre outro cadastro."""
+    nomes_novos = {nome_chave(n) for n in (nomes or []) if nome_chave(n)}
+    for item in listar_inscricoes():
+        if telefones_iguais(telefone, item.get("telefone") or ""):
+            return item
+        if nomes_novos and nomes_novos == _nomes_da_familia(item):
+            return item
+    return None
+
+
 def listar_inscricoes() -> list[dict]:
     init_db()
     with _connect() as conn:
@@ -335,3 +372,131 @@ def apagar_inscricao(inscricao_id: int) -> bool:
             (inscricao_id,),
         )
         return cur.rowcount > 0
+
+
+def _fontes_pdf() -> tuple[Path, Path] | None:
+    regular = FONT_DIR / "DejaVuSans.ttf"
+    negrito = FONT_DIR / "DejaVuSans-Bold.ttf"
+    if regular.exists() and negrito.exists():
+        return regular, negrito
+    sistema = Path("/usr/share/fonts/truetype/dejavu")
+    regular_s = sistema / "DejaVuSans.ttf"
+    negrito_s = sistema / "DejaVuSans-Bold.ttf"
+    if regular_s.exists() and negrito_s.exists():
+        return regular_s, negrito_s
+    return None
+
+
+def _nomes_para_bilhete(inscricao: dict) -> list[str]:
+    nomes: list[str] = []
+    for campo in ("nome_marido", "nome_mulher"):
+        valor = (inscricao.get(campo) or "").strip()
+        if valor:
+            nomes.append(valor)
+    for pessoa in inscricao.get("filhos_objs") or inscricao.get("pessoas_objs") or []:
+        if isinstance(pessoa, dict) and (pessoa.get("nome") or "").strip():
+            nomes.append(pessoa["nome"].strip())
+    if not nomes:
+        titulo = (inscricao.get("nome_completo") or "").strip()
+        if titulo:
+            nomes.append(titulo)
+    return nomes
+
+
+def gerar_bilhete_pdf(inscricao: dict, igreja: dict | None = None) -> io.BytesIO:
+    """Convite / bilhete de confirmação da família no batismo."""
+    from fpdf import FPDF
+
+    igreja = igreja or {}
+    nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
+    criado = (inscricao.get("criado_em") or "").replace("T", " ")
+    try:
+        criado_fmt = datetime.fromisoformat(
+            (inscricao.get("criado_em") or "").replace(" ", "T")
+        ).strftime("%d/%m/%Y às %H:%M")
+    except ValueError:
+        criado_fmt = criado or "—"
+
+    pdf = FPDF(orientation="P", unit="mm", format=(148, 210))
+    pdf.set_auto_page_break(auto=False)
+    pdf.add_page()
+    fontes = _fontes_pdf()
+    if fontes:
+        pdf.add_font("Ticket", "", str(fontes[0]))
+        pdf.add_font("Ticket", "B", str(fontes[1]))
+        familia = "Ticket"
+    else:
+        familia = "Helvetica"
+
+    pdf.set_fill_color(26, 92, 110)
+    pdf.rect(0, 0, 148, 18, "F")
+    pdf.set_text_color(245, 251, 252)
+    pdf.set_font(familia, "B", 11)
+    pdf.set_xy(10, 5)
+    pdf.cell(128, 8, nome_igreja, align="C")
+
+    if EMBLEMA_PATH.exists():
+        pdf.image(str(EMBLEMA_PATH), x=64, y=24, w=20)
+
+    pdf.set_text_color(18, 54, 64)
+    pdf.set_font(familia, "B", 16)
+    pdf.set_xy(10, 48)
+    pdf.cell(128, 8, "Convite de confirmação", align="C")
+    pdf.set_font(familia, "", 11)
+    pdf.set_xy(10, 56)
+    pdf.cell(128, 7, "Evento Batismo", align="C")
+
+    protocolo = f"Protocolo Nº {int(inscricao.get('id') or 0):04d}"
+    pdf.set_font(familia, "B", 10)
+    pdf.set_xy(10, 66)
+    pdf.cell(128, 6, protocolo, align="C")
+
+    pdf.set_draw_color(46, 125, 140)
+    pdf.set_line_width(0.4)
+    pdf.line(18, 75, 130, 75)
+
+    pdf.set_font(familia, "B", 12)
+    pdf.set_xy(14, 80)
+    titulo = (inscricao.get("nome_completo") or "Família").strip() or "Família"
+    pdf.multi_cell(120, 7, titulo, align="C")
+
+    pdf.set_font(familia, "", 10)
+    pessoas = _nomes_para_bilhete(inscricao)
+    if pessoas:
+        pdf.set_x(14)
+        pdf.multi_cell(120, 6, "Pessoas: " + ", ".join(pessoas), align="C")
+    pdf.set_x(14)
+    pdf.multi_cell(120, 6, f"Telefone: {inscricao.get('telefone') or '—'}", align="C")
+    pdf.set_x(14)
+    pdf.multi_cell(
+        120,
+        6,
+        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
+        align="C",
+    )
+    pdf.set_x(14)
+    pdf.multi_cell(120, 6, f"Inscrito em: {criado_fmt}", align="C")
+    y = pdf.get_y()
+
+    pdf.set_y(max(y + 8, 145))
+    pdf.set_font(familia, "B", 10)
+    pdf.multi_cell(120, 6, MSG_JA_CADASTRADO, align="C")
+    pdf.ln(3)
+    pdf.set_font(familia, "", 9)
+    pdf.multi_cell(
+        120,
+        5,
+        "Guarde este convite. Não é necessário cadastrar de novo.",
+        align="C",
+    )
+
+    pdf.set_fill_color(26, 92, 110)
+    pdf.rect(0, 195, 148, 15, "F")
+    pdf.set_text_color(245, 251, 252)
+    pdf.set_font(familia, "", 8)
+    pdf.set_xy(10, 198)
+    pdf.cell(128, 8, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
+
+    buffer = io.BytesIO(pdf.output())
+    buffer.seek(0)
+    return buffer

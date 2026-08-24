@@ -140,6 +140,9 @@
               </select>
               <button class="btn btn-ghost-dark" type="submit">Salvar</button>
             </form>
+            <p class="admin-meta" style="margin-top:0.5rem">
+              <a href="{{ url_for('batismo_baixar_convite', inscricao_id=item.id) }}">Baixar convite</a>
+            </p>
             <form
               method="post"
               action="{{ url_for('batismo_apagar_inscricao', inscricao_id=item.id) }}"

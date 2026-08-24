@@ -44,7 +44,7 @@
 <section class="section pagina-fundo-content">
   <div class="section-head">
     <h2>Quem for para o batismo, acesse e preencha</h2>
-    <p>Envie os dados da família e a confirmação de participação.</p>
+    <p>Envie os dados da família e a confirmação de participação. O telefone é a chave: mesmo mudando o nome, se o número já existir o site avisa e libera o convite anterior.</p>
   </div>
 
   {% if erro %}
@@ -82,7 +82,8 @@
     </div>
 
     <label for="telefone">Telefone de contato</label>
-    <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000">
+    <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
+    <p class="admin-help">Use um número da família. Ele impede cadastro repetido.</p>
 
     <fieldset class="batismo-fieldset">
       <legend>Confirmação</legend>

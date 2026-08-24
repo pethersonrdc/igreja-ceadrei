@@ -897,10 +897,22 @@ def batismo_inscricao():
         if not pessoas:
             erro = "Adicione ao menos uma pessoa da família."
         elif not telefone:
-            erro = "Informe o telefone de contato."
+            erro = "Informe o telefone de contato. O número evita cadastro repetido."
         elif status not in batismo.STATUS_OPCOES:
             erro = "Selecione uma confirmação válida."
         else:
+            existente = batismo.buscar_inscricao_existente(
+                telefone=telefone,
+                nomes=[p["nome"] for p in pessoas],
+            )
+            if existente:
+                return redirect(
+                    url_for(
+                        "batismo_confirmacao",
+                        inscricao_id=existente["id"],
+                        ja=1,
+                    )
+                )
             inscricao_id = batismo.criar_inscricao(
                 nome_completo=nome_completo,
                 nome_marido="",
@@ -932,10 +944,29 @@ def batismo_confirmacao(inscricao_id: int):
     if not inscricao:
         flash("Inscrição não encontrada.", "erro")
         return redirect(url_for("batismo_inscricao"))
+    ja_cadastrado = request.args.get("ja") == "1"
     return render_template(
         "batismo_confirmacao.html",
         igreja=igreja,
         inscricao=inscricao,
+        ja_cadastrado=ja_cadastrado,
+        msg_ja_cadastrado=batismo.MSG_JA_CADASTRADO,
+    )
+
+
+@app.route("/batismo/confirmacao/<int:inscricao_id>/convite.pdf")
+def batismo_baixar_convite(inscricao_id: int):
+    igreja = load_json("igreja.json")
+    inscricao = batismo.obter_inscricao(inscricao_id)
+    if not inscricao:
+        flash("Inscrição não encontrada.", "erro")
+        return redirect(url_for("batismo_inscricao"))
+    buffer = batismo.gerar_bilhete_pdf(inscricao, igreja)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"convite-batismo-{inscricao_id:04d}.pdf",
+        mimetype="application/pdf",
     )
 
 
