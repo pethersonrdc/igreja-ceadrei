@@ -23,6 +23,7 @@ ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_louvor.json"
 MEMBROS_JSON_PATH = BASE_DIR / "data" / "louvor_membros.json"
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_VIDEO = {".mp4", ".webm", ".ogg", ".mov"}
 
 H1_RESPONSAVEIS = (
     "Grupo de Louvor CEASDREI — adoração, ministério e comunhão. "
@@ -74,6 +75,9 @@ def texto_whatsapp_dia(item: dict, igreja_nome: str = "IGREJA CEASDREI", link: s
         f"{item.get('data_br') or item.get('data') or ''} · {item.get('dia_semana') or ''}".strip(" ·"),
         f"Equipe: {item.get('equipe') or '—'}",
     ]
+    louvores = (item.get("louvores") or "").strip()
+    if louvores:
+        linhas.append(f"Louvores: {louvores}")
     if link:
         linhas.extend(["", link])
     return "\n".join(linhas)
@@ -92,9 +96,11 @@ def texto_whatsapp_mes(
         "",
     ]
     for item in itens:
-        linhas.append(
-            f"• {item.get('data_br') or item.get('data')}: {item.get('equipe') or '—'}"
-        )
+        linha = f"• {item.get('data_br') or item.get('data')}: {item.get('equipe') or '—'}"
+        louvores = (item.get("louvores") or "").strip()
+        if louvores:
+            linha += f" — {louvores}"
+        linhas.append(linha)
     if not itens:
         linhas.append("Nenhum dia cadastrado neste mês.")
     if link:
@@ -126,6 +132,7 @@ def _ensure_schema() -> None:
                 tema TEXT NOT NULL DEFAULT '',
                 link TEXT NOT NULL DEFAULT '',
                 capa TEXT NOT NULL DEFAULT '',
+                arquivo TEXT NOT NULL DEFAULT '',
                 ativo INTEGER NOT NULL DEFAULT 1,
                 criado_em TEXT NOT NULL
             )
@@ -158,10 +165,25 @@ def _ensure_schema() -> None:
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 data TEXT NOT NULL UNIQUE,
                 equipe TEXT NOT NULL DEFAULT '',
+                louvores TEXT NOT NULL DEFAULT '',
                 criado_em TEXT NOT NULL
             )
             """
         )
+        cols_videos = {
+            row["name"] for row in conn.execute("PRAGMA table_info(videos)").fetchall()
+        }
+        if "arquivo" not in cols_videos:
+            conn.execute(
+                "ALTER TABLE videos ADD COLUMN arquivo TEXT NOT NULL DEFAULT ''"
+            )
+        cols_escala = {
+            row["name"] for row in conn.execute("PRAGMA table_info(escala)").fetchall()
+        }
+        if "louvores" not in cols_escala:
+            conn.execute(
+                "ALTER TABLE escala ADD COLUMN louvores TEXT NOT NULL DEFAULT ''"
+            )
         _seed_membros(conn)
     _db_schema_ok = True
 
@@ -187,6 +209,27 @@ def hoje() -> date:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def extensao_video_ok(nome: str) -> bool:
+    return Path(nome).suffix.lower() in ALLOWED_VIDEO
+
+
+def normalizar_louvores(texto: str) -> str:
+    """Aceita linhas, vírgulas ou ' · '; grava nomes separados por ' · '."""
+    bruto = (texto or "").replace("\r\n", "\n").replace("\r", "\n")
+    bruto = bruto.replace(" · ", "\n").replace("·", "\n")
+    partes: list[str] = []
+    for linha in bruto.split("\n"):
+        for pedaco in linha.split(","):
+            limpo = " ".join(pedaco.split())
+            if limpo and limpo not in partes:
+                partes.append(limpo)
+    return " · ".join(partes)
+
+
+def louvores_para_textarea(texto: str) -> str:
+    return normalizar_louvores(texto).replace(" · ", "\n")
 
 
 def _formatar_data_br(iso: str) -> str:
@@ -248,7 +291,7 @@ def exportar_escala_json() -> None:
     _ensure_schema()
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT data, equipe, criado_em FROM escala ORDER BY data ASC"
+            "SELECT data, equipe, louvores, criado_em FROM escala ORDER BY data ASC"
         ).fetchall()
     _escrever_json(ESCALA_JSON_PATH, {"escala": [dict(r) for r in rows]})
 
@@ -280,14 +323,16 @@ def _importar_escala_json(conn: sqlite3.Connection) -> None:
         )
         conn.execute(
             """
-            INSERT INTO escala (data, equipe, criado_em)
-            VALUES (?, ?, ?)
+            INSERT INTO escala (data, equipe, louvores, criado_em)
+            VALUES (?, ?, ?, ?)
             ON CONFLICT(data) DO UPDATE SET
-                equipe = excluded.equipe
+                equipe = excluded.equipe,
+                louvores = COALESCE(NULLIF(excluded.louvores, ''), escala.louvores)
             """,
             (
                 data_iso,
                 (item.get("equipe") or "").strip(),
+                (item.get("louvores") or "").strip(),
                 criado,
             ),
         )
@@ -411,30 +456,33 @@ def salvar_escala(
     *,
     data_iso: str,
     equipe: str,
+    louvores: str = "",
     escala_id: int | None = None,
 ) -> int:
     init_db()
     criado = agora().isoformat(timespec="seconds")
+    louvores_limpo = normalizar_louvores(louvores)
     with _connect() as conn:
         if escala_id:
             conn.execute(
                 """
                 UPDATE escala
-                SET data = ?, equipe = ?
+                SET data = ?, equipe = ?, louvores = ?
                 WHERE id = ?
                 """,
-                (data_iso, equipe.strip(), escala_id),
+                (data_iso, equipe.strip(), louvores_limpo, escala_id),
             )
             resultado = escala_id
         else:
             cur = conn.execute(
                 """
-                INSERT INTO escala (data, equipe, criado_em)
-                VALUES (?, ?, ?)
+                INSERT INTO escala (data, equipe, louvores, criado_em)
+                VALUES (?, ?, ?, ?)
                 ON CONFLICT(data) DO UPDATE SET
-                    equipe = excluded.equipe
+                    equipe = excluded.equipe,
+                    louvores = excluded.louvores
                 """,
-                (data_iso, equipe.strip(), criado),
+                (data_iso, equipe.strip(), louvores_limpo, criado),
             )
             resultado = int(cur.lastrowid or 0)
     exportar_escala_json()
@@ -543,22 +591,33 @@ def _enriquecer_video(item: dict) -> dict:
     item.update(info)
     item["tema"] = (item.get("tema") or "").strip()
     item["titulo"] = (item.get("titulo") or "").strip()
+    item["arquivo"] = (item.get("arquivo") or "").strip()
+    item["capa"] = (item.get("capa") or "").strip()
+    item["tem_player"] = bool(item.get("embed_url") or item.get("arquivo"))
     return item
 
 
-def criar_video(*, titulo: str, tema: str, link: str, capa: str = "") -> int:
+def criar_video(
+    *,
+    titulo: str,
+    tema: str,
+    link: str,
+    capa: str = "",
+    arquivo: str = "",
+) -> int:
     init_db()
     with _connect() as conn:
         cur = conn.execute(
             """
-            INSERT INTO videos (titulo, tema, link, capa, ativo, criado_em)
-            VALUES (?, ?, ?, ?, 1, ?)
+            INSERT INTO videos (titulo, tema, link, capa, arquivo, ativo, criado_em)
+            VALUES (?, ?, ?, ?, ?, 1, ?)
             """,
             (
                 titulo.strip() or "Vídeo do louvor",
                 tema.strip(),
                 link.strip(),
                 capa.strip(),
+                arquivo.strip(),
                 agora().isoformat(timespec="seconds"),
             ),
         )
@@ -592,15 +651,17 @@ def apagar_video(video_id: int) -> bool:
     init_db()
     with _connect() as conn:
         row = conn.execute(
-            "SELECT capa FROM videos WHERE id = ?",
+            "SELECT capa, arquivo FROM videos WHERE id = ?",
             (video_id,),
         ).fetchone()
         if not row:
             return False
-        if row["capa"]:
-            caminho = UPLOAD_DIR / row["capa"]
-            if caminho.exists():
-                caminho.unlink()
+        for campo in ("capa", "arquivo"):
+            nome = row[campo]
+            if nome:
+                caminho = UPLOAD_DIR / nome
+                if caminho.exists():
+                    caminho.unlink()
         conn.execute("DELETE FROM videos WHERE id = ?", (video_id,))
         return True
 

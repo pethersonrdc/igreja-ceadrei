@@ -75,6 +75,10 @@
       </fieldset>
     </div>
 
+    <label for="louvores">Nomes dos louvores (opcional)</label>
+    <textarea id="louvores" name="louvores" rows="4" placeholder="Um por linha ou separados por vírgula&#10;Ex.:&#10;Grande é o Senhor&#10;Diante da Cruz">{% if editar_escala %}{{ editar_escala.louvores|replace(' · ', '\n') }}{% endif %}</textarea>
+    <p class="admin-help">Não é obrigatório. Aparece na escala pública junto com a equipe.</p>
+
     <button class="btn btn-primary btn-louvor" type="submit">
       {% if editar_escala %}Salvar alteração{% else %}Adicionar à escala{% endif %}
     </button>
@@ -139,6 +143,7 @@
         <tr>
           <th>Data</th>
           <th>Equipe</th>
+          <th>Louvores</th>
           <th></th>
         </tr>
       </thead>
@@ -151,6 +156,7 @@
             {% if item.eh_hoje %}<span class="status-pill status-pill--vou">Hoje</span>{% endif %}
           </td>
           <td class="louvor-equipe">{{ item.equipe or '—' }}</td>
+          <td class="louvor-louvores">{{ item.louvores or '—' }}</td>
           <td>
             <a class="btn btn-ghost-dark" href="{{ url_for('louvor_admin', aba='escala', ano=ano, mes=mes, editar_escala=item.id) }}">Editar</a>
             <form method="post" action="{{ url_for('louvor_apagar_escala', escala_id=item.id) }}" onsubmit="return confirm('Apagar este dia da escala?');" style="display:inline">
@@ -173,7 +179,7 @@
   <form class="admin-card louvor-card" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="video">
     <h2>Novo vídeo</h2>
-    <p class="admin-help">Cole o link do YouTube ou Vimeo. O público pode buscar por título ou tema.</p>
+    <p class="admin-help">Para o vídeo <strong>tocar</strong> na página, envie o arquivo <strong>.mp4</strong> abaixo (não use o campo de capa/imagem).</p>
 
     <label for="titulo">Título</label>
     <input id="titulo" name="titulo" type="text" placeholder="Ex.: Adoração — domingo à noite">
@@ -181,12 +187,16 @@
     <label for="tema">Tema / tags</label>
     <input id="tema" name="tema" type="text" placeholder="Ex.: adoração, natal, juventude">
 
-    <label for="link">Link do vídeo (opcional)</label>
-    <input id="link" name="link" type="text" placeholder="https://www.youtube.com/watch?v=... ou deixe em branco">
-    <p class="admin-help">Pode publicar só com capa/título se ainda não tiver o link.</p>
+    <label for="arquivo_video">Arquivo do vídeo (.mp4) — este é o campo certo</label>
+    <input id="arquivo_video" name="arquivo_video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*">
+    <p class="admin-help">Escolha o arquivo MP4 aqui. Também funciona se você colocar o MP4 no campo de capa.</p>
 
-    <label for="capa">Capa (opcional)</label>
-    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    <label for="link">Ou link do YouTube/Vimeo (opcional)</label>
+    <input id="link" name="link" type="text" placeholder="https://www.youtube.com/watch?v=... ou deixe em branco">
+
+    <label for="capa">Capa / imagem de capa (opcional — só JPG/PNG)</label>
+    <input id="capa" name="capa" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <p class="admin-help">Imagem de preview. Se enviar MP4 aqui por engano, o site trata como vídeo.</p>
 
     <button class="btn btn-primary btn-louvor" type="submit">Publicar vídeo</button>
   </form>
@@ -204,13 +214,31 @@
         <div>
           <strong>{{ video.titulo }}</strong>
           {% if video.tema %}<p class="admin-meta">Tema: {{ video.tema }}</p>{% endif %}
+          {% if video.arquivo %}
+          <p class="admin-meta">Arquivo: {{ video.arquivo }}</p>
+          {% elif video.link %}
           <p class="admin-meta"><a href="{{ video.watch_url or video.link }}" target="_blank" rel="noopener noreferrer">{{ video.link }}</a></p>
+          {% else %}
+          <p class="admin-meta">Sem link e sem arquivo — envie de novo com MP4 ou YouTube.</p>
+          {% endif %}
         </div>
         <form method="post" action="{{ url_for('louvor_apagar_video', video_id=video.id) }}" onsubmit="return confirm('Apagar este vídeo?');">
           <button class="btn btn-ghost-dark" type="submit">Apagar</button>
         </form>
       </div>
-      {% if video.capa %}
+      {% if video.arquivo %}
+      <video
+        class="louvor-video-player"
+        controls
+        playsinline
+        preload="metadata"
+        src="{{ url_for('static', filename='uploads/louvor/' + video.arquivo) }}"
+        {% if video.capa %}poster="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}"{% endif %}
+        style="margin-top:0.75rem"
+      >
+        Seu navegador não reproduz este vídeo.
+      </video>
+      {% elif video.capa %}
       <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="">
       {% endif %}
     </li>
