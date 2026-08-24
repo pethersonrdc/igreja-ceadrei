@@ -121,6 +121,9 @@
               </select>
               <button class="btn btn-ghost-dark" type="submit">Salvar</button>
             </form>
+            <p class="admin-meta" style="margin-top:0.5rem">
+              <a href="{{ url_for('casais_baixar_convite', inscricao_id=item.id) }}">Baixar convite</a>
+            </p>
           </td>
         </tr>
         {% endfor %}
