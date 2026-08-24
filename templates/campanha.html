@@ -26,10 +26,29 @@
   <article class="ministerio-destaque-card {{ info.card }}">
     <p class="eyebrow">Em destaque{% if destaque_publico.data_br %} · {{ destaque_publico.data_br }}{% endif %}</p>
     {% if destaque_publico.tem_imagem %}
+    {% if destaque_publico.imagem_eh_video %}
+    <video class="ministerio-destaque-player" controls preload="metadata" playsinline>
+      <source src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}">
+    </video>
+    {% else %}
     <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}" alt="{{ info.titulo }}">
+    {% endif %}
     {% endif %}
     {% if destaque_publico.mensagem %}
     <p class="ministerio-destaque-msg">{{ destaque_publico.mensagem }}</p>
+    {% endif %}
+    {% if destaque_publico.tem_preleitor %}
+    <div class="preleitor-destaque">
+      {% if destaque_publico.preleitor_foto %}
+      <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.preleitor_foto) }}" alt="{{ destaque_publico.preleitor_nome or 'Preleitor' }}">
+      {% endif %}
+      <div>
+        <span class="preleitor-label">Preleitor</span>
+        {% if destaque_publico.preleitor_nome %}
+        <strong>{{ destaque_publico.preleitor_nome }}</strong>
+        {% endif %}
+      </div>
+    </div>
     {% endif %}
   </article>
 </section>

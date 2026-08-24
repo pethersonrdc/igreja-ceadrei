@@ -23,13 +23,7 @@
 
 <section class="section admin-login-wrap pagina-fundo-content">
   <div class="campanha-login-stage campanha-login-stage--louvor">
-    <div class="login-anim login-anim--louvor" aria-hidden="true">
-      <span class="login-anim-onda login-anim-onda--1"></span>
-      <span class="login-anim-onda login-anim-onda--2"></span>
-      <span class="login-anim-nota login-anim-nota--1"></span>
-      <span class="login-anim-nota login-anim-nota--2"></span>
-      <span class="login-anim-nota login-anim-nota--3"></span>
-    </div>
+    {% include "includes/login_anim_louvor.html" %}
     <form class="admin-card louvor-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('louvor_login', next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
@@ -38,6 +32,10 @@
       {% endif %}
       <button class="btn btn-primary btn-louvor" type="submit">Entrar</button>
     </form>
+    <figure class="arraial-lider-foto login-lider-foto--anim">
+      <img src="{{ url_for('static', filename=foto_lider) }}" alt="Grupo de Louvor">
+      <figcaption>Grupo de Louvor</figcaption>
+    </figure>
   </div>
 </section>
 {% endblock %}

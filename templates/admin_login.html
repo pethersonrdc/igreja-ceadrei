@@ -22,13 +22,16 @@
 </section>
 
 <section class="section admin-login-wrap pagina-fundo-content">
-  <form class="admin-card midia-login-card" method="post" action="{{ url_for('admin_login', next=request.args.get('next', '')) }}">
-    <label for="senha">Senha de acesso</label>
-    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
-    {% if erro %}
-    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
-    {% endif %}
-    <button class="btn btn-primary" type="submit">Entrar</button>
-  </form>
+  <div class="campanha-login-stage campanha-login-stage--midia">
+    {% include "includes/login_anim_louvor.html" %}
+    <form class="admin-card midia-login-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('admin_login', next=request.args.get('next', '')) }}">
+      <label for="senha">Senha de acesso</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary" type="submit">Entrar</button>
+    </form>
+  </div>
 </section>
 {% endblock %}

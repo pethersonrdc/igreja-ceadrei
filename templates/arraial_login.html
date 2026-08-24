@@ -12,16 +12,19 @@
 </section>
 
 <section class="section arraial-login-layout">
-  <form class="admin-card arraial-card" method="post" action="{{ url_for('arraial_login', next=request.args.get('next', '')) }}">
-    <label for="senha">Senha de acesso</label>
-    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
-    {% if erro %}
-    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
-    {% endif %}
-    <button class="btn btn-primary btn-arraial" type="submit">Entrar</button>
-  </form>
+  <div class="campanha-login-stage campanha-login-stage--arraial">
+    {% include "includes/login_anim_louvor.html" %}
+    <form class="admin-card arraial-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('arraial_login', next=request.args.get('next', '')) }}">
+      <label for="senha">Senha de acesso</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary btn-arraial" type="submit">Entrar</button>
+    </form>
+  </div>
 
-  <figure class="arraial-lider-foto">
+  <figure class="arraial-lider-foto login-lider-foto--anim">
     <img src="{{ url_for('static', filename=info.foto_lider) }}" alt="Diac. Cássia">
     <figcaption>Diac. Cássia</figcaption>
   </figure>

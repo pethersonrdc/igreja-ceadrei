@@ -21,6 +21,8 @@
     ·
     <a href="#aviso-home">Aviso da página inicial</a>
     ·
+    <a href="#post-home">Post da página inicial</a>
+    ·
     <a href="#lideres">Fotos dos líderes</a>
     ·
     <a href="{{ url_for('admin_logout') }}">Sair</a>
@@ -150,6 +152,61 @@
       <button class="btn btn-primary" type="submit">Salvar aviso</button>
     </div>
   </form>
+</section>
+
+<section class="section" id="post-home">
+  <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
+    <h2>Post na página inicial</h2>
+    <p class="admin-help">Como o vídeo do louvor: título, texto, link opcional e imagem ou MP4. Aparece no início do site.</p>
+    <input type="hidden" name="acao" value="post_home">
+
+    <label for="post_titulo">Título</label>
+    <input id="post_titulo" name="post_titulo" type="text" placeholder="Ex.: Culto especial — venha conosco" value="{{ post_home.titulo if post_home else '' }}">
+
+    <label for="post_texto">Mensagem</label>
+    <textarea id="post_texto" name="post_texto" rows="3" placeholder="Texto que aparece embaixo do post...">{{ post_home.texto if post_home else '' }}</textarea>
+
+    <label for="post_link">Link (opcional)</label>
+    <input id="post_link" name="post_link" type="text" placeholder="https://... ou deixe em branco" value="{{ post_home.link if post_home else '' }}">
+
+    <label for="post_arquivo">Imagem ou vídeo (opcional)</label>
+    <input id="post_arquivo" name="post_arquivo" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <p class="admin-help">JPG/PNG ou vídeo MP4/WEBM/MOV.</p>
+    {% if post_home and post_home.tem_arquivo %}
+    <p class="admin-help">Arquivo atual:
+      {% if post_home.arquivo_eh_video %}
+      <video class="mocidade-preview" controls preload="metadata" playsinline>
+        <source src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
+      </video>
+      {% else %}
+      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="">
+      {% endif %}
+    </p>
+    {% endif %}
+
+    <label class="check-line">
+      <input type="checkbox" name="post_ativo" value="1" {% if post_home and post_home.ativo %}checked{% endif %}>
+      <span>Mostrar na página inicial</span>
+    </label>
+
+    <div class="porta-altar-form-actions" style="margin-top:0.85rem">
+      <button class="btn btn-primary" type="submit">Salvar post</button>
+    </div>
+  </form>
+
+  {% if post_home and post_home.tem_conteudo %}
+  <div class="hero-actions" style="margin-top:0.75rem">
+    {% if post_home.tem_arquivo %}
+    <form method="post" action="{{ url_for('admin_apagar_arquivo_post_home') }}" onsubmit="return confirm('Apagar o arquivo do post?');">
+      <button class="btn btn-ghost-dark" type="submit">Apagar arquivo</button>
+    </form>
+    {% endif %}
+    <form method="post" onsubmit="return confirm('Limpar todo o post da página inicial?');">
+      <input type="hidden" name="acao" value="limpar_post_home">
+      <button class="btn btn-ghost-dark" type="submit">Limpar post</button>
+    </form>
+  </div>
+  {% endif %}
 </section>
 
 <section class="section" id="lideres">

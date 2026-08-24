@@ -38,7 +38,7 @@
   <form class="admin-card {{ info.card }}" method="post" enctype="multipart/form-data">
     <input type="hidden" name="acao" value="destaque">
     <h2>Destaque do evento</h2>
-    <p class="admin-help">Imagem + mensagem. Na home fica até o dia do evento (some no dia seguinte). Também pode limpar manualmente abaixo.</p>
+    <p class="admin-help">Imagem ou vídeo + mensagem. Na home fica até o dia do evento (some no dia seguinte). Também pode limpar manualmente abaixo.</p>
 
     <label for="data_destaque">Data do evento</label>
     <input
@@ -49,16 +49,37 @@
     >
     <p class="admin-help">Escolha a data no calendário.</p>
 
-    <label for="imagem_destaque">Imagem de destaque</label>
-    <input id="imagem_destaque" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    <label for="imagem_destaque">Imagem ou vídeo de destaque</label>
+    <input id="imagem_destaque" name="imagem" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <p class="admin-help">Pode enviar flyer (JPG/PNG) ou vídeo (MP4, WEBM, MOV).</p>
     {% if destaque.tem_imagem %}
-    <p class="admin-help">Imagem atual:
+    <p class="admin-help">Arquivo atual:
+      {% if destaque.imagem_eh_video %}
+      <video class="mocidade-preview ministerio-destaque-player" controls preload="metadata" playsinline>
+        <source src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque.imagem) }}">
+      </video>
+      {% else %}
       <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque.imagem) }}" alt="">
+      {% endif %}
     </p>
     {% endif %}
 
     <label for="mensagem_destaque">Mensagem embaixo da imagem</label>
     <textarea id="mensagem_destaque" name="mensagem" rows="3" placeholder="Ex.: Culto especial — venha adorar conosco">{{ destaque.mensagem or '' }}</textarea>
+
+    {% if slug == 'leaodejuda' %}
+    <h3 class="admin-subhead">Preleitor</h3>
+    <p class="admin-help">Foto e nome aparecem embaixo do flyer (home e página do Leão).</p>
+    <label for="preleitor_nome">Nome do preleitor</label>
+    <input id="preleitor_nome" name="preleitor_nome" type="text" placeholder="Ex.: Pr. João" value="{{ destaque.preleitor_nome or '' }}">
+    <label for="preleitor_foto">Foto do preleitor</label>
+    <input id="preleitor_foto" name="preleitor_foto" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+    {% if destaque.preleitor_foto %}
+    <p class="admin-help">Foto atual:
+      <img class="pregador-thumb" src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque.preleitor_foto) }}" alt="">
+    </p>
+    {% endif %}
+    {% endif %}
 
     <div class="hero-actions">
       <button class="btn btn-primary {{ info.btn }}" type="submit">Salvar destaque</button>
@@ -69,7 +90,12 @@
   <div class="hero-actions" style="margin-top:0.75rem">
     {% if destaque.tem_imagem %}
     <form method="post" action="{{ url_for('campanha_apagar_imagem_destaque', slug=slug) }}" onsubmit="return confirm('Apagar a imagem do destaque?');">
-      <button class="btn btn-ghost-dark" type="submit">Apagar imagem</button>
+      <button class="btn btn-ghost-dark" type="submit">Apagar imagem/vídeo</button>
+    </form>
+    {% endif %}
+    {% if slug == 'leaodejuda' and destaque.preleitor_foto %}
+    <form method="post" action="{{ url_for('campanha_apagar_foto_preleitor', slug=slug) }}" onsubmit="return confirm('Apagar a foto do preleitor?');">
+      <button class="btn btn-ghost-dark" type="submit">Apagar foto do preleitor</button>
     </form>
     {% endif %}
     <form method="post" onsubmit="return confirm('Limpar todo o destaque?');">

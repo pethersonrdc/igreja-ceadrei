@@ -187,6 +187,15 @@ def louvor_login_required(view):
     return wrapped
 
 
+def _css_asset_version() -> str:
+    """Bust browser/nginx cache of styles.css after deploy."""
+    try:
+        path = Path(app.static_folder) / "css" / "styles.css"
+        return str(int(path.stat().st_mtime))
+    except OSError:
+        return "1"
+
+
 @app.context_processor
 def inject_admin():
     return {
@@ -201,6 +210,7 @@ def inject_admin():
         "maranata_logado": bool(session.get("maranata_ok")),
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
+        "css_asset_version": _css_asset_version(),
     }
 
 
@@ -234,6 +244,7 @@ def home():
     eventos_destaque = pastores.eventos_destaque_home(6)
     info_arraial = arraial.info_evento()
     aviso_home = gallery.obter_aviso_home()
+    post_home = gallery.obter_post_home_publico()
     ministerios_destaque = campanha_eventos.listar_destaques_home()
     mocidade_destaque = mocidade.obter_destaque_publico()
     if mocidade_destaque:
@@ -260,6 +271,7 @@ def home():
                 url_for("louvor_page", _external=True),
             )
         )
+    videos_pos_culto = porta_altar.listar_videos_publicos(tipo="pos_culto")[:2]
     return render_template(
         "index.html",
         igreja=igreja,
@@ -275,9 +287,11 @@ def home():
         arraial=info_arraial,
         cantina_texto=arraial.obter_cantina(),
         aviso_home=aviso_home,
+        post_home=post_home,
         whatsapp_escala_obreiros=whatsapp_escala_obreiros,
         escala_louvor=escala_louvor,
         whatsapp_escala_louvor=whatsapp_escala_louvor,
+        videos_pos_culto=videos_pos_culto,
     )
 
 
@@ -605,6 +619,41 @@ def admin_galeria():
                 flash("Aviso da página inicial removido.", "ok")
             return redirect(url_for("admin_galeria") + "#aviso-home")
 
+        if acao == "post_home":
+            titulo = request.form.get("post_titulo", "").strip()
+            texto = request.form.get("post_texto", "").strip()
+            link = request.form.get("post_link", "").strip()
+            ativo = request.form.get("post_ativo") == "1"
+            arquivo = request.files.get("post_arquivo")
+            nome_final = None
+            gallery.init_db()
+            if arquivo and arquivo.filename:
+                if not gallery.extensao_home_ok(arquivo.filename):
+                    flash("Arquivo do post: use imagem (JPG/PNG) ou vídeo (MP4/WEBM/MOV).", "erro")
+                    return redirect(url_for("admin_galeria") + "#post-home")
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                prefixo = "video" if gallery.arquivo_home_eh_video(nome_seguro) else "img"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
+                arquivo.save(gallery.HOME_UPLOAD_DIR / nome_final)
+            if not titulo and not texto and not nome_final and not link and not gallery.obter_post_home().get("arquivo"):
+                flash("Informe título, texto, link ou envie uma imagem/vídeo.", "erro")
+                return redirect(url_for("admin_galeria") + "#post-home")
+            gallery.salvar_post_home(
+                titulo=titulo,
+                texto=texto,
+                link=link,
+                arquivo=nome_final,
+                ativo=ativo,
+            )
+            flash("Post da página inicial salvo.", "ok")
+            return redirect(url_for("admin_galeria") + "#post-home")
+
+        if acao == "limpar_post_home":
+            gallery.limpar_post_home()
+            flash("Post da página inicial removido.", "ok")
+            return redirect(url_for("admin_galeria") + "#post-home")
+
         culto_titulo = request.form.get("culto_titulo", "").strip() or "Culto da igreja"
         culto_dia = request.form.get("culto_dia", "").strip() or "Recente"
         titulo = request.form.get("titulo", "").strip() or f"Fotos — {culto_titulo}"
@@ -640,8 +689,19 @@ def admin_galeria():
         posts=posts,
         perfis_lideres=lideres_midia.listar_perfis(),
         aviso_home=gallery.obter_aviso_home(),
+        post_home=gallery.obter_post_home(),
         disco_persistente=gallery.disco_persistente_ativo(),
     )
+
+
+@app.route("/admin/galeria/post-home/apagar-arquivo", methods=["POST"])
+@login_required
+def admin_apagar_arquivo_post_home():
+    if gallery.apagar_arquivo_post_home():
+        flash("Arquivo do post da home apagado.", "ok")
+    else:
+        flash("Nenhum arquivo para apagar.", "erro")
+    return redirect(url_for("admin_galeria") + "#post-home")
 
 
 @app.route("/admin/galeria/<int:post_id>/apagar", methods=["POST"])
@@ -672,7 +732,7 @@ def batismo_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("batismo_ok"):
         return redirect(url_for("batismo_admin"))
-    return render_template("batismo_login.html", igreja=igreja, erro=erro)
+    return render_template("batismo_login.html", igreja=igreja, erro=erro, foto_lider=lideres_midia.foto("batismo"))
 
 
 @app.route("/batismo/logout")
@@ -936,54 +996,9 @@ def batismo_exportar_excel():
 @app.route("/batismo/admin/exportar.pdf")
 @batismo_login_required
 def batismo_exportar_pdf():
-    from fpdf import FPDF
+    import pdf_relatorios
 
-    inscricoes = batismo.listar_inscricoes()
-    pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=12)
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Evento Batismo CEASDREI", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(
-        0,
-        8,
-        "Responsavel: Evangelista Sueli",
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
-    pdf.ln(2)
-
-    colunas = [
-        ("ID", 12),
-        ("Familia", 50),
-        ("Pessoas", 90),
-        ("Telefone", 35),
-        ("Status", 40),
-    ]
-    pdf.set_font("Helvetica", "B", 8)
-    for titulo, largura in colunas:
-        pdf.cell(largura, 8, titulo, border=1)
-    pdf.ln()
-
-    pdf.set_font("Helvetica", "", 7)
-    for item in inscricoes:
-        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
-        valores = [
-            str(item["id"]),
-            (item.get("nome_completo") or "")[:45],
-            pessoas[:80],
-            item["telefone"][:22],
-            item["status_texto"][:28],
-        ]
-        for valor, (_, largura) in zip(valores, colunas):
-            pdf.cell(largura, 7, valor, border=1)
-        pdf.ln()
-
-    if not inscricoes:
-        pdf.cell(0, 10, "Nenhuma inscricao registrada.", new_x="LMARGIN", new_y="NEXT")
-
-    buffer = io.BytesIO(pdf.output())
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_batismo(batismo.listar_inscricoes()))
     buffer.seek(0)
     return send_file(
         buffer,
@@ -1008,7 +1023,12 @@ def casais_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("casais_ok"):
         return redirect(url_for("casais_admin"))
-    return render_template("casais_login.html", igreja=igreja, erro=erro)
+    return render_template(
+        "casais_login.html",
+        igreja=igreja,
+        erro=erro,
+        foto_lider=lideres_midia.foto("casais"),
+    )
 
 
 @app.route("/casais/logout")
@@ -1119,6 +1139,7 @@ def casais_page():
         fotos=casais.listar_fotos(),
         programacao=casais.obter_programacao(),
         h1_responsaveis=casais.H1_RESPONSAVEIS,
+        foto_lider=lideres_midia.foto("casais"),
     )
 
 
@@ -1256,57 +1277,9 @@ def casais_exportar_excel():
 @app.route("/casais/admin/exportar.pdf")
 @casais_login_required
 def casais_exportar_pdf():
-    from fpdf import FPDF
+    import pdf_relatorios
 
-    inscricoes = casais.listar_inscricoes()
-    pdf = FPDF(orientation="L", unit="mm", format="A4")
-    pdf.set_auto_page_break(auto=True, margin=12)
-    pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, "Inscricoes - Encontro de Casais CEASDREI", new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font("Helvetica", "", 10)
-    pdf.cell(
-        0,
-        8,
-        "Responsaveis: Diac. Robson e Diac. Luana",
-        new_x="LMARGIN",
-        new_y="NEXT",
-    )
-    pdf.ln(2)
-
-    colunas = [
-        ("ID", 12),
-        ("Marido", 50),
-        ("Tel. marido", 35),
-        ("Mulher", 50),
-        ("Tel. mulher", 35),
-        ("Status", 40),
-        ("Enviado em", 40),
-    ]
-    pdf.set_font("Helvetica", "B", 8)
-    for titulo, largura in colunas:
-        pdf.cell(largura, 8, titulo, border=1)
-    pdf.ln()
-
-    pdf.set_font("Helvetica", "", 7)
-    for item in inscricoes:
-        valores = [
-            str(item["id"]),
-            item["nome_marido"][:40],
-            item["telefone_marido"][:24],
-            item["nome_mulher"][:40],
-            item["telefone_mulher"][:24],
-            item["status_texto"][:30],
-            item["criado_em"].replace("T", " ")[:22],
-        ]
-        for valor, (_, largura) in zip(valores, colunas):
-            pdf.cell(largura, 7, valor, border=1)
-        pdf.ln()
-
-    if not inscricoes:
-        pdf.cell(0, 10, "Nenhuma inscricao registrada.", new_x="LMARGIN", new_y="NEXT")
-
-    buffer = io.BytesIO(pdf.output())
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_casais(casais.listar_inscricoes()))
     buffer.seek(0)
     return send_file(
         buffer,
@@ -1331,7 +1304,12 @@ def pastores_login():
         erro = "Senha incorreta. Tente novamente."
     if session.get("pastores_ok"):
         return redirect(url_for("pastores_admin"))
-    return render_template("pastores_login.html", igreja=igreja, erro=erro)
+    return render_template(
+        "pastores_login.html",
+        igreja=igreja,
+        erro=erro,
+        foto_lider=lideres_midia.foto("pastores"),
+    )
 
 
 @app.route("/pastores/logout")
@@ -1678,7 +1656,7 @@ def mocidade_login():
         igreja=igreja,
         erro=erro,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
     )
 
 
@@ -1758,7 +1736,7 @@ def mocidade_admin():
         "mocidade_admin.html",
         igreja=igreja,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
         posts=mocidade.listar_posts(),
         post_ativo=mocidade.obter_post_ativo(),
         destaque=mocidade.obter_destaque(),
@@ -1815,7 +1793,7 @@ def mocidade_page():
         "mocidade.html",
         igreja=igreja,
         h1_responsaveis=mocidade.H1_RESPONSAVEIS,
-        foto_lideres=mocidade.FOTO_LIDERES,
+        foto_lideres=lideres_midia.foto("mocidade"),
         post_ativo=mocidade.obter_post_ativo(),
         destaque_publico=mocidade.obter_destaque_publico(),
     )
@@ -1846,6 +1824,8 @@ def campanha_login(slug: str):
         erro=erro,
         slug=slug,
         info=info,
+        foto_lider=lideres_midia.foto(slug),
+        nome_lider=lideres_midia.foto_meta(slug).get("nome") or info["titulo"],
     )
 
 
@@ -1878,22 +1858,37 @@ def campanha_admin(slug: str):
                     flash("Data inválida. Escolha a data no calendário.", "erro")
                     return redirect(url_for("campanha_admin", slug=slug))
             mensagem = request.form.get("mensagem", "").strip()
+            preleitor_nome = request.form.get("preleitor_nome", "").strip()
             arquivo = request.files.get("imagem")
             nome_final = ""
             if arquivo and arquivo.filename:
-                if not campanha_eventos.extensao_ok(arquivo.filename):
-                    flash("Imagem: use JPG, PNG, WEBP ou GIF.", "erro")
+                if not campanha_eventos.extensao_destaque_ok(arquivo.filename):
+                    flash("Destaque: use JPG/PNG/WEBP/GIF ou vídeo MP4/WEBM/MOV.", "erro")
                     return redirect(url_for("campanha_admin", slug=slug))
                 nome_seguro = secure_filename(arquivo.filename)
                 extensao = Path(nome_seguro).suffix.lower()
-                nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
+                prefixo = "video" if campanha_eventos.arquivo_eh_video(nome_seguro) else "destaque"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
                 campanha_eventos.init_db(slug)
                 arquivo.save(info["upload_dir"] / nome_final)
+            preleitor_foto_final = ""
+            arquivo_preleitor = request.files.get("preleitor_foto")
+            if arquivo_preleitor and arquivo_preleitor.filename:
+                if not campanha_eventos.extensao_ok(arquivo_preleitor.filename):
+                    flash("Foto do preleitor: use JPG, PNG, WEBP ou GIF.", "erro")
+                    return redirect(url_for("campanha_admin", slug=slug))
+                nome_seguro = secure_filename(arquivo_preleitor.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                preleitor_foto_final = f"preleitor-{uuid.uuid4().hex}{extensao}"
+                campanha_eventos.init_db(slug)
+                arquivo_preleitor.save(info["upload_dir"] / preleitor_foto_final)
             campanha_eventos.salvar_destaque(
                 slug,
                 data_iso=data_iso,
                 mensagem=mensagem,
                 imagem=nome_final,
+                preleitor_nome=preleitor_nome,
+                preleitor_foto=preleitor_foto_final,
             )
             flash("Destaque salvo! Fica na home até o dia do evento (ou até limpar no painel).", "ok")
             return redirect(url_for("campanha_admin", slug=slug))
@@ -1964,6 +1959,16 @@ def campanha_apagar_imagem_destaque(slug: str):
     return redirect(url_for("campanha_admin", slug=slug))
 
 
+@app.route("/evento/<slug>/admin/destaque/apagar-preleitor", methods=["POST"])
+@campanha_login_required
+def campanha_apagar_foto_preleitor(slug: str):
+    if campanha_eventos.apagar_foto_preleitor(slug):
+        flash("Foto do preleitor apagada.", "ok")
+    else:
+        flash("Nenhuma foto do preleitor para apagar.", "erro")
+    return redirect(url_for("campanha_admin", slug=slug))
+
+
 @app.route("/evento/<slug>/admin/post/<int:post_id>/apagar", methods=["POST"])
 @campanha_login_required
 def campanha_apagar_post(slug: str, post_id: int):
@@ -2030,6 +2035,7 @@ def louvor_login():
         igreja=igreja,
         erro=erro,
         h1_responsaveis=louvor.H1_RESPONSAVEIS,
+        foto_lider=lideres_midia.foto("louvor"),
     )
 
 
@@ -2109,13 +2115,17 @@ def louvor_admin():
                 return redirect(url_for("louvor_admin", aba="videos"))
             nome_final = ""
             if arquivo and arquivo.filename:
-                if not louvor.extensao_ok(arquivo.filename):
-                    flash("Capa: use JPG, PNG, WEBP ou GIF.", "erro")
+                if not louvor.extensao_capa_ok(arquivo.filename):
+                    flash("Arquivo: use JPG/PNG/WEBP/GIF ou vídeo MP4/WEBM/MOV.", "erro")
                     return redirect(url_for("louvor_admin", aba="videos"))
                 nome_seguro = secure_filename(arquivo.filename)
                 extensao = Path(nome_seguro).suffix.lower()
-                nome_final = f"capa-{uuid.uuid4().hex}{extensao}"
+                prefixo = "video" if louvor.arquivo_eh_video(nome_seguro) else "capa"
+                nome_final = f"{prefixo}-{uuid.uuid4().hex}{extensao}"
                 arquivo.save(louvor.UPLOAD_DIR / nome_final)
+            if not link and not nome_final:
+                flash("Informe o link do YouTube/Vimeo ou envie um arquivo de vídeo/capa.", "erro")
+                return redirect(url_for("louvor_admin", aba="videos"))
             louvor.criar_video(
                 titulo=titulo,
                 tema=tema,

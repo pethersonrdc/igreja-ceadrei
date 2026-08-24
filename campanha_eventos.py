@@ -15,6 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
+DESTAQUE_EXTENSIONS = ALLOWED_EXTENSIONS | VIDEO_EXTENSIONS
 DIAS_DESTAQUE_ANTES = 7
 # Slugs que entram no bloco "Ministérios em destaque" da home
 DESTAQUE_HOME_SLUGS = ("leoas", "leaodejuda", "maranata")
@@ -35,7 +37,7 @@ EVENTOS = {
         "tema": "tema-leoas",
         "btn": "btn-leoas",
         "card": "leoas-card",
-        "login_anim": "",
+        "login_anim": "louvor",
     },
     "leaodejuda": {
         "titulo": "Leão de Judá",
@@ -47,7 +49,7 @@ EVENTOS = {
         "tema": "tema-leaodejuda",
         "btn": "btn-leaodejuda",
         "card": "leaodejuda-card",
-        "login_anim": "",
+        "login_anim": "louvor",
     },
     "maranata": {
         "titulo": "Dança Maranata",
@@ -59,7 +61,7 @@ EVENTOS = {
         "tema": "tema-maranata",
         "btn": "btn-maranata",
         "card": "maranata-card",
-        "login_anim": "maranata",
+        "login_anim": "louvor",
     },
     "soldadinhos": {
         "titulo": "Soldadinhos de Cristo",
@@ -71,7 +73,7 @@ EVENTOS = {
         "tema": "tema-soldadinhos",
         "btn": "btn-soldadinhos",
         "card": "soldadinhos-card",
-        "login_anim": "soldadinhos",
+        "login_anim": "louvor",
     },
 }
 
@@ -91,6 +93,21 @@ def _connect(slug: str) -> sqlite3.Connection:
     conn = sqlite3.connect(config(slug)["db_path"])
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _ensure_destaque_cols(conn: sqlite3.Connection) -> None:
+    cols = {
+        row["name"]
+        for row in conn.execute("PRAGMA table_info(destaque)").fetchall()
+    }
+    if "preleitor_nome" not in cols:
+        conn.execute(
+            "ALTER TABLE destaque ADD COLUMN preleitor_nome TEXT NOT NULL DEFAULT ''"
+        )
+    if "preleitor_foto" not in cols:
+        conn.execute(
+            "ALTER TABLE destaque ADD COLUMN preleitor_foto TEXT NOT NULL DEFAULT ''"
+        )
 
 
 def init_db(slug: str) -> None:
@@ -117,16 +134,22 @@ def init_db(slug: str) -> None:
                 data TEXT NOT NULL DEFAULT '',
                 imagem TEXT NOT NULL DEFAULT '',
                 mensagem TEXT NOT NULL DEFAULT '',
-                atualizado_em TEXT NOT NULL DEFAULT ''
+                atualizado_em TEXT NOT NULL DEFAULT '',
+                preleitor_nome TEXT NOT NULL DEFAULT '',
+                preleitor_foto TEXT NOT NULL DEFAULT ''
             )
             """
         )
+        _ensure_destaque_cols(conn)
         conn.execute(
             """
-            INSERT OR IGNORE INTO destaque (id, data, imagem, mensagem, atualizado_em)
-            VALUES (1, '', '', '', '')
+            INSERT OR IGNORE INTO destaque
+                (id, data, imagem, mensagem, atualizado_em, preleitor_nome, preleitor_foto)
+            VALUES (1, '', '', '', '', '', '')
             """
         )
+    if slug == "leaodejuda":
+        _seed_destaque_leao()
 
 
 def agora() -> datetime:
@@ -135,6 +158,15 @@ def agora() -> datetime:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def extensao_destaque_ok(nome: str) -> bool:
+    """Destaque do evento: imagem ou vídeo (MP4 etc.)."""
+    return Path(nome).suffix.lower() in DESTAQUE_EXTENSIONS
+
+
+def arquivo_eh_video(nome: str) -> bool:
+    return Path(nome or "").suffix.lower() in VIDEO_EXTENSIONS
 
 
 def criar_post(
@@ -268,6 +300,51 @@ def data_para_iso(valor: str) -> str:
     return parsed.isoformat() if parsed else ""
 
 
+def _seed_destaque_leao() -> None:
+    """Publica o flyer Culto Em Busca da Fé (22/08/2026) uma vez, se o destaque estiver vazio."""
+    slug = "leaodejuda"
+    flag = persistencia.db_path("leaodejuda_destaque_seed.json")
+    if flag.exists():
+        return
+    seed = BASE_DIR / "static" / "images" / "leaodejuda" / "destaque-22082026.jpg"
+    try:
+        if seed.exists():
+            with _connect(slug) as conn:
+                _ensure_destaque_cols(conn)
+                row = conn.execute(
+                    "SELECT data, imagem, mensagem FROM destaque WHERE id = 1"
+                ).fetchone()
+                vazio = row and not (
+                    (row["data"] or "").strip()
+                    or (row["imagem"] or "").strip()
+                    or (row["mensagem"] or "").strip()
+                )
+                if vazio:
+                    dest_nome = "destaque-22082026.jpg"
+                    dest = config(slug)["upload_dir"] / dest_nome
+                    if not dest.exists():
+                        dest.write_bytes(seed.read_bytes())
+                    conn.execute(
+                        """
+                        UPDATE destaque
+                        SET data = ?, imagem = ?, mensagem = ?, atualizado_em = ?
+                        WHERE id = 1
+                        """,
+                        (
+                            "2026-08-22",
+                            dest_nome,
+                            "Culto Em Busca da Fé — Leões de Judá · 22/08/2026 · 19h30",
+                            agora().isoformat(timespec="seconds"),
+                        ),
+                    )
+    finally:
+        flag.parent.mkdir(parents=True, exist_ok=True)
+        flag.write_text(
+            '{"ok": true, "data": "2026-08-22"}\n',
+            encoding="utf-8",
+        )
+
+
 def obter_destaque(slug: str) -> dict:
     init_db(slug)
     with _connect(slug) as conn:
@@ -278,13 +355,24 @@ def obter_destaque(slug: str) -> dict:
             "imagem": "",
             "mensagem": "",
             "atualizado_em": "",
+            "preleitor_nome": "",
+            "preleitor_foto": "",
         }
     data_evt = _parse_data(item.get("data", ""))
     item["data_obj"] = data_evt
     item["data_br"] = data_evt.strftime("%d/%m/%Y") if data_evt else ""
     item["tem_imagem"] = bool((item.get("imagem") or "").strip())
+    item["imagem_eh_video"] = arquivo_eh_video(item.get("imagem") or "")
     item["mensagem"] = (item.get("mensagem") or "").strip()
-    item["tem_conteudo"] = item["tem_imagem"] or bool(item["mensagem"]) or bool(data_evt)
+    item["preleitor_nome"] = (item.get("preleitor_nome") or "").strip()
+    item["preleitor_foto"] = (item.get("preleitor_foto") or "").strip()
+    item["tem_preleitor"] = bool(item["preleitor_nome"] or item["preleitor_foto"])
+    item["tem_conteudo"] = (
+        item["tem_imagem"]
+        or bool(item["mensagem"])
+        or bool(data_evt)
+        or item["tem_preleitor"]
+    )
     return item
 
 
@@ -294,15 +382,27 @@ def salvar_destaque(
     data_iso: str,
     mensagem: str,
     imagem: str = "",
+    preleitor_nome: str | None = None,
+    preleitor_foto: str = "",
 ) -> None:
     init_db(slug)
     atual = obter_destaque(slug)
     imagem_final = imagem.strip() if imagem.strip() else (atual.get("imagem") or "")
+    if preleitor_nome is None:
+        nome_final = atual.get("preleitor_nome") or ""
+    else:
+        nome_final = preleitor_nome.strip()
+    foto_final = (
+        preleitor_foto.strip()
+        if preleitor_foto.strip()
+        else (atual.get("preleitor_foto") or "")
+    )
     with _connect(slug) as conn:
         conn.execute(
             """
             UPDATE destaque
-            SET data = ?, imagem = ?, mensagem = ?, atualizado_em = ?
+            SET data = ?, imagem = ?, mensagem = ?, atualizado_em = ?,
+                preleitor_nome = ?, preleitor_foto = ?
             WHERE id = 1
             """,
             (
@@ -310,6 +410,8 @@ def salvar_destaque(
                 imagem_final,
                 (mensagem or "").strip(),
                 agora().isoformat(timespec="seconds"),
+                nome_final,
+                foto_final,
             ),
         )
 
@@ -335,19 +437,43 @@ def apagar_imagem_destaque(slug: str) -> bool:
     return True
 
 
-def limpar_destaque(slug: str) -> None:
+def apagar_foto_preleitor(slug: str) -> bool:
     init_db(slug)
     atual = obter_destaque(slug)
-    nome = (atual.get("imagem") or "").strip()
-    if nome:
-        caminho = config(slug)["upload_dir"] / nome
-        if caminho.exists():
-            caminho.unlink()
+    nome = (atual.get("preleitor_foto") or "").strip()
+    if not nome:
+        return False
+    caminho = config(slug)["upload_dir"] / nome
+    if caminho.exists():
+        caminho.unlink()
     with _connect(slug) as conn:
         conn.execute(
             """
             UPDATE destaque
-            SET data = '', imagem = '', mensagem = '', atualizado_em = ?
+            SET preleitor_foto = '', atualizado_em = ?
+            WHERE id = 1
+            """,
+            (agora().isoformat(timespec="seconds"),),
+        )
+    return True
+
+
+def limpar_destaque(slug: str) -> None:
+    init_db(slug)
+    atual = obter_destaque(slug)
+    upload = config(slug)["upload_dir"]
+    for chave in ("imagem", "preleitor_foto"):
+        nome = (atual.get(chave) or "").strip()
+        if nome:
+            caminho = upload / nome
+            if caminho.exists():
+                caminho.unlink()
+    with _connect(slug) as conn:
+        conn.execute(
+            """
+            UPDATE destaque
+            SET data = '', imagem = '', mensagem = '',
+                preleitor_nome = '', preleitor_foto = '', atualizado_em = ?
             WHERE id = 1
             """,
             (agora().isoformat(timespec="seconds"),),

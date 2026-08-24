@@ -22,26 +22,10 @@
 </section>
 
 <section class="section admin-login-wrap pagina-fundo-content">
-  <div class="campanha-login-stage{% if info.login_anim %} campanha-login-stage--{{ info.login_anim }}{% endif %}">
-    {% if info.login_anim == 'soldadinhos' %}
-    <div class="login-anim login-anim--soldadinhos" aria-hidden="true">
-      <span class="login-anim-marcha login-anim-marcha--1"></span>
-      <span class="login-anim-marcha login-anim-marcha--2"></span>
-      <span class="login-anim-marcha login-anim-marcha--3"></span>
-      <span class="login-anim-estrela login-anim-estrela--1"></span>
-      <span class="login-anim-estrela login-anim-estrela--2"></span>
-    </div>
-    {% elif info.login_anim == 'maranata' %}
-    <div class="login-anim login-anim--maranata" aria-hidden="true">
-      <span class="login-anim-onda login-anim-onda--1"></span>
-      <span class="login-anim-onda login-anim-onda--2"></span>
-      <span class="login-anim-nota login-anim-nota--1"></span>
-      <span class="login-anim-nota login-anim-nota--2"></span>
-      <span class="login-anim-nota login-anim-nota--3"></span>
-    </div>
-    {% endif %}
+  <div class="campanha-login-stage campanha-login-stage--{{ info.login_anim or 'louvor' }}">
+    {% include "includes/login_anim_louvor.html" %}
 
-    <form class="admin-card {{ info.card }} campanha-login-card{% if info.login_anim %} campanha-login-card--anim{% endif %}" method="post" action="{{ url_for('campanha_login', slug=slug, next=request.args.get('next', '')) }}">
+    <form class="admin-card {{ info.card }} campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('campanha_login', slug=slug, next=request.args.get('next', '')) }}">
       <label for="senha">Senha de acesso</label>
       <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
       {% if erro %}
@@ -49,6 +33,12 @@
       {% endif %}
       <button class="btn btn-primary {{ info.btn }}" type="submit">Entrar</button>
     </form>
+    {% if foto_lider %}
+    <figure class="arraial-lider-foto login-lider-foto--anim">
+      <img src="{{ url_for('static', filename=foto_lider) }}" alt="{{ nome_lider }}">
+      <figcaption>{{ nome_lider }}</figcaption>
+    </figure>
+    {% endif %}
   </div>
 </section>
 {% endblock %}

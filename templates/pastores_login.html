@@ -22,13 +22,20 @@
 </section>
 
 <section class="section admin-login-wrap pagina-fundo-content">
-  <form class="admin-card pastores-login-card" method="post" action="{{ url_for('pastores_login', next=request.args.get('next', '')) }}">
-    <label for="senha">Senha de acesso</label>
-    <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
-    {% if erro %}
-    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
-    {% endif %}
-    <button class="btn btn-primary btn-pastores" type="submit">Entrar</button>
-  </form>
+  <div class="campanha-login-stage campanha-login-stage--pastores">
+    {% include "includes/login_anim_louvor.html" %}
+    <form class="admin-card pastores-login-card campanha-login-card campanha-login-card--anim" method="post" action="{{ url_for('pastores_login', next=request.args.get('next', '')) }}">
+      <label for="senha">Senha de acesso</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary btn-pastores" type="submit">Entrar</button>
+    </form>
+  </div>
+  <figure class="arraial-lider-foto login-lider-foto--anim">
+    <img src="{{ url_for('static', filename=foto_lider) }}" alt="Pas. Solange e Pas. Jose Luiz">
+    <figcaption>Pas. Solange &amp; Pas. Jose Luiz</figcaption>
+  </figure>
 </section>
 {% endblock %}
