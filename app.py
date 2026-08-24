@@ -2495,6 +2495,9 @@ def som_admin():
                 severidade=request.form.get("severidade", "media"),
             )
             flash("Relatório do culto salvo.", "ok")
+        elif acao == "excluir_relatorio" and item_id:
+            som.excluir_item("relatorios", item_id)
+            flash("Relatório removido.", "ok")
         elif acao == "resolver_relatorio" and item_id:
             resolvido = request.form.get("resolvido") == "1"
             som.resolver_relatorio(item_id, resolvido=resolvido)

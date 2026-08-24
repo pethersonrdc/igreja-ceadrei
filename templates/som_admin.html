@@ -598,6 +598,7 @@
     </div>
     <form class="som-form-add" method="post">
       <input type="hidden" name="acao" value="add_relatorio">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
       <h3>Novo relatório</h3>
       <div class="som-form-grid">
         <label>Data do culto <input name="data_culto" type="date" required></label>
@@ -624,15 +625,24 @@
     <div class="som-cards som-cards--rel">
       {% for item in relatorios %}
       <article class="som-note som-sev-{{ item.severidade }} {% if item.resolvido %}is-resolved{% endif %}">
-        <header>
-          <strong>{{ item.titulo }}</strong>
-          <span>{{ item.data_culto }} · {{ item.tipo_texto }} · {{ item.severidade_texto }}</span>
+        <header class="som-note-head">
+          <div>
+            <strong>{{ item.titulo }}</strong>
+            <span>{{ item.data_culto }} · {{ item.tipo_texto }} · {{ item.severidade_texto }}</span>
+          </div>
+          <form method="post" class="som-inline-form" onsubmit="return confirm('Remover este relatório?')">
+            <input type="hidden" name="acao" value="excluir_relatorio">
+            <input type="hidden" name="id" value="{{ item.id }}">
+            <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
+            <button type="submit" class="som-btn-mini" title="Remover relatório">×</button>
+          </form>
         </header>
         <p>{{ item.descricao }}</p>
         <form method="post" class="som-inline-form">
           <input type="hidden" name="acao" value="resolver_relatorio">
           <input type="hidden" name="id" value="{{ item.id }}">
           <input type="hidden" name="resolvido" value="{{ 0 if item.resolvido else 1 }}">
+          <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
           <button class="som-btn-mini som-btn-wide" type="submit">
             {{ 'Reabrir' if item.resolvido else 'Marcar resolvido' }}
           </button>
