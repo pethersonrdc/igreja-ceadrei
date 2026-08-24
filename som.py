@@ -583,7 +583,7 @@ def adicionar_cabo(
                 nome.strip(),
                 tipo.strip(),
                 float(metros or 0),
-                int(quantidade or 1),
+                _clamp_quantidade(quantidade),
                 uso.strip(),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
@@ -614,6 +614,28 @@ def atualizar_custo_item(tabela: str, item_id: int, custo_unitario: float) -> No
         conn.execute(
             f"UPDATE {tabela} SET custo_unitario = ?, atualizado_em = ? WHERE id = ?",
             (_money(custo_unitario), datetime.now().isoformat(timespec="seconds"), item_id),
+        )
+
+
+def _clamp_quantidade(quantidade: int | str, minimo: int = 1, maximo: int = 20) -> int:
+    try:
+        qtd = int(quantidade)
+    except (TypeError, ValueError):
+        qtd = minimo
+    return max(minimo, min(maximo, qtd))
+
+
+def atualizar_quantidade_cabo(item_id: int, quantidade: int) -> None:
+    """Atualiza a quantidade de um cabo (picklist 1–20)."""
+    init_db()
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE cabos SET quantidade = ?, atualizado_em = ? WHERE id = ?",
+            (
+                _clamp_quantidade(quantidade),
+                datetime.now().isoformat(timespec="seconds"),
+                item_id,
+            ),
         )
 
 

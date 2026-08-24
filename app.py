@@ -2358,6 +2358,9 @@ def som_admin():
         elif acao == "status_cabo" and item_id:
             som.atualizar_status_item("cabos", item_id, request.form.get("status", "ok"))
             flash("Status do cabo atualizado.", "ok")
+        elif acao == "qtd_cabo" and item_id:
+            som.atualizar_quantidade_cabo(item_id, request.form.get("quantidade") or 1)
+            flash("Quantidade do cabo atualizada.", "ok")
         elif acao == "custo_cabo" and item_id:
             som.atualizar_custo_item(
                 "cabos", item_id, request.form.get("custo_unitario") or 0

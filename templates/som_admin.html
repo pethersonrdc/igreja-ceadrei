@@ -201,7 +201,21 @@
             <td>{{ item.nome }}</td>
             <td>{{ item.tipo }}</td>
             <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
-            <td>{{ item.quantidade }}</td>
+            <td>
+              <form method="post" class="som-inline-form">
+                <input type="hidden" name="acao" value="qtd_cabo">
+                <input type="hidden" name="id" value="{{ item.id }}">
+                <select name="quantidade" onchange="this.form.submit()" title="Quantidade (1 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(1, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 1 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </form>
+            </td>
             <td>{{ item.uso }}</td>
             <td>
               <form method="post" class="som-inline-form som-custo-form">
@@ -242,7 +256,13 @@
         <label>Nome <input name="nome" required placeholder="Ex.: XLR macho-fêmea"></label>
         <label>Tipo <input name="tipo" required placeholder="XLR / P10 / Speakon"></label>
         <label>Metros <input name="metros" type="number" step="0.5" min="0" required value="10"></label>
-        <label>Qtd <input name="quantidade" type="number" min="1" required value="1"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(1, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
         <label>Uso <input name="uso" placeholder="Palco → mesa"></label>
         <label>Custo un. (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
