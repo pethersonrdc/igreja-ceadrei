@@ -51,6 +51,39 @@ class CasaisInscricaoTest(unittest.TestCase):
         self.assertIsNotNone(achou)
         self.assertEqual(achou["nome_marido"], "Heilo Ribeiro")
 
+    def test_nome_trocado_ainda_bloqueia_pelo_telefone(self) -> None:
+        self._criar(
+            telefone_marido="11987171937",
+            telefone_mulher="11983854063",
+        )
+        achou = casais.buscar_inscricao_existente(
+            nome_marido="Ricardo Alves",
+            telefone_marido="11987171937",
+            nome_mulher="Daiani Alves",
+            telefone_mulher="11983854063",
+        )
+        self.assertIsNotNone(achou)
+
+    def test_telefone_com_mascara_e_ddd(self) -> None:
+        self._criar(telefone_marido="11987171937", telefone_mulher="11983854063")
+        achou = casais.buscar_inscricao_existente(
+            nome_marido="Nome Novo",
+            telefone_marido="(11) 98717-1937",
+            nome_mulher="Outra",
+            telefone_mulher="11 98385-4063",
+        )
+        self.assertIsNotNone(achou)
+
+    def test_telefone_sem_ddd_ou_com_55(self) -> None:
+        self._criar(telefone_marido="11987171937", telefone_mulher="11983854063")
+        achou = casais.buscar_inscricao_existente(
+            nome_marido="Outro",
+            telefone_marido="5511987171937",
+            nome_mulher="Outra",
+            telefone_mulher="983854063",
+        )
+        self.assertIsNotNone(achou)
+
     def test_detecta_mesmo_casal_por_nome(self) -> None:
         self._criar(telefone_marido="11988887777", telefone_mulher="11988886666")
         achou = casais.buscar_inscricao_existente(
@@ -81,6 +114,28 @@ class CasaisInscricaoTest(unittest.TestCase):
                 "telefone_marido": "00000000000",
                 "nome_mulher": "Yasmin Gomes",
                 "telefone_mulher": "00000000000000",
+                "status": "vou",
+            },
+            follow_redirects=False,
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn(f"/casais/confirmacao/{original}", resp.headers["Location"])
+        self.assertIn("ja=1", resp.headers["Location"])
+        self.assertEqual(len(casais.listar_inscricoes()), antes)
+
+    def test_formulario_bloqueia_mesmo_telefone_com_nome_novo(self) -> None:
+        original = self._criar(
+            telefone_marido="11987171937",
+            telefone_mulher="11983854063",
+        )
+        antes = len(casais.listar_inscricoes())
+        resp = self.client.post(
+            "/casais/inscricao",
+            data={
+                "nome_marido": "Ricardo Luiz Alves",
+                "telefone_marido": "(11) 98717-1937",
+                "nome_mulher": "Daiani Alves",
+                "telefone_mulher": "11983854063",
                 "status": "vou",
             },
             follow_redirects=False,

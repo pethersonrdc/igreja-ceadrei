@@ -186,6 +186,31 @@ def so_digitos(telefone: str) -> str:
     return re.sub(r"\D+", "", telefone or "")
 
 
+def normalizar_telefone(telefone: str) -> str:
+    """Só dígitos, sem +55, no máximo DDD + número (11)."""
+    d = so_digitos(telefone)
+    if d.startswith("55") and len(d) >= 12:
+        d = d[2:]
+    # Prefixo 0 de discagem (0 + DDD + número), não apaga zeros do meio.
+    if d.startswith("0") and len(d) >= 11:
+        d = d[1:]
+    if len(d) > 11:
+        d = d[-11:]
+    return d
+
+
+def telefones_iguais(a: str, b: str) -> bool:
+    """Compara telefone mesmo com máscara, DDD ou código do país."""
+    na = normalizar_telefone(a)
+    nb = normalizar_telefone(b)
+    if len(na) < 8 or len(nb) < 8:
+        return False
+    if na == nb:
+        return True
+    menor, maior = (na, nb) if len(na) <= len(nb) else (nb, na)
+    return (len(maior) - len(menor) <= 4) and maior.endswith(menor)
+
+
 def nome_chave(nome: str) -> str:
     texto = unicodedata.normalize("NFD", (nome or "").strip().lower())
     sem_acento = "".join(c for c in texto if unicodedata.category(c) != "Mn")
@@ -199,24 +224,28 @@ def buscar_inscricao_existente(
     nome_mulher: str,
     telefone_mulher: str,
 ) -> dict | None:
-    """Evita cadastro repetido pelo telefone ou pelo casal (os dois nomes)."""
-    tels = {
+    """O telefone manda: nome diferente não abre outro cadastro."""
+    tels_novos = [
         t
-        for t in (so_digitos(telefone_marido), so_digitos(telefone_mulher))
-        if len(t) >= 8
-    }
+        for t in (telefone_marido, telefone_mulher)
+        if len(normalizar_telefone(t)) >= 8
+    ]
     chave_marido = nome_chave(nome_marido)
     chave_mulher = nome_chave(nome_mulher)
     for item in listar_inscricoes():
-        tels_item = {
+        tels_item = [
             t
             for t in (
-                so_digitos(item.get("telefone_marido") or ""),
-                so_digitos(item.get("telefone_mulher") or ""),
+                item.get("telefone_marido") or "",
+                item.get("telefone_mulher") or "",
             )
-            if len(t) >= 8
-        }
-        if tels and tels & tels_item:
+            if len(normalizar_telefone(t)) >= 8
+        ]
+        if any(
+            telefones_iguais(novo, antigo)
+            for novo in tels_novos
+            for antigo in tels_item
+        ):
             return item
         if (
             chave_marido

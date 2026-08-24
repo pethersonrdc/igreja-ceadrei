@@ -1157,8 +1157,8 @@ def casais_inscricao():
 
         if not nome_marido or not nome_mulher:
             erro = "Informe o nome do marido e da mulher."
-        elif not telefone_marido and not telefone_mulher:
-            erro = "Informe ao menos um telefone de contato."
+        elif not telefone_marido or not telefone_mulher:
+            erro = "Informe o telefone do marido e o da mulher. O número evita cadastro repetido."
         elif status not in casais.STATUS_OPCOES:
             erro = "Selecione uma confirmação válida."
         else:
