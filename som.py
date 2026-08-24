@@ -177,6 +177,7 @@ def init_db() -> None:
                 marca TEXT NOT NULL DEFAULT '',
                 modelo TEXT NOT NULL DEFAULT '',
                 funcao TEXT NOT NULL DEFAULT '',
+                quantidade INTEGER NOT NULL DEFAULT 1,
                 status TEXT NOT NULL DEFAULT 'ok',
                 obs TEXT NOT NULL DEFAULT '',
                 custo_unitario REAL NOT NULL DEFAULT 0,
@@ -188,6 +189,7 @@ def init_db() -> None:
                 marca TEXT NOT NULL DEFAULT '',
                 modelo TEXT NOT NULL DEFAULT '',
                 categoria TEXT NOT NULL DEFAULT '',
+                quantidade INTEGER NOT NULL DEFAULT 1,
                 status TEXT NOT NULL DEFAULT 'ok',
                 obs TEXT NOT NULL DEFAULT '',
                 custo_unitario REAL NOT NULL DEFAULT 0,
@@ -224,6 +226,8 @@ def init_db() -> None:
         _ensure_column(conn, "cabos", "custo_unitario", "REAL NOT NULL DEFAULT 0")
         _ensure_column(conn, "caixas", "custo_unitario", "REAL NOT NULL DEFAULT 0")
         _ensure_column(conn, "equipamentos", "custo_unitario", "REAL NOT NULL DEFAULT 0")
+        _ensure_column(conn, "caixas", "quantidade", "INTEGER NOT NULL DEFAULT 1")
+        _ensure_column(conn, "equipamentos", "quantidade", "INTEGER NOT NULL DEFAULT 1")
         _ensure_column(conn, "melhorias", "custo_estimado", "REAL NOT NULL DEFAULT 0")
 
         agora = datetime.now().isoformat(timespec="seconds")
@@ -324,8 +328,9 @@ def listar_cabos() -> list[dict]:
     out = []
     for r in rows:
         item = dict(r)
-        qtd = int(item.get("quantidade") or 1)
+        qtd = int(item.get("quantidade") if item.get("quantidade") is not None else 1)
         unit = float(item.get("custo_unitario") or 0)
+        item["quantidade"] = qtd
         item["custo_total"] = unit * qtd
         item["custo_total_brl"] = _brl(item["custo_total"])
         item["custo_unitario_brl"] = _brl(unit)
@@ -340,9 +345,11 @@ def listar_caixas() -> list[dict]:
     out = []
     for r in rows:
         item = dict(r)
+        qtd = int(item.get("quantidade") if item.get("quantidade") is not None else 1)
         unit = float(item.get("custo_unitario") or 0)
-        item["custo_total"] = unit
-        item["custo_total_brl"] = _brl(unit)
+        item["quantidade"] = qtd
+        item["custo_total"] = unit * qtd
+        item["custo_total_brl"] = _brl(item["custo_total"])
         item["custo_unitario_brl"] = _brl(unit)
         out.append(item)
     return out
@@ -357,9 +364,11 @@ def listar_equipamentos() -> list[dict]:
     out = []
     for r in rows:
         item = dict(r)
+        qtd = int(item.get("quantidade") if item.get("quantidade") is not None else 1)
         unit = float(item.get("custo_unitario") or 0)
-        item["custo_total"] = unit
-        item["custo_total_brl"] = _brl(unit)
+        item["quantidade"] = qtd
+        item["custo_total"] = unit * qtd
+        item["custo_total_brl"] = _brl(item["custo_total"])
         item["custo_unitario_brl"] = _brl(unit)
         out.append(item)
     return out
@@ -503,7 +512,7 @@ def analise_gastos() -> dict:
     for i in caixas:
         ranking.append(
             {
-                "label": f"{i['nome']} · {i.get('marca')}",
+                "label": f"{i['nome']} · {i.get('marca')} ×{i.get('quantidade')}",
                 "valor": float(i.get("custo_total") or 0),
                 "grupo": "Caixas",
             }
@@ -511,7 +520,7 @@ def analise_gastos() -> dict:
     for i in equipamentos:
         ranking.append(
             {
-                "label": f"{i['nome']} · {i.get('marca')}",
+                "label": f"{i['nome']} · {i.get('marca')} ×{i.get('quantidade')}",
                 "valor": float(i.get("custo_total") or 0),
                 "grupo": "Equipamentos",
             }
@@ -619,16 +628,18 @@ def atualizar_custo_item(tabela: str, item_id: int, custo_unitario: float) -> No
         )
 
 
-def _clamp_quantidade(quantidade: int | str, minimo: int = 1, maximo: int = 20) -> int:
+def _clamp_quantidade(quantidade: int | str | None, minimo: int = 0, maximo: int = 20) -> int:
+    if quantidade is None or quantidade == "":
+        return 1
     try:
         qtd = int(quantidade)
     except (TypeError, ValueError):
-        qtd = minimo
+        qtd = 1
     return max(minimo, min(maximo, qtd))
 
 
 def atualizar_quantidade_cabo(item_id: int, quantidade: int) -> None:
-    """Atualiza a quantidade de um cabo (picklist 1–20)."""
+    """Atualiza a quantidade de um cabo (picklist 0–20)."""
     init_db()
     with _connect() as conn:
         conn.execute(
@@ -668,7 +679,7 @@ def salvar_cabos_lote(linhas: list[dict]) -> int:
                  WHERE id = ?
                 """,
                 (
-                    _clamp_quantidade(linha.get("quantidade") or 1),
+                    _clamp_quantidade(linha.get("quantidade")),
                     _money(linha.get("custo_unitario") or 0),
                     status,
                     str(linha.get("obs") or "").strip(),
@@ -681,7 +692,7 @@ def salvar_cabos_lote(linhas: list[dict]) -> int:
 
 
 def salvar_caixas_lote(linhas: list[dict]) -> int:
-    """Salva várias linhas de caixas de uma vez (custo, status, obs)."""
+    """Salva várias linhas de caixas de uma vez (qtd, custo, status, obs)."""
     init_db()
     agora = datetime.now().isoformat(timespec="seconds")
     salvos = 0
@@ -699,13 +710,15 @@ def salvar_caixas_lote(linhas: list[dict]) -> int:
             conn.execute(
                 """
                 UPDATE caixas
-                   SET custo_unitario = ?,
+                   SET quantidade = ?,
+                       custo_unitario = ?,
                        status = ?,
                        obs = ?,
                        atualizado_em = ?
                  WHERE id = ?
                 """,
                 (
+                    _clamp_quantidade(linha.get("quantidade")),
                     _money(linha.get("custo_unitario") or 0),
                     status,
                     str(linha.get("obs") or "").strip(),
@@ -718,7 +731,7 @@ def salvar_caixas_lote(linhas: list[dict]) -> int:
 
 
 def salvar_equipamentos_lote(linhas: list[dict]) -> int:
-    """Salva várias linhas de equipamentos de uma vez (custo, status, obs)."""
+    """Salva várias linhas de equipamentos de uma vez (qtd, custo, status, obs)."""
     init_db()
     agora = datetime.now().isoformat(timespec="seconds")
     salvos = 0
@@ -736,13 +749,15 @@ def salvar_equipamentos_lote(linhas: list[dict]) -> int:
             conn.execute(
                 """
                 UPDATE equipamentos
-                   SET custo_unitario = ?,
+                   SET quantidade = ?,
+                       custo_unitario = ?,
                        status = ?,
                        obs = ?,
                        atualizado_em = ?
                  WHERE id = ?
                 """,
                 (
+                    _clamp_quantidade(linha.get("quantidade")),
                     _money(linha.get("custo_unitario") or 0),
                     status,
                     str(linha.get("obs") or "").strip(),
@@ -779,20 +794,22 @@ def adicionar_caixa(
     status: str,
     obs: str,
     custo_unitario: float = 0,
+    quantidade: int = 1,
 ) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO caixas
-              (nome, marca, modelo, funcao, status, obs, custo_unitario, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              (nome, marca, modelo, funcao, quantidade, status, obs, custo_unitario, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome.strip(),
                 marca.strip(),
                 modelo.strip(),
                 funcao.strip(),
+                _clamp_quantidade(quantidade),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
                 _money(custo_unitario),
@@ -810,20 +827,22 @@ def adicionar_equipamento(
     status: str,
     obs: str,
     custo_unitario: float = 0,
+    quantidade: int = 1,
 ) -> None:
     init_db()
     with _connect() as conn:
         conn.execute(
             """
             INSERT INTO equipamentos
-              (nome, marca, modelo, categoria, status, obs, custo_unitario, atualizado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+              (nome, marca, modelo, categoria, quantidade, status, obs, custo_unitario, atualizado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 nome.strip(),
                 marca.strip(),
                 modelo.strip(),
                 categoria.strip(),
+                _clamp_quantidade(quantidade),
                 status if status in STATUS_OPCOES else "ok",
                 obs.strip(),
                 _money(custo_unitario),

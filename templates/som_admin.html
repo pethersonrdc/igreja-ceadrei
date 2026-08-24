@@ -215,12 +215,12 @@
               <td>{{ item.tipo }}</td>
               <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
               <td>
-                <select name="quantidade_{{ item.id }}" title="Quantidade (1 a 20)">
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
                   {% set qtd_atual = item.quantidade|int %}
-                  {% for n in range(1, 21) %}
+                  {% for n in range(0, 21) %}
                   <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
                   {% endfor %}
-                  {% if qtd_atual < 1 or qtd_atual > 20 %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
                   <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
                   {% endif %}
                 </select>
@@ -262,7 +262,7 @@
         <label>Metros <input name="metros" type="number" step="0.5" min="0" required value="10"></label>
         <label>Qtd
           <select name="quantidade">
-            {% for n in range(1, 21) %}
+            {% for n in range(0, 21) %}
             <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
             {% endfor %}
           </select>
@@ -306,7 +306,9 @@
               <th>Marca</th>
               <th>Modelo</th>
               <th>Função</th>
+              <th>Qtd</th>
               <th>Custo</th>
+              <th>Total</th>
               <th>Status</th>
               <th>Obs</th>
               <th></th>
@@ -323,8 +325,20 @@
               <td>{{ item.modelo }}</td>
               <td>{{ item.funcao }}</td>
               <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(0, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </td>
+              <td>
                 <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
               </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
               <td>
                 <select name="status_{{ item.id }}">
                   {% for chave, rotulo in status_opcoes.items() %}
@@ -356,6 +370,13 @@
         <label>Marca <input name="marca" required placeholder="JBL / Yamaha"></label>
         <label>Modelo <input name="modelo" placeholder="PRX812W"></label>
         <label>Função <input name="funcao" placeholder="Principal / Monitor / Sub"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(0, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
         <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
           <select name="status">
@@ -394,7 +415,9 @@
               <th>Marca</th>
               <th>Modelo</th>
               <th>Categoria</th>
+              <th>Qtd</th>
               <th>Custo</th>
+              <th>Total</th>
               <th>Status</th>
               <th>Obs</th>
               <th></th>
@@ -411,8 +434,20 @@
               <td>{{ item.modelo }}</td>
               <td>{{ item.categoria }}</td>
               <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(0, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </td>
+              <td>
                 <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
               </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
               <td>
                 <select name="status_{{ item.id }}">
                   {% for chave, rotulo in status_opcoes.items() %}
@@ -444,6 +479,13 @@
         <label>Marca <input name="marca" required></label>
         <label>Modelo <input name="modelo"></label>
         <label>Categoria <input name="categoria" placeholder="Vocal / Rack / Suporte"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(0, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
         <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
         <label>Status
           <select name="status">

@@ -2348,7 +2348,7 @@ def som_admin():
                 nome=request.form.get("nome", ""),
                 tipo=request.form.get("tipo", ""),
                 metros=float(request.form.get("metros") or 0),
-                quantidade=int(request.form.get("quantidade") or 1),
+                quantidade=request.form.get("quantidade"),
                 uso=request.form.get("uso", ""),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
@@ -2373,7 +2373,7 @@ def som_admin():
             som.atualizar_status_item("cabos", item_id, request.form.get("status", "ok"))
             flash("Status do cabo atualizado.", "ok")
         elif acao == "qtd_cabo" and item_id:
-            som.atualizar_quantidade_cabo(item_id, request.form.get("quantidade") or 1)
+            som.atualizar_quantidade_cabo(item_id, request.form.get("quantidade"))
             flash("Quantidade do cabo atualizada.", "ok")
         elif acao == "custo_cabo" and item_id:
             som.atualizar_custo_item(
@@ -2389,6 +2389,7 @@ def som_admin():
                 marca=request.form.get("marca", ""),
                 modelo=request.form.get("modelo", ""),
                 funcao=request.form.get("funcao", ""),
+                quantidade=request.form.get("quantidade"),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
                 custo_unitario=request.form.get("custo_unitario") or 0,
@@ -2399,6 +2400,7 @@ def som_admin():
             linhas = [
                 {
                     "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
                     "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
                     "status": request.form.get(f"status_{sid}"),
                     "obs": request.form.get(f"obs_{sid}"),
@@ -2424,6 +2426,7 @@ def som_admin():
                 marca=request.form.get("marca", ""),
                 modelo=request.form.get("modelo", ""),
                 categoria=request.form.get("categoria", ""),
+                quantidade=request.form.get("quantidade"),
                 status=request.form.get("status", "ok"),
                 obs=request.form.get("obs", ""),
                 custo_unitario=request.form.get("custo_unitario") or 0,
@@ -2434,6 +2437,7 @@ def som_admin():
             linhas = [
                 {
                     "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
                     "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
                     "status": request.form.get(f"status_{sid}"),
                     "obs": request.form.get(f"obs_{sid}"),
