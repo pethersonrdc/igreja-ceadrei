@@ -19,6 +19,8 @@ STATUS_OPCOES = {
     "atencao": "Atenção",
     "manutencao": "Em manutenção",
     "fora": "Fora de uso",
+    "a_comprar": "A comprar",
+    "em_analise": "Em análise",
 }
 
 TIPOS_CULTO = {
@@ -413,7 +415,7 @@ def resumo_status() -> dict:
                 f"SELECT COUNT(*) AS c FROM {table} WHERE status = 'ok'"
             ).fetchone()["c"]
             atencao = conn.execute(
-                f"SELECT COUNT(*) AS c FROM {table} WHERE status = 'atencao'"
+                f"SELECT COUNT(*) AS c FROM {table} WHERE status IN ('atencao','em_analise','a_comprar')"
             ).fetchone()["c"]
             manut = conn.execute(
                 f"SELECT COUNT(*) AS c FROM {table} WHERE status IN ('manutencao','fora')"
@@ -472,7 +474,7 @@ def analise_gastos() -> dict:
         return sum(
             float(i.get("custo_total") or 0)
             for i in itens
-            if i.get("status") in {"atencao", "manutencao", "fora"}
+            if i.get("status") in {"atencao", "manutencao", "fora", "a_comprar", "em_analise"}
         )
 
     tot_cabos = total_itens(cabos)

@@ -6274,12 +6274,22 @@ body.tema-som .btn-primary.btn-som:hover {
 
 .som-status-atencao td:first-child,
 .som-status-manutencao td:first-child,
-.som-status-fora td:first-child {
+.som-status-fora td:first-child,
+.som-status-a_comprar td:first-child,
+.som-status-em_analise td:first-child {
   box-shadow: inset 3px 0 0 var(--som-amber);
 }
 
 .som-status-fora td:first-child {
   box-shadow: inset 3px 0 0 var(--som-red);
+}
+
+.som-status-a_comprar td:first-child {
+  box-shadow: inset 3px 0 0 var(--som-cyan);
+}
+
+.som-status-em_analise td:first-child {
+  box-shadow: inset 3px 0 0 var(--som-orange);
 }
 
 .som-inline-form select,
