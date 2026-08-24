@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-som pagina-fundo{% endblock %}
+
+{% block title %}Equipe de Som — Acesso{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content som-hero">
+  <p class="eyebrow">Área restrita · Mesa Ui24R</p>
+  <h1>Equipe de Som CEASDREI</h1>
+  <p>Acesso exclusivo da equipe técnica de áudio.</p>
+</section>
+
+<section class="section admin-login-wrap pagina-fundo-content">
+  <div class="campanha-login-stage som-login-stage">
+    <div class="som-login-meters" aria-hidden="true">
+      <span class="som-meter som-meter--1"></span>
+      <span class="som-meter som-meter--2"></span>
+      <span class="som-meter som-meter--3"></span>
+      <span class="som-meter som-meter--4"></span>
+      <span class="som-meter som-meter--5"></span>
+      <span class="som-meter som-meter--6"></span>
+      <span class="som-meter som-meter--7"></span>
+      <span class="som-meter som-meter--8"></span>
+    </div>
+    <form class="admin-card som-card som-login-card" method="post" action="{{ url_for('som_login', next=request.args.get('next', '')) }}">
+      <p class="som-brand-tag">SOUNDCRAFT · Ui24R Desk</p>
+      <label for="senha">Senha da equipe de som</label>
+      <input id="senha" name="senha" type="password" required autofocus placeholder="Digite a senha">
+      {% if erro %}
+      <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+      {% endif %}
+      <button class="btn btn-primary btn-som" type="submit">Entrar no console</button>
+    </form>
+  </div>
+</section>
+{% endblock %}
