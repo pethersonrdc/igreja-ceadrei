@@ -5997,6 +5997,50 @@ body.tema-som .eyebrow {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
+/* Título login: mesma laranja do SOUNDCRAFT · Ui24R Desk */
+body.tema-som .som-hero-title,
+body.tema-som .page-hero h1.som-hero-title {
+  color: var(--som-orange);
+  background: linear-gradient(
+    110deg,
+    #c86a15 0%,
+    #f0a04a 28%,
+    #ffe0a8 48%,
+    #e8872a 62%,
+    #c86a15 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter: drop-shadow(0 0 10px rgba(232, 135, 42, 0.35));
+  animation: som-title-shine 3.2s ease-in-out infinite;
+}
+
+@keyframes som-title-shine {
+  0%,
+  100% {
+    background-position: 0% 50%;
+    filter: drop-shadow(0 0 8px rgba(232, 135, 42, 0.28));
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: drop-shadow(0 0 18px rgba(240, 160, 74, 0.55));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.tema-som .som-hero-title,
+  body.tema-som .page-hero h1.som-hero-title {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: var(--som-orange);
+    color: var(--som-orange);
+    filter: none;
+  }
+}
+
 .btn-som,
 body.tema-som .btn-primary.btn-som {
   background: linear-gradient(135deg, #f0a04a, #c86a15);
