@@ -1167,6 +1167,16 @@ def casais_atualizar_status(inscricao_id: int):
     return redirect(url_for("casais_admin"))
 
 
+@app.route("/casais/admin/inscricao/<int:inscricao_id>/apagar", methods=["POST"])
+@casais_login_required
+def casais_apagar_inscricao(inscricao_id: int):
+    if casais.apagar_inscricao(inscricao_id):
+        flash("Inscrição removida da lista de casais.", "ok")
+    else:
+        flash("Inscrição não encontrada.", "erro")
+    return redirect(url_for("casais_admin"))
+
+
 @app.route("/casais/admin/evento/<int:evento_id>/apagar", methods=["POST"])
 @casais_login_required
 def casais_apagar_evento(evento_id: int):

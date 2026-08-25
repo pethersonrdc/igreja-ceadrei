@@ -124,6 +124,17 @@
             <p class="admin-meta" style="margin-top:0.5rem">
               <a href="{{ url_for('casais_baixar_convite', inscricao_id=item.id) }}">Baixar convite</a>
             </p>
+            {% if item.status == 'desistir' %}
+            <form
+              method="post"
+              action="{{ url_for('casais_apagar_inscricao', inscricao_id=item.id) }}"
+              class="status-form"
+              style="margin-top:0.45rem"
+              onsubmit="return confirm('Remover este casal da lista? (Desistiu do encontro)');"
+            >
+              <button class="btn btn-ghost-dark" type="submit" style="color:#a61b1b;border-color:#c45c5c">Remover</button>
+            </form>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

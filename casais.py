@@ -262,6 +262,16 @@ def atualizar_status(inscricao_id: int, status: str) -> bool:
         return cur.rowcount > 0
 
 
+def apagar_inscricao(inscricao_id: int) -> bool:
+    init_db()
+    with _connect() as conn:
+        cur = conn.execute(
+            "DELETE FROM inscricoes WHERE id = ?",
+            (inscricao_id,),
+        )
+        return cur.rowcount > 0
+
+
 def _fontes_pdf() -> tuple[Path, Path] | None:
     regular = FONT_DIR / "DejaVuSans.ttf"
     negrito = FONT_DIR / "DejaVuSans-Bold.ttf"
