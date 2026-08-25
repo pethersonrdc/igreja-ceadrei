@@ -31,7 +31,7 @@ H1_RESPONSAVEIS = (
     "Dúvidas, fale com a liderança do louvor."
 )
 
-FUNDO = "images/louvor/fundo.png"
+FUNDO = "images/louvor/fundo.jpg"
 
 MEMBROS_PADRAO = [
     "Ana B.",

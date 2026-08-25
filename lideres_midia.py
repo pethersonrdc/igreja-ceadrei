@@ -23,7 +23,7 @@ PERFIS = [
         "id": "batismo",
         "nome": "Evangelista Sueli",
         "departamento": "Evento Batismo",
-        "padrao": "images/batismo/sueli.png",
+        "padrao": "images/batismo/sueli.jpg",
     },
     {
         "id": "casais",
@@ -47,7 +47,7 @@ PERFIS = [
         "id": "mocidade",
         "nome": "Diác. Natan & Diác. Ana Beatriz",
         "departamento": "Líderes dos Filhos do Rei",
-        "padrao": "images/mocidade/natan-ana.png",
+        "padrao": "images/mocidade/natan-ana.jpg",
     },
     {
         "id": "leoas",
@@ -65,19 +65,19 @@ PERFIS = [
         "id": "maranata",
         "nome": "Dança Maranata",
         "departamento": "Evento Dança Maranata",
-        "padrao": "images/maranata/lideres.png",
+        "padrao": "images/maranata/lideres.jpg",
     },
     {
         "id": "soldadinhos",
         "nome": "Soldadinhos de Cristo",
         "departamento": "Evento Soldadinhos de Cristo",
-        "padrao": "images/soldadinhos/lideres.png",
+        "padrao": "images/soldadinhos/lideres.jpg",
     },
     {
         "id": "louvor",
         "nome": "Grupo de Louvor",
         "departamento": "Grupo de Louvor",
-        "padrao": "images/louvor/lideres.png",
+        "padrao": "images/louvor/lideres.jpg",
     },
     {
         "id": "som",

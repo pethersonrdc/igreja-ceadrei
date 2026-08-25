@@ -23,7 +23,7 @@ H1_RESPONSAVEIS = (
     "dúvidas entre em contato."
 )
 
-FOTO_LIDERES = "images/mocidade/natan-ana.png"
+FOTO_LIDERES = "images/mocidade/natan-ana.jpg"
 
 
 def _connect() -> sqlite3.Connection:
