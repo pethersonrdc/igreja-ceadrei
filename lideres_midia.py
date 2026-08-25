@@ -79,6 +79,12 @@ PERFIS = [
         "departamento": "Grupo de Louvor",
         "padrao": "images/louvor/lideres.png",
     },
+    {
+        "id": "som",
+        "nome": "Mesa de Som / Equipe de Som",
+        "departamento": "Equipe de Som (Ui24R)",
+        "padrao": "images/emblema.png",
+    },
 ]
 
 

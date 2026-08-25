@@ -1840,10 +1840,12 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
 
 .lider-perfil-foto img {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 3 / 4;
   object-fit: cover;
+  object-position: center center;
   border-radius: 1rem;
   border: 1px solid rgba(18, 32, 51, 0.1);
+  background: #1a1a1a;
   transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
@@ -2498,6 +2500,10 @@ body.tema-casais.pagina-fundo .casais-programacao-texto {
 .casais-carousel {
   background: #f0ddd8;
   box-shadow: 0 20px 48px rgba(74, 28, 42, 0.28);
+  aspect-ratio: 3 / 4;
+  max-width: min(440px, 92vw);
+  max-height: min(78vh, 720px);
+  margin-inline: auto;
 }
 
 .casais-carousel .carousel-slide img {
@@ -2579,6 +2585,10 @@ body.tema-casais.pagina-fundo .casais-programacao-texto {
 
 .casais-mini-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.casais-mini-grid figure {
+  aspect-ratio: 3 / 4;
 }
 
 .casais-home .section-head h2 {
