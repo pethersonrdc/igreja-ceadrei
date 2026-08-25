@@ -1462,19 +1462,23 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   position: relative;
   border-radius: 28px;
   overflow: hidden;
-  background: #0d2436;
+  background: #f4efe6;
   box-shadow: var(--shadow);
-  aspect-ratio: 16 / 10;
+  /* Fotos da igreja são verticais (em pé) */
+  aspect-ratio: 3 / 4;
+  max-width: min(420px, 100%);
+  margin-inline: auto;
+  max-height: min(78vh, 720px);
 }
 
 .carousel--destaque {
-  aspect-ratio: 16 / 10;
-  max-width: 960px;
+  aspect-ratio: 3 / 4;
+  max-width: min(440px, 92vw);
   margin-inline: auto;
   min-height: 0;
-  max-height: min(72vh, 580px);
+  max-height: min(78vh, 720px);
   border-radius: 28px;
-  box-shadow: 0 28px 70px rgba(13, 36, 54, 0.32);
+  box-shadow: 0 28px 70px rgba(13, 36, 54, 0.22);
   border: 1px solid rgba(224, 179, 90, 0.28);
   background: #f4efe6;
 }
@@ -1513,7 +1517,7 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
 }
 
 .carousel--destaque .carousel-slide img {
@@ -1591,7 +1595,7 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
 
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
 }
 
@@ -1599,7 +1603,8 @@ body.tema-admin-galeria .btn-ghost-dark:hover {
   margin: 0;
   border-radius: 18px;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  /* Grades também em formato vertical */
+  aspect-ratio: 3 / 4;
   background: #f4efe6;
 }
 
