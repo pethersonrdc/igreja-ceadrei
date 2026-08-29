@@ -167,11 +167,21 @@ a:hover {
 .hero-media {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(13, 36, 54, 0.28) 0%, rgba(13, 36, 54, 0.72) 70%, rgba(13, 36, 54, 0.9) 100%),
-    url("https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=2000&q=80") center/cover no-repeat;
+}
+
+.hero-media-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   transform: scale(1.04);
   animation: hero-drift 18s ease-in-out infinite alternate;
+}
+
+.hero-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(13, 36, 54, 0.28) 0%, rgba(13, 36, 54, 0.72) 70%, rgba(13, 36, 54, 0.9) 100%);
 }
 
 .hero-content {
@@ -579,7 +589,7 @@ body.tema-mensagem-dia .site-footer {
 .msg-dia-quote cite {
   display: block;
   margin-top: 1.15rem;
-  font-family: var(--font-sans, "Source Sans 3", sans-serif);
+  font-family: var(--font-sans, "Outfit", sans-serif);
   font-size: 1.05rem;
   font-style: normal;
   font-weight: 700;
@@ -2290,8 +2300,8 @@ body.tema-casais {
   --mist: rgba(255, 248, 245, 0.9);
   --line: rgba(74, 28, 42, 0.14);
   --shadow: 0 24px 60px rgba(74, 28, 42, 0.22);
-  --font-display: "Libre Baskerville", Georgia, serif;
-  --font-body: "Source Sans 3", "Segoe UI", sans-serif;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Outfit", "Segoe UI", sans-serif;
   font-family: var(--font-body);
   background:
     radial-gradient(1000px 520px at 8% -8%, rgba(168, 90, 106, 0.18), transparent 55%),
@@ -4755,6 +4765,65 @@ body.tema-porta-altar .admin-msg--erro {
   margin-top: 0.85rem;
   border-radius: 0.75rem;
   background: #0b0910;
+}
+
+.video-lazy {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 180px;
+}
+
+.video-lazy-poster {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.video-lazy-poster--empty {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(184, 137, 58, 0.28), transparent 50%),
+    #121820;
+}
+
+.video-lazy-play {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4.4rem;
+  height: 4.4rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(13, 36, 54, 0.72);
+  color: #fff8ee;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.video-lazy-play-icon {
+  display: block;
+  width: 0;
+  height: 0;
+  margin: 0 auto;
+  border-style: solid;
+  border-width: 0.7rem 0 0.7rem 1.15rem;
+  border-color: transparent transparent transparent #fff8ee;
+}
+
+.video-lazy-play:hover,
+.video-lazy-play:focus-visible {
+  background: rgba(184, 137, 58, 0.92);
+}
+
+.video-lazy.is-playing {
+  cursor: default;
+  min-height: 0;
+}
+
+.video-lazy.is-playing video {
+  display: block;
+  width: 100%;
 }
 
 .porta-altar-aguardando {

@@ -27,9 +27,14 @@
     <p class="eyebrow">Em destaque{% if destaque_publico.data_br %} · {{ destaque_publico.data_br }}{% endif %}</p>
     {% if destaque_publico.tem_imagem %}
     {% if destaque_publico.imagem_eh_video %}
-    <video class="ministerio-destaque-player" controls preload="metadata" playsinline>
-      <source src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}">
-    </video>
+    {% with
+      src=url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem),
+      poster='',
+      titulo=info.titulo,
+      player_class='ministerio-destaque-player'
+    %}
+    {% include 'includes/video_lazy.html' %}
+    {% endwith %}
     {% else %}
     <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}" alt="{{ info.titulo }}">
     {% endif %}
