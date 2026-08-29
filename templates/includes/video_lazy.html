@@ -1,0 +1,17 @@
+{# src, poster opcional, titulo opcional, player_class opcional #}
+{% set _titulo = titulo|default('vídeo') %}
+{% set _classe = player_class|default('porta-altar-player') %}
+<div
+  class="video-lazy {{ _classe }}"
+  data-src="{{ src }}"
+  {% if poster %}data-poster="{{ poster }}"{% endif %}
+>
+  {% if poster %}
+  <img class="video-lazy-poster" src="{{ poster }}" alt="{{ _titulo }}" loading="lazy">
+  {% else %}
+  <div class="video-lazy-poster video-lazy-poster--empty" aria-hidden="true"></div>
+  {% endif %}
+  <button type="button" class="video-lazy-play" aria-label="Assistir {{ _titulo }}">
+    <span class="video-lazy-play-icon" aria-hidden="true"></span>
+  </button>
+</div>

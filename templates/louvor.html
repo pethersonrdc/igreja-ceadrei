@@ -123,9 +123,14 @@
       </div>
       {% elif video.capa_eh_video %}
       <div class="louvor-video-frame louvor-video-frame--file">
-        <video class="louvor-video-player" controls preload="metadata" playsinline>
-          <source src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}">
-        </video>
+        {% with
+          src=url_for('static', filename='uploads/louvor/' + video.capa),
+          poster='',
+          titulo=video.titulo,
+          player_class='louvor-video-player'
+        %}
+        {% include 'includes/video_lazy.html' %}
+        {% endwith %}
       </div>
       {% elif video.capa %}
       <a href="{{ video.watch_url or video.link or url_for('static', filename='uploads/louvor/' + video.capa) }}" target="_blank" rel="noopener noreferrer">

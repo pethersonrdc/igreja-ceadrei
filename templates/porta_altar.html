@@ -49,10 +49,14 @@
         <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
         {% endif %}
         {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
-        <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
-          <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
-          Seu navegador não reproduz este vídeo.
-        </video>
+        {% with
+          src=url_for('static', filename='uploads/porta_altar/' + video.arquivo),
+          poster=(url_for('static', filename='uploads/porta_altar/' + video.capa) if video.capa else ''),
+          titulo=video.titulo,
+          player_class='porta-altar-player'
+        %}
+        {% include 'includes/video_lazy.html' %}
+        {% endwith %}
         {% if video.link_instagram or video.link_facebook %}
         <p class="porta-altar-social-links">
           {% if video.link_instagram %}
@@ -89,10 +93,14 @@
         <p class="porta-altar-palavra-badge">Palavra do culto: <strong>{{ video.palavra_culto }}</strong></p>
         {% endif %}
         {% if video.descricao %}<p>{{ video.descricao }}</p>{% endif %}
-        <video class="porta-altar-player" controls preload="metadata" {% if video.capa %}poster="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}"{% endif %}>
-          <source src="{{ url_for('static', filename='uploads/porta_altar/' + video.arquivo) }}">
-          Seu navegador não reproduz este vídeo.
-        </video>
+        {% with
+          src=url_for('static', filename='uploads/porta_altar/' + video.arquivo),
+          poster=(url_for('static', filename='uploads/porta_altar/' + video.capa) if video.capa else ''),
+          titulo=video.titulo,
+          player_class='porta-altar-player'
+        %}
+        {% include 'includes/video_lazy.html' %}
+        {% endwith %}
         {% if video.link_instagram or video.link_facebook %}
         <p class="porta-altar-social-links">
           {% if video.link_instagram %}

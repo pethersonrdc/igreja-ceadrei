@@ -18,6 +18,31 @@
 
   document.documentElement.classList.add("js-ready");
 
+  document.querySelectorAll(".video-lazy").forEach((box) => {
+    box.addEventListener(
+      "click",
+      () => {
+        if (box.classList.contains("is-playing")) return;
+        const src = box.getAttribute("data-src");
+        if (!src) return;
+        const poster = box.getAttribute("data-poster") || "";
+        const video = document.createElement("video");
+        video.controls = true;
+        video.playsInline = true;
+        video.preload = "auto";
+        if (poster) video.poster = poster;
+        const source = document.createElement("source");
+        source.src = src;
+        if (src.toLowerCase().includes(".mp4")) source.type = "video/mp4";
+        video.appendChild(source);
+        box.classList.add("is-playing");
+        box.replaceChildren(video);
+        video.play().catch(() => {});
+      },
+      { once: true }
+    );
+  });
+
   const revealEls = document.querySelectorAll(".js-reveal, .page-hero, main > .section");
   if (!revealEls.length) return;
 
