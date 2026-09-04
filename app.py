@@ -37,6 +37,7 @@ import pastores
 import persistencia
 import lideres_midia
 import porta_altar
+import som
 
 BASE_DIR = Path(__file__).resolve().parent
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
@@ -83,6 +84,10 @@ SOLDADINHOS_PASSWORD_HASH = generate_password_hash(SOLDADINHOS_PASSWORD)
 # Senha do Grupo de Louvor
 LOUVOR_PASSWORD = os.environ.get("LOUVOR_PASSWORD", "Louvor")
 LOUVOR_PASSWORD_HASH = generate_password_hash(LOUVOR_PASSWORD)
+
+# Senha exclusiva da Equipe de Som
+SOM_PASSWORD = os.environ.get("SOM_PASSWORD", "ceasdrei@1234")
+SOM_PASSWORD_HASH = generate_password_hash(SOM_PASSWORD)
 
 CAMPANHA_PASSWORD_HASH = {
     "leoas": LEOAS_PASSWORD_HASH,
@@ -187,6 +192,16 @@ def louvor_login_required(view):
     return wrapped
 
 
+def som_login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("som_ok"):
+            return redirect(url_for("som_login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
 def _css_asset_version() -> str:
     """Bust browser/nginx cache of styles.css after deploy."""
     try:
@@ -210,6 +225,7 @@ def inject_admin():
         "maranata_logado": bool(session.get("maranata_ok")),
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
+        "som_logado": bool(session.get("som_ok")),
         "css_asset_version": _css_asset_version(),
     }
 
@@ -2292,6 +2308,221 @@ def louvor_page():
     )
 
 
+# ---------- Equipe de Som (Ui24R) ----------
+
+@app.route("/som/login", methods=["GET", "POST"])
+def som_login():
+    erro = None
+    if request.method == "POST":
+        senha = request.form.get("senha", "")
+        if check_password_hash(SOM_PASSWORD_HASH, senha):
+            session["som_ok"] = True
+            destino = request.args.get("next") or url_for("som_admin")
+            return redirect(destino)
+        erro = "Senha incorreta."
+    return render_template(
+        "som_login.html",
+        igreja=load_json("igreja.json"),
+        erro=erro,
+    )
+
+
+@app.route("/som/logout")
+def som_logout():
+    session.pop("som_ok", None)
+    return redirect(url_for("som_login"))
+
+
+@app.route("/som/admin", methods=["GET", "POST"])
+@som_login_required
+def som_admin():
+    if request.method == "POST":
+        acao = (request.form.get("acao") or "").strip()
+        try:
+            item_id = int(request.form.get("id") or 0)
+        except ValueError:
+            item_id = 0
+
+        if acao == "add_cabo":
+            som.adicionar_cabo(
+                nome=request.form.get("nome", ""),
+                tipo=request.form.get("tipo", ""),
+                metros=float(request.form.get("metros") or 0),
+                quantidade=request.form.get("quantidade"),
+                uso=request.form.get("uso", ""),
+                status=request.form.get("status", "ok"),
+                obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
+            )
+            flash("Cabo adicionado.", "ok")
+        elif acao == "salvar_cabos":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_cabos_lote(linhas)
+            flash(f"{n} cabo(s) salvos.", "ok")
+        elif acao == "status_cabo" and item_id:
+            som.atualizar_status_item("cabos", item_id, request.form.get("status", "ok"))
+            flash("Status do cabo atualizado.", "ok")
+        elif acao == "qtd_cabo" and item_id:
+            som.atualizar_quantidade_cabo(item_id, request.form.get("quantidade"))
+            flash("Quantidade do cabo atualizada.", "ok")
+        elif acao == "custo_cabo" and item_id:
+            som.atualizar_custo_item(
+                "cabos", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo do cabo atualizado.", "ok")
+        elif acao == "excluir_cabo" and item_id:
+            som.excluir_item("cabos", item_id)
+            flash("Cabo removido.", "ok")
+        elif acao == "add_caixa":
+            som.adicionar_caixa(
+                nome=request.form.get("nome", ""),
+                marca=request.form.get("marca", ""),
+                modelo=request.form.get("modelo", ""),
+                funcao=request.form.get("funcao", ""),
+                quantidade=request.form.get("quantidade"),
+                status=request.form.get("status", "ok"),
+                obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
+            )
+            flash("Caixa adicionada.", "ok")
+        elif acao == "salvar_caixas":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_caixas_lote(linhas)
+            flash(f"{n} caixa(s) salvas.", "ok")
+        elif acao == "status_caixa" and item_id:
+            som.atualizar_status_item("caixas", item_id, request.form.get("status", "ok"))
+            flash("Status da caixa atualizado.", "ok")
+        elif acao == "custo_caixa" and item_id:
+            som.atualizar_custo_item(
+                "caixas", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo da caixa atualizado.", "ok")
+        elif acao == "excluir_caixa" and item_id:
+            som.excluir_item("caixas", item_id)
+            flash("Caixa removida.", "ok")
+        elif acao == "add_equip":
+            som.adicionar_equipamento(
+                nome=request.form.get("nome", ""),
+                marca=request.form.get("marca", ""),
+                modelo=request.form.get("modelo", ""),
+                categoria=request.form.get("categoria", ""),
+                quantidade=request.form.get("quantidade"),
+                status=request.form.get("status", "ok"),
+                obs=request.form.get("obs", ""),
+                custo_unitario=request.form.get("custo_unitario") or 0,
+            )
+            flash("Equipamento adicionado.", "ok")
+        elif acao == "salvar_equip":
+            ids = request.form.getlist("id")
+            linhas = [
+                {
+                    "id": sid,
+                    "quantidade": request.form.get(f"quantidade_{sid}"),
+                    "custo_unitario": request.form.get(f"custo_unitario_{sid}"),
+                    "status": request.form.get(f"status_{sid}"),
+                    "obs": request.form.get(f"obs_{sid}"),
+                }
+                for sid in ids
+            ]
+            n = som.salvar_equipamentos_lote(linhas)
+            flash(f"{n} equipamento(s) salvos.", "ok")
+        elif acao == "status_equip" and item_id:
+            som.atualizar_status_item(
+                "equipamentos", item_id, request.form.get("status", "ok")
+            )
+            flash("Status do equipamento atualizado.", "ok")
+        elif acao == "custo_equip" and item_id:
+            som.atualizar_custo_item(
+                "equipamentos", item_id, request.form.get("custo_unitario") or 0
+            )
+            flash("Custo do equipamento atualizado.", "ok")
+        elif acao == "excluir_equip" and item_id:
+            som.excluir_item("equipamentos", item_id)
+            flash("Equipamento removido.", "ok")
+        elif acao == "toggle_checklist" and item_id:
+            som.toggle_checklist(item_id)
+        elif acao == "reset_checklist":
+            som.reset_checklist()
+            flash("Checklist zerado para o próximo culto.", "ok")
+        elif acao == "add_melhoria":
+            som.adicionar_melhoria(
+                titulo=request.form.get("titulo", ""),
+                descricao=request.form.get("descricao", ""),
+                prioridade=request.form.get("prioridade", "media"),
+                custo_estimado=request.form.get("custo_estimado") or 0,
+            )
+            flash("Melhoria registrada.", "ok")
+        elif acao == "salvar_melhorias":
+            ids = request.form.getlist("id")
+            linhas = [
+                {"id": sid, "status": request.form.get(f"status_{sid}")}
+                for sid in ids
+            ]
+            n = som.salvar_melhorias_lote(linhas)
+            flash(f"{n} melhoria(s) salvas.", "ok")
+        elif acao == "excluir_melhoria" and item_id:
+            som.excluir_item("melhorias", item_id)
+            flash("Melhoria removida.", "ok")
+        elif acao == "status_melhoria" and item_id:
+            som.marcar_melhoria(item_id, request.form.get("status", "aberta"))
+            flash("Status da melhoria atualizado.", "ok")
+        elif acao == "add_relatorio":
+            som.adicionar_relatorio(
+                data_culto=request.form.get("data_culto", ""),
+                tipo_culto=request.form.get("tipo_culto", "domingo_noite"),
+                titulo=request.form.get("titulo", ""),
+                descricao=request.form.get("descricao", ""),
+                severidade=request.form.get("severidade", "media"),
+            )
+            flash("Relatório do culto salvo.", "ok")
+        elif acao == "excluir_relatorio" and item_id:
+            som.excluir_item("relatorios", item_id)
+            flash("Relatório removido.", "ok")
+        elif acao == "resolver_relatorio" and item_id:
+            resolvido = request.form.get("resolvido") == "1"
+            som.resolver_relatorio(item_id, resolvido=resolvido)
+            flash("Relatório atualizado.", "ok")
+
+        destino = request.form.get("redirect") or request.referrer or url_for("som_admin")
+        return redirect(destino)
+
+    return render_template(
+        "som_admin.html",
+        igreja=load_json("igreja.json"),
+        resumo=som.resumo_status(),
+        gastos=som.analise_gastos(),
+        cabos=som.listar_cabos(),
+        caixas=som.listar_caixas(),
+        equipamentos=som.listar_equipamentos(),
+        checklist=som.listar_checklist(),
+        melhorias=som.listar_melhorias(),
+        relatorios=som.listar_relatorios(),
+        status_opcoes=som.STATUS_OPCOES,
+        tipos_culto=som.TIPOS_CULTO,
+        severidade=som.SEVERIDADE,
+    )
+
+
 # ---------- API ----------
 
 @app.route("/api/info")
@@ -2377,6 +2608,7 @@ mocidade.init_db()
 porta_altar.init_db()
 lideres_midia.init_db()
 louvor.init_db()
+som.init_db()
 for _slug in campanha_eventos.EVENTOS:
     campanha_eventos.init_db(_slug)
 

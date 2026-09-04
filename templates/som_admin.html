@@ -1,0 +1,767 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-som{% endblock %}
+
+{% block title %}Console Som — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<div class="som-console">
+  <header class="som-topbar">
+    <div class="som-topbar-brand">
+      <span class="som-led"></span>
+      <div>
+        <strong>CEASDREI · EQUIPE DE SOM</strong>
+        <small>Console inspirado no Soundcraft Ui24R</small>
+      </div>
+    </div>
+    <nav class="som-tabs" aria-label="Seções do console">
+      <a href="#visao" class="som-tab is-active" data-som-tab>Visão</a>
+      <a href="#gastos" class="som-tab" data-som-tab>Gastos</a>
+      <a href="#cabos" class="som-tab" data-som-tab>Cabos</a>
+      <a href="#caixas" class="som-tab" data-som-tab>Caixas</a>
+      <a href="#equip" class="som-tab" data-som-tab>Equipamentos</a>
+      <a href="#palco" class="som-tab" data-som-tab>Palco</a>
+      <a href="#melhorias" class="som-tab" data-som-tab>Melhorias</a>
+      <a href="#relatorios" class="som-tab" data-som-tab>Relatórios</a>
+    </nav>
+    <a class="som-sair" href="{{ url_for('som_logout') }}">Sair</a>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="som-flash">
+        {% for categoria, mensagem in messages %}
+        <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {# ---------- VISÃO GERAL ---------- #}
+  <section id="visao" class="som-panel som-panel--visao">
+    <div class="som-panel-head">
+      <h2>Visão geral do sistema</h2>
+      <p>Status rápido — como meters do Ui24R.</p>
+    </div>
+    <div class="som-meters-row">
+      <article class="som-channel">
+        <div class="som-fader-track">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.cabos.pct }}%"></span>
+        </div>
+        <strong>Cabos</strong>
+        <span>{{ resumo.cabos.ok }}/{{ resumo.cabos.total }} OK</span>
+        {% if resumo.cabos.atencao or resumo.cabos.manutencao %}
+        <em class="som-warn">{{ resumo.cabos.atencao + resumo.cabos.manutencao }} alerta</em>
+        {% endif %}
+      </article>
+      <article class="som-channel">
+        <div class="som-fader-track">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.caixas.pct }}%"></span>
+        </div>
+        <strong>Caixas</strong>
+        <span>{{ resumo.caixas.ok }}/{{ resumo.caixas.total }} OK</span>
+      </article>
+      <article class="som-channel">
+        <div class="som-fader-track">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.equipamentos.pct }}%"></span>
+        </div>
+        <strong>Equipamentos</strong>
+        <span>{{ resumo.equipamentos.ok }}/{{ resumo.equipamentos.total }} OK</span>
+      </article>
+      <article class="som-channel">
+        <div class="som-fader-track">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.checklist_pct }}%"></span>
+        </div>
+        <strong>Palco</strong>
+        <span>{{ resumo.checklist_feito }}/{{ resumo.checklist_total }} checklist</span>
+      </article>
+      <article class="som-channel som-channel--alert">
+        <div class="som-fader-track som-fader-track--red">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.rel_pct }}%"></span>
+        </div>
+        <strong>Erros culto</strong>
+        <span>{{ resumo.rel_abertos }} abertos</span>
+      </article>
+      <article class="som-channel">
+        <div class="som-fader-track som-fader-track--amber">
+          <span class="som-fader-fill" style="--lvl: {{ resumo.melhorias_pct }}%"></span>
+        </div>
+        <strong>Melhorias</strong>
+        <span>{{ resumo.melhorias_abertas }} em pauta</span>
+      </article>
+    </div>
+
+    <div class="som-modulos-grid">
+      <a class="som-modulo" href="#gastos" style="--mod:#f0c75e">
+        <strong>Análise de gastos</strong>
+        <span>Patrimônio, reposição e orçamento</span>
+      </a>
+      <a class="som-modulo" href="#cabos" style="--mod:#3db8e8">
+        <strong>Manutenção de cabos</strong>
+        <span>Lista, metragem, tipo e status</span>
+      </a>
+      <a class="som-modulo" href="#caixas" style="--mod:#f0c75e">
+        <strong>Manutenção de caixas</strong>
+        <span>Nome, marca e função no PA</span>
+      </a>
+      <a class="som-modulo" href="#equip" style="--mod:#7ec87e">
+        <strong>Equipamentos &amp; suporte</strong>
+        <span>Ui24R, mics, DI, pedestais</span>
+      </a>
+      <a class="som-modulo" href="#palco" style="--mod:#e07a2f">
+        <strong>Ajuste de palco</strong>
+        <span>Checklist antes e depois do culto</span>
+      </a>
+      <a class="som-modulo" href="#melhorias" style="--mod:#c084fc">
+        <strong>Melhorias sonoras</strong>
+        <span>Ideias de upgrade e compra</span>
+      </a>
+      <a class="som-modulo" href="#relatorios" style="--mod:#e85d5d">
+        <strong>Análise / erros por culto</strong>
+        <span>Relatar falhas e acompanhar</span>
+      </a>
+    </div>
+  </section>
+
+  {# ---------- GASTOS / GRÁFICOS ---------- #}
+  <section id="gastos" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Análise de gastos</h2>
+      <p>Estimativa com base no inventário da igreja (valores de referência em R$). Ajuste os custos nos itens se precisar.</p>
+    </div>
+
+    <div class="som-kpi-row">
+      <article class="som-kpi">
+        <span>Patrimônio sonoro</span>
+        <strong>{{ gastos.patrimonio_brl }}</strong>
+        <small>Cabos {{ gastos.tot_cabos_brl }} · Caixas {{ gastos.tot_caixas_brl }} · Equip. {{ gastos.tot_equip_brl }}</small>
+      </article>
+      <article class="som-kpi som-kpi--warn">
+        <span>Reposição em alerta</span>
+        <strong>{{ gastos.reposicao_brl }}</strong>
+        <small>Itens em atenção / manutenção / fora</small>
+      </article>
+      <article class="som-kpi som-kpi--plan">
+        <span>Orçamento de melhorias</span>
+        <strong>{{ gastos.orcamento_melhorias_brl }}</strong>
+        <small>Melhorias abertas com custo estimado</small>
+      </article>
+      <article class="som-kpi som-kpi--total">
+        <span>Visão combinada</span>
+        <strong>{{ gastos.previsto_total_brl }}</strong>
+        <small>Patrimônio + melhorias planejadas</small>
+      </article>
+    </div>
+
+    <div class="som-charts-grid">
+      <figure class="som-chart-card">
+        <figcaption>Patrimônio por categoria</figcaption>
+        <canvas id="chart-categoria" height="220"></canvas>
+      </figure>
+      <figure class="som-chart-card">
+        <figcaption>Valor em risco (precisa atenção)</figcaption>
+        <canvas id="chart-risco" height="220"></canvas>
+      </figure>
+      <figure class="som-chart-card som-chart-card--wide">
+        <figcaption>Maiores investimentos do inventário</figcaption>
+        <canvas id="chart-top" height="260"></canvas>
+      </figure>
+      <figure class="som-chart-card som-chart-card--wide">
+        <figcaption>Custo estimado das melhorias abertas</figcaption>
+        <canvas id="chart-melhorias" height="220"></canvas>
+      </figure>
+    </div>
+  </section>
+
+  {# ---------- CABOS ---------- #}
+  <section id="cabos" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Manutenção de cabos</h2>
+      <p>Inventário com tipo, metragem e quantidade. Altere várias linhas e clique em Salvar.</p>
+    </div>
+    {% for item in cabos %}
+    <form id="excluir-cabo-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_cabo">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-cabos">
+      <input type="hidden" name="acao" value="salvar_cabos">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Metros</th>
+              <th>Qtd</th>
+              <th>Uso</th>
+              <th>Custo un.</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cabos %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
+                <input type="hidden" name="id" value="{{ item.id }}">
+              </td>
+              <td>{{ item.tipo }}</td>
+              <td>{{ item.metros|int if item.metros == item.metros|int else item.metros }} m</td>
+              <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(0, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </td>
+              <td>{{ item.uso }}</td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
+              <td>
+                <select name="status_{{ item.id }}">
+                  {% for chave, rotulo in status_opcoes.items() %}
+                  <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-cabo-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir este cabo?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar cabos</button>
+      </div>
+    </form>
+    <form class="som-form-add" method="post">
+      <input type="hidden" name="acao" value="add_cabo">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#cabos">
+      <h3>Adicionar cabo</h3>
+      <div class="som-form-grid">
+        <label>Nome <input name="nome" required placeholder="Ex.: XLR macho-fêmea"></label>
+        <label>Tipo <input name="tipo" required placeholder="XLR / P10 / Speakon"></label>
+        <label>Metros <input name="metros" type="number" step="0.5" min="0" required value="10"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(0, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Uso <input name="uso" placeholder="Palco → mesa"></label>
+        <label>Custo un. (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
+        <label>Status
+          <select name="status">
+            {% for chave, rotulo in status_opcoes.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="som-span-2">Obs <input name="obs" placeholder="Observação"></label>
+      </div>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar cabo</button>
+    </form>
+  </section>
+
+  {# ---------- CAIXAS ---------- #}
+  <section id="caixas" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Manutenção de caixas</h2>
+      <p>Nome, marca, modelo e função no sistema de som. Altere várias linhas e clique em Salvar.</p>
+    </div>
+    {% for item in caixas %}
+    <form id="excluir-caixa-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_caixa">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-caixas">
+      <input type="hidden" name="acao" value="salvar_caixas">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Função</th>
+              <th>Qtd</th>
+              <th>Custo</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in caixas %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
+                <input type="hidden" name="id" value="{{ item.id }}">
+              </td>
+              <td>{{ item.marca }}</td>
+              <td>{{ item.modelo }}</td>
+              <td>{{ item.funcao }}</td>
+              <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(0, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
+              <td>
+                <select name="status_{{ item.id }}">
+                  {% for chave, rotulo in status_opcoes.items() %}
+                  <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-caixa-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir esta caixa?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar caixas</button>
+      </div>
+    </form>
+    <form class="som-form-add" method="post">
+      <input type="hidden" name="acao" value="add_caixa">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#caixas">
+      <h3>Adicionar caixa</h3>
+      <div class="som-form-grid">
+        <label>Nome <input name="nome" required placeholder="PA Principal L"></label>
+        <label>Marca <input name="marca" required placeholder="JBL / Yamaha"></label>
+        <label>Modelo <input name="modelo" placeholder="PRX812W"></label>
+        <label>Função <input name="funcao" placeholder="Principal / Monitor / Sub"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(0, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
+        <label>Status
+          <select name="status">
+            {% for chave, rotulo in status_opcoes.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Obs <input name="obs"></label>
+      </div>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar caixa</button>
+    </form>
+  </section>
+
+  {# ---------- EQUIPAMENTOS ---------- #}
+  <section id="equip" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Equipamentos e suporte de som</h2>
+      <p>Ui24R, microfones, DI, pedestais e energia. Altere várias linhas e clique em Salvar.</p>
+    </div>
+    {% for item in equipamentos %}
+    <form id="excluir-equip-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_equip">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-equip">
+      <input type="hidden" name="acao" value="salvar_equip">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
+      <div class="som-table-wrap">
+        <table class="som-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Categoria</th>
+              <th>Qtd</th>
+              <th>Custo</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Obs</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in equipamentos %}
+            <tr class="som-status-{{ item.status }}">
+              <td>
+                {{ item.nome }}
+                <input type="hidden" name="id" value="{{ item.id }}">
+              </td>
+              <td>{{ item.marca }}</td>
+              <td>{{ item.modelo }}</td>
+              <td>{{ item.categoria }}</td>
+              <td>
+                <select name="quantidade_{{ item.id }}" title="Quantidade (0 a 20)">
+                  {% set qtd_atual = item.quantidade|int %}
+                  {% for n in range(0, 21) %}
+                  <option value="{{ n }}" {% if qtd_atual == n %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                  {% if qtd_atual < 0 or qtd_atual > 20 %}
+                  <option value="{{ qtd_atual }}" selected>{{ qtd_atual }}</option>
+                  {% endif %}
+                </select>
+              </td>
+              <td>
+                <input type="number" name="custo_unitario_{{ item.id }}" step="0.01" min="0" value="{{ '%.2f'|format(item.custo_unitario or 0) }}">
+              </td>
+              <td class="som-total-cell">{{ item.custo_total_brl }}</td>
+              <td>
+                <select name="status_{{ item.id }}">
+                  {% for chave, rotulo in status_opcoes.items() %}
+                  <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td>
+                <input type="text" name="obs_{{ item.id }}" value="{{ item.obs or '' }}">
+              </td>
+              <td>
+                <button type="submit" class="som-btn-mini" form="excluir-equip-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" onclick="return confirm('Excluir este item?')">×</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar equipamentos</button>
+      </div>
+    </form>
+    <form class="som-form-add" method="post">
+      <input type="hidden" name="acao" value="add_equip">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#equip">
+      <h3>Adicionar equipamento</h3>
+      <div class="som-form-grid">
+        <label>Nome <input name="nome" required></label>
+        <label>Marca <input name="marca" required></label>
+        <label>Modelo <input name="modelo"></label>
+        <label>Categoria <input name="categoria" placeholder="Vocal / Rack / Suporte"></label>
+        <label>Qtd
+          <select name="quantidade">
+            {% for n in range(0, 21) %}
+            <option value="{{ n }}" {% if n == 1 %}selected{% endif %}>{{ n }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Custo (R$) <input name="custo_unitario" type="number" step="0.01" min="0" value="0"></label>
+        <label>Status
+          <select name="status">
+            {% for chave, rotulo in status_opcoes.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Obs <input name="obs"></label>
+      </div>
+      <button class="btn btn-primary btn-som" type="submit">Adicionar equipamento</button>
+    </form>
+  </section>
+
+  {# ---------- PALCO ---------- #}
+  <section id="palco" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Ajuste de palco</h2>
+      <p>Checklist operacional — marque antes e depois do culto.</p>
+    </div>
+    <form method="post" class="som-checklist-actions">
+      <input type="hidden" name="acao" value="reset_checklist">
+      <button class="btn btn-ghost-dark" type="submit">Zerar checklist (novo culto)</button>
+    </form>
+    <ul class="som-checklist">
+      {% for item in checklist %}
+      <li class="{% if item.feito %}is-done{% endif %}">
+        <form method="post">
+          <input type="hidden" name="acao" value="toggle_checklist">
+          <input type="hidden" name="id" value="{{ item.id }}">
+          <button type="submit" class="som-check-btn" aria-pressed="{{ 'true' if item.feito else 'false' }}">
+            <span class="som-check-box"></span>
+            <span>{{ item.item }}</span>
+          </button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  {# ---------- MELHORIAS ---------- #}
+  <section id="melhorias" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Melhorias de equipamentos sonoros</h2>
+      <p>Ideias de upgrade, compra e organização. Altere os status e clique em Salvar.</p>
+    </div>
+    {% for item in melhorias %}
+    <form id="excluir-melhoria-{{ item.id }}" method="post" class="som-hidden-form">
+      <input type="hidden" name="acao" value="excluir_melhoria">
+      <input type="hidden" name="id" value="{{ item.id }}">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
+    </form>
+    {% endfor %}
+    <form method="post" class="som-bloco-form" id="form-salvar-melhorias">
+      <input type="hidden" name="acao" value="salvar_melhorias">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
+      <div class="som-cards">
+        {% for item in melhorias %}
+        <article class="som-note som-prio-{{ item.prioridade }}">
+          <header class="som-note-head">
+            <div>
+              <strong>{{ item.titulo }}</strong>
+              <span>{{ item.prioridade }} · {{ item.status }} · {{ item.custo_estimado_brl }}</span>
+            </div>
+            <button type="submit" class="som-btn-mini" form="excluir-melhoria-{{ item.id }}" formaction="{{ url_for('som_admin') }}" formmethod="post" title="Remover melhoria" onclick="return confirm('Remover esta melhoria?')">×</button>
+          </header>
+          <p>{{ item.descricao }}</p>
+          <input type="hidden" name="id" value="{{ item.id }}">
+          <select name="status_{{ item.id }}">
+            <option value="aberta" {% if item.status == 'aberta' %}selected{% endif %}>Aberta</option>
+            <option value="andamento" {% if item.status == 'andamento' %}selected{% endif %}>Em andamento</option>
+            <option value="feita" {% if item.status == 'feita' %}selected{% endif %}>Feita</option>
+          </select>
+        </article>
+        {% else %}
+        <p class="som-empty">Nenhuma melhoria cadastrada ainda.</p>
+        {% endfor %}
+      </div>
+      {% if melhorias %}
+      <div class="som-salvar-bloco">
+        <button class="btn btn-primary btn-som" type="submit">Salvar melhorias</button>
+      </div>
+      {% endif %}
+    </form>
+    <form class="som-form-add" method="post">
+      <input type="hidden" name="acao" value="add_melhoria">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#melhorias">
+      <h3>Nova melhoria</h3>
+      <div class="som-form-grid">
+        <label class="som-span-2">Título <input name="titulo" required placeholder="Ex.: Comprar mais 4 XLR de 10m"></label>
+        <label>Prioridade
+          <select name="prioridade">
+            {% for chave, rotulo in severidade.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Custo estimado (R$) <input name="custo_estimado" type="number" step="0.01" min="0" value="0"></label>
+        <label class="som-span-2">Descrição <textarea name="descricao" rows="3" placeholder="Detalhe o motivo e o benefício"></textarea></label>
+      </div>
+      <button class="btn btn-primary btn-som" type="submit">Registrar melhoria</button>
+    </form>
+  </section>
+
+  {# ---------- RELATÓRIOS ---------- #}
+  <section id="relatorios" class="som-panel">
+    <div class="som-panel-head">
+      <h2>Análise e relatórios de erros por culto</h2>
+      <p>Registre falhas (cabo, feedback, drop, energia) para análise depois.</p>
+    </div>
+    <form class="som-form-add" method="post">
+      <input type="hidden" name="acao" value="add_relatorio">
+      <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
+      <h3>Novo relatório</h3>
+      <div class="som-form-grid">
+        <label>Data do culto <input name="data_culto" type="date" required></label>
+        <label>Tipo
+          <select name="tipo_culto">
+            {% for chave, rotulo in tipos_culto.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Severidade
+          <select name="severidade">
+            {% for chave, rotulo in severidade.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="som-span-2">Título <input name="titulo" required placeholder="Ex.: Feedback no monitor do pastor"></label>
+        <label class="som-span-2">Descrição <textarea name="descricao" rows="4" placeholder="O que aconteceu, em qual momento, o que foi feito"></textarea></label>
+      </div>
+      <button class="btn btn-primary btn-som" type="submit">Salvar relatório</button>
+    </form>
+
+    <div class="som-cards som-cards--rel">
+      {% for item in relatorios %}
+      <article class="som-note som-sev-{{ item.severidade }} {% if item.resolvido %}is-resolved{% endif %}">
+        <header class="som-note-head">
+          <div>
+            <strong>{{ item.titulo }}</strong>
+            <span>{{ item.data_culto }} · {{ item.tipo_texto }} · {{ item.severidade_texto }}</span>
+          </div>
+          <form method="post" class="som-inline-form" onsubmit="return confirm('Remover este relatório?')">
+            <input type="hidden" name="acao" value="excluir_relatorio">
+            <input type="hidden" name="id" value="{{ item.id }}">
+            <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
+            <button type="submit" class="som-btn-mini" title="Remover relatório">×</button>
+          </form>
+        </header>
+        <p>{{ item.descricao }}</p>
+        <form method="post" class="som-inline-form">
+          <input type="hidden" name="acao" value="resolver_relatorio">
+          <input type="hidden" name="id" value="{{ item.id }}">
+          <input type="hidden" name="resolvido" value="{{ 0 if item.resolvido else 1 }}">
+          <input type="hidden" name="redirect" value="{{ url_for('som_admin') }}#relatorios">
+          <button class="som-btn-mini som-btn-wide" type="submit">
+            {{ 'Reabrir' if item.resolvido else 'Marcar resolvido' }}
+          </button>
+        </form>
+      </article>
+      {% else %}
+      <p class="som-empty">Nenhum relatório ainda — ótimo sinal.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  const tabs = document.querySelectorAll("[data-som-tab]");
+  function sync() {
+    const hash = location.hash || "#visao";
+    tabs.forEach((t) => t.classList.toggle("is-active", t.getAttribute("href") === hash));
+  }
+  tabs.forEach((t) => t.addEventListener("click", () => setTimeout(sync, 0)));
+  window.addEventListener("hashchange", sync);
+  sync();
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script id="som-gastos-data" type="application/json">{{ gastos|tojson }}</script>
+<script>
+(function () {
+  const raw = document.getElementById("som-gastos-data");
+  if (!raw || typeof Chart === "undefined") return;
+  const gastos = JSON.parse(raw.textContent);
+  const tick = { color: "rgba(232,238,248,0.7)" };
+  const grid = { color: "rgba(255,255,255,0.08)" };
+  const money = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 0 });
+
+  function doughnut(id, labels, valores, cores) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    new Chart(el, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [{ data: valores, backgroundColor: cores, borderWidth: 0 }]
+      },
+      options: {
+        plugins: {
+          legend: { labels: { color: "#e8eef8" } },
+          tooltip: { callbacks: { label: (c) => " " + money(c.raw) } }
+        }
+      }
+    });
+  }
+
+  function bar(id, labels, valores, cor, horizontal) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    new Chart(el, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          data: valores,
+          backgroundColor: cor,
+          borderRadius: 8,
+          maxBarThickness: 28
+        }]
+      },
+      options: {
+        indexAxis: horizontal ? "y" : "x",
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (c) => money(c.raw) } }
+        },
+        scales: {
+          x: { ticks: tick, grid },
+          y: { ticks: tick, grid }
+        }
+      }
+    });
+  }
+
+  doughnut(
+    "chart-categoria",
+    gastos.por_categoria.labels,
+    gastos.por_categoria.valores,
+    gastos.por_categoria.cores
+  );
+  bar(
+    "chart-risco",
+    gastos.risco.labels,
+    gastos.risco.valores,
+    gastos.risco.cores,
+    false
+  );
+  bar(
+    "chart-top",
+    gastos.top_itens.labels,
+    gastos.top_itens.valores,
+    "#e8872a",
+    true
+  );
+  if (gastos.melhorias.labels.length) {
+    bar(
+      "chart-melhorias",
+      gastos.melhorias.labels,
+      gastos.melhorias.valores,
+      "#c084fc",
+      true
+    );
+  } else {
+    const empty = document.getElementById("chart-melhorias");
+    if (empty) {
+      empty.replaceWith(Object.assign(document.createElement("p"), {
+        className: "som-empty",
+        textContent: "Nenhuma melhoria com custo estimado ainda."
+      }));
+    }
+  }
+})();
+</script>
+{% endblock %}

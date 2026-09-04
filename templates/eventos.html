@@ -140,6 +140,19 @@
         <figcaption>Grupo de Louvor</figcaption>
       </figure>
     </article>
+
+    <article class="admin-card batismo-access-card som-access-card">
+      <h2>Equipe de Som</h2>
+      <p>Console técnico — cabos, caixas, Ui24R, palco e relatórios por culto.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-som" href="{{ url_for('som_login') }}">Acesso da equipe</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('som_login') }}">Mesa de Som</a>
+      </div>
+      <figure class="arraial-card-foto">
+        <img src="{{ url_for('static', filename=fotos_lideres.som) }}" alt="Equipe de Som / Mesa de Som">
+        <figcaption>Mesa de Som</figcaption>
+      </figure>
+    </article>
   </div>
 </section>
 
