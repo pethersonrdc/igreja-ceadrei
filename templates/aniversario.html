@@ -46,24 +46,23 @@
       {% endif %}
     </header>
     {% if post.midias|length > 1 %}
-    <div class="carousel carousel--destaque aniversario-carousel" data-carousel data-carousel-manual data-carousel-interval="0">
-      <div class="carousel-track">
+    <div class="film-strip" data-film-strip>
+      <div class="film-strip-edge film-strip-edge--top" aria-hidden="true"></div>
+      <div class="film-strip-track">
         {% for midia in post.midias %}
-        <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        <figure class="film-strip-frame">
           <img
             src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
             alt="{{ post.titulo }} — foto {{ loop.index }}"
             loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
+            draggable="false"
           >
         </figure>
         {% endfor %}
       </div>
-      <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
-      <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
-      <div class="carousel-dots" data-carousel-dots></div>
-      <p class="carousel-counter" data-carousel-counter>1 / {{ post.midias|length }}</p>
+      <div class="film-strip-edge film-strip-edge--bottom" aria-hidden="true"></div>
     </div>
-    <p class="aniversario-carousel-hint">Toque na foto para passar</p>
+    <p class="aniversario-carousel-hint">Deslize ou toque para passar as fotos</p>
     {% elif post.midias %}
     <figure class="aniversario-destaque-card aniversario-destaque-card--single">
       <img src="{{ url_for('static', filename='uploads/aniversario/' + post.midias[0].arquivo) }}"
@@ -92,10 +91,11 @@
         {% endif %}
       </header>
       {% if post.midias|length > 1 %}
-      <div class="carousel carousel--destaque aniversario-carousel" data-carousel data-carousel-manual data-carousel-interval="0">
-        <div class="carousel-track">
+      <div class="film-strip" data-film-strip>
+        <div class="film-strip-edge film-strip-edge--top" aria-hidden="true"></div>
+        <div class="film-strip-track">
           {% for midia in post.midias %}
-          <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+          <figure class="film-strip-frame">
             {% if midia.tipo == 'video' %}
             <video controls playsinline preload="metadata"
               src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}">
@@ -105,17 +105,15 @@
               src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
               alt="{{ post.titulo }} — foto {{ loop.index }}"
               loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
+              draggable="false"
             >
             {% endif %}
           </figure>
           {% endfor %}
         </div>
-        <button class="carousel-btn carousel-btn--prev" type="button" aria-label="Foto anterior" data-carousel-prev>‹</button>
-        <button class="carousel-btn carousel-btn--next" type="button" aria-label="Próxima foto" data-carousel-next>›</button>
-        <div class="carousel-dots" data-carousel-dots></div>
-        <p class="carousel-counter" data-carousel-counter>1 / {{ post.midias|length }}</p>
+        <div class="film-strip-edge film-strip-edge--bottom" aria-hidden="true"></div>
       </div>
-      <p class="aniversario-carousel-hint">Toque na foto para passar</p>
+      <p class="aniversario-carousel-hint">Deslize ou toque para passar as fotos</p>
       {% elif post.midias %}
         {% set midia = post.midias[0] %}
         <figure class="aniversario-media {% if midia.tipo == 'video' %}aniversario-media--video{% endif %} aniversario-media--single">
@@ -138,7 +136,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if (destaques and destaques|selectattr('midias')|list) or (albuns and albuns|selectattr('midias')|list) %}
-<script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+{% if destaques or albuns %}
+<script src="{{ url_for('static', filename='js/film-strip.js') }}"></script>
 {% endif %}
 {% endblock %}
