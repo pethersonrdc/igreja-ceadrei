@@ -33,44 +33,34 @@
   <div class="section-head">
     <p class="eyebrow">Marcadas pela mídia</p>
     <h2>Fotos especiais em destaque</h2>
+    <p>Rolo cinema em dourado — as fotos especiais passam juntas automaticamente.</p>
   </div>
-  {% for post in destaques %}
-  <article class="aniversario-post aniversario-post--destaque">
-    <header class="aniversario-post-head">
-      <h3>{{ post.titulo }}</h3>
-      {% if post.data_br %}
-      <time datetime="{{ post.data_evento }}">{{ post.data_br }}</time>
-      {% endif %}
-      {% if post.texto %}
-      <p>{{ post.texto }}</p>
-      {% endif %}
-    </header>
-    {% if post.midias|length > 1 %}
-    <div class="film-strip" data-film-strip>
-      <div class="film-strip-edge film-strip-edge--top" aria-hidden="true"></div>
-      <div class="film-strip-track">
+
+  {# Modelo A: um único rolo ouro com todas as fotos de destaque #}
+  <div class="film-strip film-strip--ouro" data-film-strip data-film-interval="2800">
+    <div class="film-strip-badge">EM DESTAQUE</div>
+    <div class="film-strip-edge film-strip-edge--top" aria-hidden="true"></div>
+    <div class="film-strip-track">
+      {% for post in destaques %}
         {% for midia in post.midias %}
-        <figure class="film-strip-frame">
+        <figure class="film-strip-frame film-strip-frame--destaque">
           <img
             src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
-            alt="{{ post.titulo }} — foto {{ loop.index }}"
-            loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
+            alt="{{ post.titulo }}"
+            loading="lazy"
             draggable="false"
           >
+          <figcaption class="film-strip-caption">
+            <strong>{{ post.titulo }}</strong>
+            {% if post.data_br %}<span>{{ post.data_br }}</span>{% endif %}
+          </figcaption>
         </figure>
         {% endfor %}
-      </div>
-      <div class="film-strip-edge film-strip-edge--bottom" aria-hidden="true"></div>
+      {% endfor %}
     </div>
-    <p class="aniversario-carousel-hint">Rolagem automática · toque ou arraste se quiser</p>
-    {% elif post.midias %}
-    <figure class="aniversario-destaque-card aniversario-destaque-card--single">
-      <img src="{{ url_for('static', filename='uploads/aniversario/' + post.midias[0].arquivo) }}"
-           alt="{{ post.titulo }}" loading="lazy">
-    </figure>
-    {% endif %}
-  </article>
-  {% endfor %}
+    <div class="film-strip-edge film-strip-edge--bottom" aria-hidden="true"></div>
+  </div>
+  <p class="aniversario-carousel-hint">Rolagem automática · toque ou arraste se quiser</p>
 </section>
 {% endif %}
 
