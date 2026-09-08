@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-aniversario{% endblock %}
+{% block body_class %}tema-aniversario pagina-fundo{% endblock %}
 
 {% block title %}Aniversário — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/aniversario/fundo.jpg') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero aniversario-hero">
+<section class="page-hero aniversario-hero pagina-fundo-content">
   <p class="eyebrow">Celebração</p>
   <h1>Aniversário CEASDREI</h1>
   <p>Fotos em destaque e álbuns dos momentos especiais publicados pela equipe de mídia.</p>
@@ -19,7 +29,7 @@
 </section>
 
 {% if destaques %}
-<section class="section aniversario-destaques">
+<section class="section aniversario-destaques pagina-fundo-content">
   <div class="section-head">
     <p class="eyebrow">Marcadas pela mídia</p>
     <h2>Fotos especiais em destaque</h2>
@@ -42,7 +52,7 @@
 </section>
 {% endif %}
 
-<section class="section aniversario-lista">
+<section class="section aniversario-lista pagina-fundo-content">
   <div class="section-head">
     <h2>Álbuns</h2>
   </div>

@@ -6692,7 +6692,43 @@ body.tema-som .btn-primary.btn-som:hover {
 }
 
 /* ---------- Aniversário (público, mídia) ---------- */
+body.tema-aniversario.pagina-fundo {
+  background: #eef3f8;
+}
+
+body.tema-aniversario .fundo-pagina.fundo-pagina--arte {
+  background: #eef3f8;
+}
+
+body.tema-aniversario .fundo-pagina--arte .fundo-pagina-img {
+  object-fit: cover;
+  object-position: center center;
+  opacity: 1;
+}
+
+body.tema-aniversario .fundo-pagina--arte::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(238, 243, 248, 0.35) 40%, rgba(18, 32, 51, 0.22));
+}
+
+body.tema-aniversario.pagina-fundo .pagina-fundo-content .eyebrow {
+  color: #1a3a52;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+body.tema-aniversario.pagina-fundo .pagina-fundo-content h1,
+body.tema-aniversario.pagina-fundo .pagina-fundo-content h2 {
+  color: #122033;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+body.tema-aniversario.pagina-fundo .pagina-fundo-content p,
+body.tema-aniversario.pagina-fundo .pagina-fundo-content time {
+  color: #1a3a52;
+}
+
 body.tema-aniversario {
+
   background:
     radial-gradient(900px 420px at 8% -5%, rgba(184, 137, 58, 0.16), transparent 55%),
     radial-gradient(700px 380px at 100% 0%, rgba(26, 58, 82, 0.12), transparent 50%),

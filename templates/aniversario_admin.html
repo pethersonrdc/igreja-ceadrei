@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-aniversario tema-admin-midia{% endblock %}
+{% block body_class %}tema-aniversario tema-admin-midia pagina-fundo{% endblock %}
 
 {% block title %}Aniversário — Painel mídia{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/aniversario/fundo.jpg') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
+<section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Mídia · mesmo login</p>
   <h1>Publicar Aniversário</h1>
   <p>Álbuns (foto/vídeo) e fotos especiais em destaque. Não entra no carrossel da home.</p>
@@ -15,7 +25,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <ul class="flash-list">
@@ -45,7 +55,7 @@
   </form>
 </section>
 
-<section class="section" id="foto-destaque">
+<section class="section pagina-fundo-content" id="foto-destaque">
   <form class="admin-card aniversario-destaque-form" method="post" enctype="multipart/form-data" action="{{ url_for('aniversario_admin') }}">
     <input type="hidden" name="acao" value="destaque">
     <h2>Adicione foto especial em destaque</h2>
@@ -67,7 +77,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   <h2>Fotos em destaque</h2>
   {% if destaques %}
   <ul class="admin-list">
@@ -86,7 +96,7 @@
   {% endif %}
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   <h2>Álbuns publicados</h2>
   {% if albuns %}
   <ul class="admin-list">
