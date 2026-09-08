@@ -6727,6 +6727,21 @@ body.tema-aniversario.pagina-fundo .pagina-fundo-content time {
   color: #1a3a52;
 }
 
+/* Admin Aniversário: título do hero em dourado */
+body.tema-aniversario.tema-admin-midia.pagina-fundo .page-hero .eyebrow,
+body.tema-aniversario.tema-admin-midia.pagina-fundo .page-hero h1,
+body.tema-aniversario.tema-admin-midia.pagina-fundo .page-hero p {
+  color: #b8893a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+body.tema-aniversario.tema-admin-midia.pagina-fundo .page-hero h1 {
+  color: #d4af37;
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5),
+    0 2px 10px rgba(184, 137, 58, 0.28);
+}
+
 body.tema-aniversario {
 
   background:
@@ -6981,8 +6996,29 @@ body.tema-historia .historia-copy p {
 
 body.tema-historia.tema-admin-midia .admin-card,
 body.tema-aniversario.tema-admin-midia .admin-card {
-  background: rgba(255, 255, 255, 0.96);
-  color: var(--ink);
+  background: transparent !important;
+  color: #000 !important;
+  border: 1px solid rgba(184, 137, 58, 0.45) !important;
+  box-shadow: none !important;
+}
+
+body.tema-aniversario.tema-admin-midia .admin-card h2,
+body.tema-aniversario.tema-admin-midia .admin-card label,
+body.tema-aniversario.tema-admin-midia .admin-card p,
+body.tema-aniversario.tema-admin-midia .admin-card strong,
+body.tema-aniversario.tema-admin-midia .aniversario-destaque-hint {
+  color: #000 !important;
+}
+
+body.tema-aniversario.tema-admin-midia .admin-card input,
+body.tema-aniversario.tema-admin-midia .admin-card textarea {
+  background: rgba(255, 255, 255, 0.55);
+  color: #000;
+  border: 1px solid rgba(18, 32, 51, 0.28);
+}
+
+body.tema-aniversario.tema-admin-midia .section > h2 {
+  color: #000;
 }
 
 body.tema-historia .site-footer {
