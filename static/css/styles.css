@@ -7229,3 +7229,76 @@ body.tema-historia .site-footer {
   background: #000;
   pointer-events: auto;
 }
+
+/* Modelo A — Cinema Ouro (fotos em destaque) */
+.film-strip--ouro {
+  --film-bg: #12100a;
+  --film-hole: #d4af37;
+  margin-top: 1rem;
+  border: 1px solid rgba(212, 175, 55, 0.55);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(212, 175, 55, 0.2),
+    inset 0 0 30px rgba(212, 175, 55, 0.08);
+}
+
+.film-strip--ouro .film-strip-edge {
+  background:
+    radial-gradient(circle at center, var(--film-hole) 0 38%, transparent 40%) 0.55rem center / 1.35rem 0.72rem repeat-x,
+    linear-gradient(180deg, #1a160c, #0e0c08);
+}
+
+.film-strip-badge {
+  position: absolute;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 3;
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f0d78c, #b8893a);
+  color: #1a1208;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.film-strip--ouro .film-strip-frame--destaque {
+  width: min(58vw, 260px);
+  aspect-ratio: 3 / 4;
+  border: 2px solid rgba(212, 175, 55, 0.55);
+  position: relative;
+}
+
+@media (min-width: 760px) {
+  .film-strip--ouro .film-strip-frame--destaque {
+    width: 260px;
+  }
+}
+
+.film-strip-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 1.6rem 0.55rem 0.5rem;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.78));
+  color: #fff8ee;
+  pointer-events: none;
+}
+
+.film-strip-caption strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  color: #f0d78c;
+  line-height: 1.15;
+}
+
+.film-strip-caption span {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
