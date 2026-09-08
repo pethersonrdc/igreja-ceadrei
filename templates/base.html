@@ -11,6 +11,7 @@
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ css_asset_version }}">
+  {% block head %}{% endblock %}
 </head>
 <body class="pagina-animada {% block body_class %}{% endblock %}">
   <header class="site-header">

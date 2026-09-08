@@ -2,6 +2,9 @@
   const roots = Array.from(document.querySelectorAll("[data-carousel]"));
   if (!roots.length) return;
 
+  const PLACEHOLDER =
+    "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
   roots.forEach((root) => {
     const slides = Array.from(root.querySelectorAll(".carousel-slide"));
     const prevBtn = root.querySelector("[data-carousel-prev]");
@@ -31,6 +34,28 @@
       return btn;
     });
 
+    function hydrateSlide(i) {
+      const slide = slides[(i + slides.length) % slides.length];
+      if (!slide) return;
+      slide.querySelectorAll("img[data-src]").forEach((img) => {
+        const src = img.getAttribute("data-src");
+        if (!src) return;
+        img.setAttribute("src", src);
+        img.removeAttribute("data-src");
+        const srcset = img.getAttribute("data-srcset");
+        if (srcset) {
+          img.setAttribute("srcset", srcset);
+          img.removeAttribute("data-srcset");
+        }
+      });
+    }
+
+    function hydrateAround(i) {
+      hydrateSlide(i);
+      hydrateSlide(i - 1);
+      hydrateSlide(i + 1);
+    }
+
     function updateCounter() {
       if (counter) {
         counter.textContent = `${index + 1} / ${slides.length}`;
@@ -43,6 +68,7 @@
       index = (next + slides.length) % slides.length;
       slides[index].classList.add("is-active");
       dots[index]?.classList.add("is-active");
+      hydrateAround(index);
       updateCounter();
     }
 
@@ -81,7 +107,17 @@
       root.addEventListener("mouseleave", start);
     }
 
+    // Slides sem data-src já têm src; garante placeholder só onde falta
+    slides.forEach((slide) => {
+      slide.querySelectorAll("img[data-src]").forEach((img) => {
+        if (!img.getAttribute("src")) {
+          img.setAttribute("src", PLACEHOLDER);
+        }
+      });
+    });
+
     dots[0]?.classList.add("is-active");
+    hydrateAround(0);
     updateCounter();
     start();
   });

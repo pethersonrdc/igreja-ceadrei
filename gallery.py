@@ -33,6 +33,9 @@ HOME_MEDIA_EXTENSIONS = ALLOWED_EXTENSIONS | VIDEO_EXTENSIONS
 HOME_UPLOAD_DIR = persistencia.upload_dir("home")
 POST_HOME_PATH = persistencia.db_path("post_home_midia.json")
 
+# Versões extras para srcset (original permanece no banco / disco).
+VARIANT_WIDTHS = (480, 960, 1600)
+
 
 def _seed_flag_path() -> Path:
     return persistencia.db_path("galeria_seed_ok.json")
@@ -384,9 +387,7 @@ def apagar_post(post_id: int) -> bool:
     if not post:
         return False
     for foto in post["fotos"]:
-        caminho = UPLOAD_DIR / foto["arquivo"]
-        if caminho.exists():
-            caminho.unlink()
+        apagar_arquivo_e_variantes(foto["arquivo"])
     with _connect() as conn:
         conn.execute("DELETE FROM fotos WHERE post_id = ?", (post_id,))
         conn.execute("DELETE FROM posts WHERE id = ?", (post_id,))
@@ -397,6 +398,148 @@ def apagar_post(post_id: int) -> bool:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def nome_variante(arquivo: str, largura: int) -> str:
+    """Nome do arquivo redimensionado ao lado do original (ex.: abc_960.jpg)."""
+    path = Path(arquivo)
+    return f"{path.stem}_{int(largura)}.jpg"
+
+
+def listar_variantes(arquivo: str) -> list[str]:
+    return [nome_variante(arquivo, w) for w in VARIANT_WIDTHS]
+
+
+def apagar_arquivo_e_variantes(arquivo: str) -> None:
+    nome = (arquivo or "").strip()
+    if not nome:
+        return
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    caminho = UPLOAD_DIR / nome
+    if caminho.exists():
+        caminho.unlink()
+    for variante in listar_variantes(nome):
+        caminho_v = UPLOAD_DIR / variante
+        if caminho_v.exists():
+            caminho_v.unlink()
+
+
+def gerar_variantes(arquivo: str) -> list[str]:
+    """
+    Mantém o arquivo original e gera versões menores (JPG) para srcset.
+    Retorna os nomes das variantes criadas (ou já existentes).
+    """
+    from PIL import Image, ImageOps
+
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    origem = UPLOAD_DIR / arquivo
+    if not origem.exists():
+        return []
+
+    criados: list[str] = []
+    try:
+        with Image.open(origem) as im:
+            im = ImageOps.exif_transpose(im)
+            if im.mode in ("RGBA", "P", "LA"):
+                fundo = Image.new("RGB", im.size, (255, 255, 255))
+                if im.mode == "P":
+                    im = im.convert("RGBA")
+                if im.mode in ("RGBA", "LA"):
+                    fundo.paste(im, mask=im.split()[-1])
+                else:
+                    fundo.paste(im)
+                im = fundo
+            elif im.mode != "RGB":
+                im = im.convert("RGB")
+
+            largura_orig, _altura_orig = im.size
+            for largura in VARIANT_WIDTHS:
+                nome = nome_variante(arquivo, largura)
+                destino = UPLOAD_DIR / nome
+                if destino.exists():
+                    criados.append(nome)
+                    continue
+                if largura_orig <= largura:
+                    # Original já é menor/igual: copia como JPG naquele rótulo
+                    # para o srcset ter candidatos estáveis.
+                    im.save(destino, format="JPEG", quality=82, optimize=True)
+                else:
+                    copia = im.copy()
+                    copia.thumbnail((largura, largura * 4), Image.Resampling.LANCZOS)
+                    copia.save(destino, format="JPEG", quality=82, optimize=True)
+                criados.append(nome)
+    except OSError:
+        return []
+    return criados
+
+
+def dimensao_imagem(arquivo: str) -> tuple[int, int]:
+    """Largura/altura do original (fallback seguro para lightbox)."""
+    from PIL import Image
+
+    caminho = UPLOAD_DIR / arquivo
+    if not caminho.exists():
+        return (1600, 1200)
+    try:
+        with Image.open(caminho) as im:
+            return im.size
+    except OSError:
+        return (1600, 1200)
+
+
+def url_static_galeria(arquivo: str) -> str:
+    """Caminho relativo /static/... (sem depender do request Flask)."""
+    return f"/static/uploads/galeria/{arquivo}"
+
+
+def srcset_galeria(arquivo: str) -> str:
+    """
+    srcset com variantes existentes + original (maior nitidez no desktop).
+    Fotos antigas sem variantes caem só no original.
+    """
+    partes: list[str] = []
+    for largura in VARIANT_WIDTHS:
+        nome = nome_variante(arquivo, largura)
+        if (UPLOAD_DIR / nome).exists():
+            partes.append(f"{url_static_galeria(nome)} {largura}w")
+    # Original: usa dimensão real quando possível
+    w_orig, _ = dimensao_imagem(arquivo)
+    partes.append(f"{url_static_galeria(arquivo)} {max(w_orig, VARIANT_WIDTHS[-1])}w")
+    return ", ".join(partes)
+
+
+def sizes_galeria() -> str:
+    """Aproxima o grid da galeria (cards ~220px+)."""
+    return "(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 320px"
+
+
+def garantir_variantes_existentes(limite: int | None = None) -> int:
+    """
+    Gera variantes faltantes para fotos já publicadas (upload antigo).
+    Seguro: não altera o arquivo original nem o banco.
+    """
+    init_db()
+    geradas = 0
+    with _connect() as conn:
+        rows = conn.execute("SELECT arquivo FROM fotos ORDER BY id").fetchall()
+    for i, row in enumerate(rows):
+        if limite is not None and i >= limite:
+            break
+        arquivo = (row["arquivo"] or "").strip()
+        if not arquivo:
+            continue
+        if not (UPLOAD_DIR / arquivo).exists():
+            continue
+        faltando = [
+            nome
+            for nome in listar_variantes(arquivo)
+            if not (UPLOAD_DIR / nome).exists()
+        ]
+        if not faltando:
+            continue
+        if gerar_variantes(arquivo):
+            geradas += 1
+    return geradas
 
 
 def seed_fotos_iniciais() -> int | None:
@@ -427,6 +570,7 @@ def seed_fotos_iniciais() -> int | None:
         destino = UPLOAD_DIR / origem.name
         if not destino.exists():
             shutil.copy2(origem, destino)
+        gerar_variantes(origem.name)
         salvos.append(origem.name)
 
     post_id = criar_post(

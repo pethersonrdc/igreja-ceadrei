@@ -359,10 +359,20 @@
     <div class="carousel-track">
       {% for foto in galeria_destaque.fotos %}
       <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
+        {% set dim = galeria_dimensao(foto.arquivo) %}
         <img
-          src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}"
+          {% if loop.first %}
+          src="{{ galeria_url(foto.arquivo) }}"
+          srcset="{{ galeria_srcset(foto.arquivo) }}"
+          {% else %}
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+          data-src="{{ galeria_url(foto.arquivo) }}"
+          data-srcset="{{ galeria_srcset(foto.arquivo) }}"
+          {% endif %}
+          sizes="{{ galeria_sizes() }}"
           alt="{{ galeria_destaque.titulo }} — foto {{ loop.index }}"
-          loading="{{ 'eager' if loop.first else 'lazy' }}"
+          width="{{ dim[0] }}"
+          height="{{ dim[1] }}"
         >
       </figure>
       {% endfor %}

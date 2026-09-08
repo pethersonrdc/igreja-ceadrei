@@ -2,6 +2,12 @@
 
 {% block title %}Galeria — {{ igreja.nome }}{% endblock %}
 
+{% block head %}
+{% if posts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css" crossorigin="anonymous">
+{% endif %}
+{% endblock %}
+
 {% block content %}
 <section class="page-hero">
   <p class="eyebrow">Memórias do culto</p>
@@ -28,10 +34,26 @@
         <h2>{{ post.titulo }}</h2>
         <p>{{ post.culto_dia }} · {{ post.culto_titulo }}</p>
       </div>
-      <div class="gallery-grid">
+      <div class="gallery-grid" data-pswp-gallery>
         {% for foto in post.fotos %}
+        {% set dim = galeria_dimensao(foto.arquivo) %}
         <figure>
-          <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="{{ post.titulo }}" loading="lazy">
+          <a
+            href="{{ galeria_url(foto.arquivo) }}"
+            data-pswp-width="{{ dim[0] }}"
+            data-pswp-height="{{ dim[1] }}"
+            target="_blank"
+            rel="noopener"
+          >
+            <img
+              src="{{ galeria_url(foto.arquivo) }}"
+              srcset="{{ galeria_srcset(foto.arquivo) }}"
+              sizes="{{ galeria_sizes() }}"
+              alt="{{ post.titulo }}"
+              width="{{ dim[0] }}"
+              height="{{ dim[1] }}"
+            >
+          </a>
         </figure>
         {% endfor %}
       </div>
@@ -41,4 +63,10 @@
     <p>Ainda não há fotos publicadas nesta semana.</p>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if posts %}
+<script type="module" src="{{ url_for('static', filename='js/galeria-lightbox.js') }}"></script>
+{% endif %}
 {% endblock %}

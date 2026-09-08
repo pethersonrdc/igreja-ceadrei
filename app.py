@@ -229,6 +229,10 @@ def inject_admin():
         "louvor_logado": bool(session.get("louvor_ok")),
         "som_logado": bool(session.get("som_ok")),
         "css_asset_version": _css_asset_version(),
+        "galeria_srcset": gallery.srcset_galeria,
+        "galeria_sizes": gallery.sizes_galeria,
+        "galeria_dimensao": gallery.dimensao_imagem,
+        "galeria_url": gallery.url_static_galeria,
     }
 
 
@@ -889,6 +893,8 @@ def admin_galeria():
             nome_final = f"{uuid.uuid4().hex}{extensao}"
             destino = gallery.UPLOAD_DIR / nome_final
             arquivo.save(destino)
+            # Original permanece; gera 480/960/1600 para celular nítido e leve
+            gallery.gerar_variantes(nome_final)
             salvos.append(nome_final)
 
         if not salvos:
@@ -2801,6 +2807,7 @@ def data_files(filename: str):
 persistencia.preparar()
 gallery.init_db()
 gallery.seed_fotos_iniciais()
+gallery.garantir_variantes_existentes()
 batismo.init_db()
 casais.init_db()
 pastores.init_db()
