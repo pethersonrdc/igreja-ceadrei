@@ -366,11 +366,24 @@ def galeria_publica():
 @app.route("/aniversario")
 def aniversario_page():
     igreja = load_json("igreja.json")
+    destaques = aniversario.listar_destaques()
+    destaque_itens: list[dict] = []
+    for post in destaques:
+        for midia in post.get("midias") or []:
+            destaque_itens.append(
+                {
+                    "arquivo": midia.get("arquivo"),
+                    "titulo": post.get("titulo") or "Destaque",
+                    "data_br": post.get("data_br") or "",
+                    "texto": post.get("texto") or "",
+                }
+            )
     return render_template(
         "aniversario.html",
         igreja=igreja,
         albuns=aniversario.listar_albuns(),
-        destaques=aniversario.listar_destaques(),
+        destaques=destaques,
+        destaque_itens=destaque_itens,
     )
 
 
