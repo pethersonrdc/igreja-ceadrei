@@ -99,6 +99,10 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         self.assertNotIn('loading="lazy"', html)
         self.assertIn("srcset=", html)
         self.assertIn(f"{Path(nome).stem}_480.jpg", html)
+        self.assertIn(f"{Path(nome).stem}_960.jpg", html)
+        # Grid usa variante leve no src; original fica no href do lightbox
+        self.assertIn(f'src="/static/uploads/galeria/{Path(nome).stem}_960.jpg"', html)
+        self.assertIn(f'href="/static/uploads/galeria/{nome}"', html)
         self.assertIn("data-pswp-gallery", html)
         self.assertIn("galeria-lightbox.js", html)
         self.assertIn("photoswipe", html.lower())
@@ -111,8 +115,10 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         html = self.client.get("/").get_data(as_text=True)
         self.assertIn("data-src=", html)
         self.assertIn("data-srcset=", html)
-        self.assertIn(f'src="/static/uploads/galeria/{nomes[0]}"', html)
-        self.assertIn(f'data-src="/static/uploads/galeria/{nomes[1]}"', html)
+        stem0 = Path(nomes[0]).stem
+        stem1 = Path(nomes[1]).stem
+        self.assertIn(f'src="/static/uploads/galeria/{stem0}_960.jpg"', html)
+        self.assertIn(f'data-src="/static/uploads/galeria/{stem1}_960.jpg"', html)
 
 
 if __name__ == "__main__":

@@ -492,6 +492,18 @@ def url_static_galeria(arquivo: str) -> str:
     return f"/static/uploads/galeria/{arquivo}"
 
 
+def src_galeria_grid(arquivo: str) -> str:
+    """
+    src do grid/carrossel: prefere 960 (celular/desktop leve),
+    depois 480; cai no original se ainda não houver variantes.
+    """
+    for largura in (960, 480, 1600):
+        nome = nome_variante(arquivo, largura)
+        if (UPLOAD_DIR / nome).exists():
+            return url_static_galeria(nome)
+    return url_static_galeria(arquivo)
+
+
 def srcset_galeria(arquivo: str) -> str:
     """
     srcset com variantes existentes + original (maior nitidez no desktop).

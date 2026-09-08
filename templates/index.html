@@ -362,11 +362,11 @@
         {% set dim = galeria_dimensao(foto.arquivo) %}
         <img
           {% if loop.first %}
-          src="{{ galeria_url(foto.arquivo) }}"
+          src="{{ galeria_src_grid(foto.arquivo) }}"
           srcset="{{ galeria_srcset(foto.arquivo) }}"
           {% else %}
           src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-          data-src="{{ galeria_url(foto.arquivo) }}"
+          data-src="{{ galeria_src_grid(foto.arquivo) }}"
           data-srcset="{{ galeria_srcset(foto.arquivo) }}"
           {% endif %}
           sizes="{{ galeria_sizes() }}"

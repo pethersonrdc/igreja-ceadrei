@@ -233,6 +233,7 @@ def inject_admin():
         "galeria_sizes": gallery.sizes_galeria,
         "galeria_dimensao": gallery.dimensao_imagem,
         "galeria_url": gallery.url_static_galeria,
+        "galeria_src_grid": gallery.src_galeria_grid,
     }
 
 
