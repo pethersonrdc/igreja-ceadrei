@@ -5,6 +5,11 @@
   strips.forEach((strip) => {
     const track = strip.querySelector(".film-strip-track");
     if (!track) return;
+
+    function frames() {
+      return Array.from(track.querySelectorAll(".film-strip-frame"));
+    }
+
     if (frames().length < 2) return;
 
     const interval = Number(strip.dataset.filmInterval) || 3200;
@@ -13,10 +18,6 @@
     let startX = 0;
     let startScroll = 0;
     let moved = false;
-
-    function frames() {
-      return Array.from(track.querySelectorAll(".film-strip-frame"));
-    }
 
     function frameStep() {
       const first = frames()[0];
@@ -109,9 +110,13 @@
     strip.addEventListener("mouseenter", stop);
     strip.addEventListener("mouseleave", start);
     track.addEventListener("touchstart", stop, { passive: true });
-    track.addEventListener("touchend", () => {
-      window.setTimeout(start, 1200);
-    }, { passive: true });
+    track.addEventListener(
+      "touchend",
+      () => {
+        window.setTimeout(start, 1200);
+      },
+      { passive: true }
+    );
 
     start();
   });
