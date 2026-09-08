@@ -7200,8 +7200,8 @@ body.tema-historia .site-footer {
 .film-strip-frame {
   flex: 0 0 auto;
   margin: 0;
-  width: min(42vw, 210px);
-  aspect-ratio: 1;
+  width: min(62vw, 280px);
+  aspect-ratio: 3 / 4;
   scroll-snap-align: center;
   background: #111;
   border: 2px solid #1c1c1c;
@@ -7211,7 +7211,7 @@ body.tema-historia .site-footer {
 
 @media (min-width: 760px) {
   .film-strip-frame {
-    width: 220px;
+    width: 300px;
   }
 }
 
