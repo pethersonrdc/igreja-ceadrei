@@ -10,6 +10,9 @@
     const counter = root.querySelector("[data-carousel-counter]");
     if (slides.length < 2) return;
 
+    const manual =
+      root.hasAttribute("data-carousel-manual") ||
+      root.dataset.carouselInterval === "0";
     const interval = Number(root.dataset.carouselInterval) || 4500;
     let index = 0;
     let timer = null;
@@ -19,7 +22,11 @@
       btn.type = "button";
       btn.className = "carousel-dot";
       btn.setAttribute("aria-label", `Ir para foto ${i + 1}`);
-      btn.addEventListener("click", () => goTo(i));
+      btn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        goTo(i);
+        if (!manual) start();
+      });
       dotsWrap?.appendChild(btn);
       return btn;
     });
@@ -40,25 +47,39 @@
     }
 
     function start() {
+      if (manual) return;
       stop();
       timer = window.setInterval(() => goTo(index + 1), interval);
     }
 
     function stop() {
       if (timer) window.clearInterval(timer);
+      timer = null;
     }
 
-    prevBtn?.addEventListener("click", () => {
+    prevBtn?.addEventListener("click", (event) => {
+      event.stopPropagation();
       goTo(index - 1);
-      start();
+      if (!manual) start();
     });
-    nextBtn?.addEventListener("click", () => {
+    nextBtn?.addEventListener("click", (event) => {
+      event.stopPropagation();
       goTo(index + 1);
-      start();
+      if (!manual) start();
     });
 
-    root.addEventListener("mouseenter", stop);
-    root.addEventListener("mouseleave", start);
+    // Avança ao clicar na foto (modo manual ou também no automático)
+    root.addEventListener("click", (event) => {
+      if (event.target.closest("button, a, video, .carousel-dot")) return;
+      if (!event.target.closest(".carousel-slide, .carousel-track")) return;
+      goTo(index + 1);
+      if (!manual) start();
+    });
+
+    if (!manual) {
+      root.addEventListener("mouseenter", stop);
+      root.addEventListener("mouseleave", start);
+    }
 
     dots[0]?.classList.add("is-active");
     updateCounter();

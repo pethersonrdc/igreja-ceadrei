@@ -6994,7 +6994,11 @@ body.tema-historia .historia-copy p {
   }
 }
 
-body.tema-historia.tema-admin-midia .admin-card,
+body.tema-historia.tema-admin-midia .admin-card {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+}
+
 body.tema-aniversario.tema-admin-midia .admin-card {
   background: transparent !important;
   color: #000 !important;
@@ -7090,4 +7094,45 @@ body.tema-historia .site-footer {
 
 .aniversario-destaque-form {
   border: 1px solid rgba(184, 137, 58, 0.45) !important;
+}
+
+/* Aniversário — galeria só ao clicar */
+.aniversario-carousel {
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.aniversario-carousel .carousel-slide video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #0d2436;
+}
+
+.aniversario-carousel-hint {
+  margin: 0.55rem 0 0;
+  text-align: center;
+  font-size: 0.88rem;
+  color: #1a3a52;
+  opacity: 0.85;
+}
+
+.aniversario-media--single,
+.aniversario-destaque-card--single {
+  max-width: 560px;
+  margin: 0 auto;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.aniversario-destaque-card--single img,
+.aniversario-media--single img,
+.aniversario-media--single video {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.aniversario-post--destaque {
+  margin-bottom: 2rem;
 }
