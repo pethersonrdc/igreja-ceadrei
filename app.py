@@ -369,7 +369,8 @@ def aniversario_page():
     return render_template(
         "aniversario.html",
         igreja=igreja,
-        posts=aniversario.listar_posts(),
+        albuns=aniversario.listar_albuns(),
+        destaques=aniversario.listar_destaques(),
     )
 
 
@@ -377,12 +378,39 @@ def aniversario_page():
 @login_required
 def aniversario_admin():
     if request.method == "POST":
+        acao = (request.form.get("acao") or "album").strip()
         titulo = (request.form.get("titulo") or "").strip()
         data_evento = (request.form.get("data_evento") or "").strip()
         texto = (request.form.get("texto") or "").strip()
         arquivos = request.files.getlist("arquivos")
         salvos: list[tuple[str, str]] = []
         aniversario.init_db()
+
+        if acao == "destaque":
+            for arquivo in arquivos:
+                if not arquivo or not arquivo.filename:
+                    continue
+                if not aniversario.extensao_imagem_ok(arquivo.filename):
+                    flash("Destaque aceita apenas fotos.", "erro")
+                    return redirect(url_for("aniversario_admin") + "#foto-destaque")
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"destaque-{uuid.uuid4().hex}{extensao}"
+                arquivo.save(aniversario.UPLOAD_DIR / nome_final)
+                salvos.append((nome_final, "imagem"))
+            if not salvos:
+                flash("Envie ao menos uma foto em destaque.", "erro")
+                return redirect(url_for("aniversario_admin") + "#foto-destaque")
+            aniversario.criar_post(
+                titulo=titulo,
+                data_evento=data_evento,
+                texto=texto,
+                arquivos=salvos,
+                categoria=aniversario.CATEGORIA_DESTAQUE,
+            )
+            flash("Foto especial em destaque publicada. Ela aparece junto com as outras.", "ok")
+            return redirect(url_for("aniversario_admin") + "#foto-destaque")
+
         for arquivo in arquivos:
             if not arquivo or not arquivo.filename:
                 continue
@@ -402,6 +430,7 @@ def aniversario_admin():
             data_evento=data_evento,
             texto=texto,
             arquivos=salvos,
+            categoria=aniversario.CATEGORIA_ALBUM,
         )
         flash("Álbum de aniversário publicado.", "ok")
         return redirect(url_for("aniversario_admin"))
@@ -409,7 +438,8 @@ def aniversario_admin():
     return render_template(
         "aniversario_admin.html",
         igreja=load_json("igreja.json"),
-        posts=aniversario.listar_posts(),
+        albuns=aniversario.listar_albuns(),
+        destaques=aniversario.listar_destaques(),
     )
 
 
@@ -417,7 +447,7 @@ def aniversario_admin():
 @login_required
 def aniversario_apagar(post_id: int):
     if aniversario.apagar_post(post_id):
-        flash("Álbum removido.", "ok")
+        flash("Publicação removida.", "ok")
     else:
         flash("Não foi possível remover.", "erro")
     return redirect(url_for("aniversario_admin"))

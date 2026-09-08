@@ -6954,3 +6954,68 @@ body.tema-historia .site-footer {
   color: rgba(247, 244, 239, 0.75);
   border-top: 1px solid rgba(184, 137, 58, 0.25);
 }
+
+/* Aniversário — fotos especiais em destaque */
+.aniversario-destaque-hint {
+  margin: 0 0 1rem;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.aniversario-destaques {
+  padding-top: 0.5rem;
+}
+
+.aniversario-destaque-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.aniversario-destaque-card {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #122033;
+  border: 1px solid rgba(184, 137, 58, 0.45);
+  box-shadow: 0 14px 34px rgba(18, 32, 51, 0.18);
+}
+
+.aniversario-destaque-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+}
+
+.aniversario-destaque-card figcaption {
+  padding: 0.85rem 0.95rem 1rem;
+  color: #f7f4ef;
+  background: linear-gradient(180deg, #1a3a52, #122033);
+}
+
+.aniversario-destaque-card figcaption strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: #e8c878;
+}
+
+.aniversario-destaque-card figcaption span {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: rgba(247, 244, 239, 0.75);
+}
+
+.aniversario-destaque-card figcaption em {
+  display: block;
+  margin-top: 0.45rem;
+  font-style: normal;
+  font-size: 0.92rem;
+  color: rgba(247, 244, 239, 0.88);
+}
+
+.aniversario-destaque-form {
+  border: 1px solid rgba(184, 137, 58, 0.45) !important;
+}

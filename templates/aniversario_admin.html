@@ -8,7 +8,7 @@
 <section class="page-hero">
   <p class="eyebrow">Mídia · mesmo login</p>
   <h1>Publicar Aniversário</h1>
-  <p>Álbum público de fotos e vídeos. Não entra no carrossel da home.</p>
+  <p>Álbuns (foto/vídeo) e fotos especiais em destaque. Não entra no carrossel da home.</p>
   <div class="hero-actions">
     <a class="btn btn-ghost-dark" href="{{ url_for('aniversario_page') }}">Ver página pública</a>
     <a class="btn btn-ghost-dark" href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
@@ -27,6 +27,7 @@
   {% endwith %}
 
   <form class="admin-card" method="post" enctype="multipart/form-data" action="{{ url_for('aniversario_admin') }}">
+    <input type="hidden" name="acao" value="album">
     <h2>Novo álbum</h2>
     <label for="titulo">Título</label>
     <input id="titulo" name="titulo" type="text" required placeholder="Ex.: Aniversário da igreja 2026">
@@ -40,18 +41,59 @@
     <label for="arquivos">Fotos e vídeos</label>
     <input id="arquivos" name="arquivos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*" multiple required>
 
-    <button class="btn btn-primary" type="submit">Publicar</button>
+    <button class="btn btn-primary" type="submit">Publicar álbum</button>
+  </form>
+</section>
+
+<section class="section" id="foto-destaque">
+  <form class="admin-card aniversario-destaque-form" method="post" enctype="multipart/form-data" action="{{ url_for('aniversario_admin') }}">
+    <input type="hidden" name="acao" value="destaque">
+    <h2>Adicione foto especial em destaque</h2>
+    <p class="aniversario-destaque-hint">Só fotos. Cada publicação nova entra junto com as anteriores na página — todas aparecem.</p>
+
+    <label for="titulo_destaque">Título</label>
+    <input id="titulo_destaque" name="titulo" type="text" required placeholder="Ex.: Momento especial do culto">
+
+    <label for="data_destaque">Data do evento</label>
+    <input id="data_destaque" name="data_evento" type="date">
+
+    <label for="texto_destaque">Texto (opcional)</label>
+    <textarea id="texto_destaque" name="texto" rows="3" placeholder="Por que essa foto é especial"></textarea>
+
+    <label for="fotos_destaque">Fotos em destaque</label>
+    <input id="fotos_destaque" name="arquivos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+
+    <button class="btn btn-primary" type="submit">Publicar destaque</button>
   </form>
 </section>
 
 <section class="section">
-  <h2>Publicados</h2>
-  {% if posts %}
+  <h2>Fotos em destaque</h2>
+  {% if destaques %}
   <ul class="admin-list">
-    {% for post in posts %}
+    {% for post in destaques %}
     <li class="admin-card">
       <strong>{{ post.titulo }}</strong>
-      <p>{% if post.data_br %}{{ post.data_br }} · {% endif %}{{ post.midias|length }} arquivo(s)</p>
+      <p>Destaque · {% if post.data_br %}{{ post.data_br }} · {% endif %}{{ post.midias|length }} foto(s)</p>
+      <form method="post" action="{{ url_for('aniversario_apagar', post_id=post.id) }}" onsubmit="return confirm('Apagar este destaque?');">
+        <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nenhuma foto especial em destaque ainda.</p>
+  {% endif %}
+</section>
+
+<section class="section">
+  <h2>Álbuns publicados</h2>
+  {% if albuns %}
+  <ul class="admin-list">
+    {% for post in albuns %}
+    <li class="admin-card">
+      <strong>{{ post.titulo }}</strong>
+      <p>Álbum · {% if post.data_br %}{{ post.data_br }} · {% endif %}{{ post.midias|length }} arquivo(s)</p>
       <form method="post" action="{{ url_for('aniversario_apagar', post_id=post.id) }}" onsubmit="return confirm('Apagar este álbum?');">
         <button class="btn btn-ghost-dark" type="submit">Apagar</button>
       </form>

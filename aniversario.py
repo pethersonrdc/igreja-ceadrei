@@ -1,5 +1,5 @@
 """
-Aniversário CEASDREI — álbum público de fotos e vídeos (login da mídia).
+Aniversário CEASDREI — álbum público + fotos especiais em destaque (login da mídia).
 Não aparece no carrossel da home; só na aba Aniversário.
 """
 
@@ -17,6 +17,9 @@ DB_PATH = persistencia.db_path("aniversario.db")
 ALLOWED_IMAGE = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 ALLOWED_VIDEO = {".mp4", ".webm", ".ogg", ".mov"}
 ALLOWED_MEDIA = ALLOWED_IMAGE | ALLOWED_VIDEO
+
+CATEGORIA_ALBUM = "album"
+CATEGORIA_DESTAQUE = "destaque"
 
 
 def _connect() -> sqlite3.Connection:
@@ -39,6 +42,7 @@ def init_db() -> None:
                 titulo TEXT NOT NULL,
                 data_evento TEXT NOT NULL DEFAULT '',
                 texto TEXT NOT NULL DEFAULT '',
+                categoria TEXT NOT NULL DEFAULT 'album',
                 criado_em TEXT NOT NULL
             );
             CREATE TABLE IF NOT EXISTS midias (
@@ -50,6 +54,11 @@ def init_db() -> None:
             );
             """
         )
+        cols = {row["name"] for row in conn.execute("PRAGMA table_info(posts)").fetchall()}
+        if "categoria" not in cols:
+            conn.execute(
+                "ALTER TABLE posts ADD COLUMN categoria TEXT NOT NULL DEFAULT 'album'"
+            )
 
 
 def agora() -> datetime:
@@ -58,6 +67,10 @@ def agora() -> datetime:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_MEDIA
+
+
+def extensao_imagem_ok(nome: str) -> bool:
+    return Path(nome).suffix.lower() in ALLOWED_IMAGE
 
 
 def tipo_arquivo(nome: str) -> str:
@@ -81,24 +94,41 @@ def _formatar_data(valor: str) -> str:
 
 def _enriquecer(post: dict, midias: list[dict]) -> dict:
     item = dict(post)
+    categoria = (item.get("categoria") or CATEGORIA_ALBUM).strip() or CATEGORIA_ALBUM
+    item["categoria"] = categoria
+    item["eh_destaque"] = categoria == CATEGORIA_DESTAQUE
     item["data_br"] = _formatar_data(item.get("data_evento") or "")
     item["midias"] = midias
     item["tem_video"] = any(m.get("tipo") == "video" for m in midias)
     return item
 
 
-def listar_posts() -> list[dict]:
+def _listar(categoria: str | None = None) -> list[dict]:
     init_db()
     with _connect() as conn:
-        posts = conn.execute(
-            """
-            SELECT * FROM posts
-            ORDER BY
-              CASE WHEN data_evento = '' THEN 1 ELSE 0 END,
-              data_evento DESC,
-              criado_em DESC
-            """
-        ).fetchall()
+        if categoria:
+            posts = conn.execute(
+                """
+                SELECT * FROM posts
+                WHERE categoria = ?
+                ORDER BY
+                  CASE WHEN data_evento = '' THEN 1 ELSE 0 END,
+                  data_evento DESC,
+                  criado_em DESC
+                """,
+                (categoria,),
+            ).fetchall()
+        else:
+            posts = conn.execute(
+                """
+                SELECT * FROM posts
+                ORDER BY
+                  CASE WHEN categoria = 'destaque' THEN 0 ELSE 1 END,
+                  CASE WHEN data_evento = '' THEN 1 ELSE 0 END,
+                  data_evento DESC,
+                  criado_em DESC
+                """
+            ).fetchall()
         resultado = []
         for post in posts:
             midias = conn.execute(
@@ -109,25 +139,43 @@ def listar_posts() -> list[dict]:
         return resultado
 
 
+def listar_posts() -> list[dict]:
+    return _listar()
+
+
+def listar_albuns() -> list[dict]:
+    return _listar(CATEGORIA_ALBUM)
+
+
+def listar_destaques() -> list[dict]:
+    return _listar(CATEGORIA_DESTAQUE)
+
+
 def criar_post(
     *,
     titulo: str,
     data_evento: str,
     texto: str,
     arquivos: list[tuple[str, str]],
+    categoria: str = CATEGORIA_ALBUM,
 ) -> int:
     """arquivos: lista de (nome_arquivo, tipo)."""
     init_db()
+    cat = (categoria or CATEGORIA_ALBUM).strip()
+    if cat not in {CATEGORIA_ALBUM, CATEGORIA_DESTAQUE}:
+        cat = CATEGORIA_ALBUM
+    titulo_padrao = "Foto em destaque" if cat == CATEGORIA_DESTAQUE else "Aniversário"
     with _connect() as conn:
         cur = conn.execute(
             """
-            INSERT INTO posts (titulo, data_evento, texto, criado_em)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO posts (titulo, data_evento, texto, categoria, criado_em)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
-                (titulo or "").strip() or "Aniversário",
+                (titulo or "").strip() or titulo_padrao,
                 (data_evento or "").strip(),
                 (texto or "").strip(),
+                cat,
                 agora().isoformat(timespec="seconds"),
             ),
         )

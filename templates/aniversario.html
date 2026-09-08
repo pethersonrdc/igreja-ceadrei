@@ -8,7 +8,7 @@
 <section class="page-hero aniversario-hero">
   <p class="eyebrow">Celebração</p>
   <h1>Aniversário CEASDREI</h1>
-  <p>Fotos e vídeos dos momentos especiais publicados pela equipe de mídia.</p>
+  <p>Fotos em destaque e álbuns dos momentos especiais publicados pela equipe de mídia.</p>
   <div class="hero-actions" style="margin-top: 1.25rem;">
     {% if admin_logado %}
     <a class="btn btn-primary" href="{{ url_for('aniversario_admin') }}">Publicar aniversário</a>
@@ -18,9 +18,36 @@
   </div>
 </section>
 
+{% if destaques %}
+<section class="section aniversario-destaques">
+  <div class="section-head">
+    <p class="eyebrow">Marcadas pela mídia</p>
+    <h2>Fotos especiais em destaque</h2>
+  </div>
+  <div class="aniversario-destaque-grid">
+    {% for post in destaques %}
+      {% for midia in post.midias %}
+      <figure class="aniversario-destaque-card">
+        <img src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
+             alt="{{ post.titulo }}" loading="lazy">
+        <figcaption>
+          <strong>{{ post.titulo }}</strong>
+          {% if post.data_br %}<span>{{ post.data_br }}</span>{% endif %}
+          {% if post.texto %}<em>{{ post.texto }}</em>{% endif %}
+        </figcaption>
+      </figure>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
 <section class="section aniversario-lista">
-  {% if posts %}
-    {% for post in posts %}
+  <div class="section-head">
+    <h2>Álbuns</h2>
+  </div>
+  {% if albuns %}
+    {% for post in albuns %}
     <article class="aniversario-post">
       <header class="aniversario-post-head">
         <h2>{{ post.titulo }}</h2>
@@ -48,7 +75,7 @@
     </article>
     {% endfor %}
   {% else %}
-    <p class="aniversario-vazio">Ainda não há fotos ou vídeos de aniversário publicados.</p>
+    <p class="aniversario-vazio">Ainda não há álbuns de aniversário publicados.</p>
   {% endif %}
 </section>
 {% endblock %}
