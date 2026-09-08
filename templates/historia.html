@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-historia{% endblock %}
+
+{% block title %}História CEASDREI — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="historia-hero">
+  <div class="historia-hero-inner">
+    <img class="historia-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="72" height="72">
+    <p class="eyebrow">Linha do tempo</p>
+    <h1>História CEASDREI</h1>
+    <p>Marcos, datas e memórias que formam a caminhada da nossa igreja.</p>
+    {% if admin_logado %}
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{ url_for('historia_admin') }}">Publicar marco</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section historia-filtros">
+  <p class="eyebrow">Filtrar por ano</p>
+  <div class="historia-anos" role="navigation" aria-label="Anos da história">
+    <a class="historia-ano {% if not ano_filtro %}is-active{% endif %}" href="{{ url_for('historia_page') }}">Todos</a>
+    {% for ano in anos %}
+    <a class="historia-ano {% if ano_filtro == ano %}is-active{% endif %}"
+       href="{{ url_for('historia_page', ano=ano) }}">{{ ano }}</a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="section historia-timeline">
+  {% if posts %}
+    {% for post in posts %}
+    <article class="historia-card" id="marco-{{ post.id }}">
+      <div class="historia-card-meta">
+        {% if post.ano %}<span class="historia-ano-badge">{{ post.ano }}</span>{% endif %}
+        {% if post.data_br %}<time datetime="{{ post.data_evento }}">{{ post.data_br }}</time>{% endif %}
+      </div>
+      <div class="historia-card-body">
+        {% if post.destaque %}
+        <figure class="historia-destaque">
+          <img src="{{ url_for('static', filename='uploads/historia/' + post.destaque) }}"
+               alt="{{ post.titulo }}" loading="lazy">
+        </figure>
+        {% endif %}
+        <div class="historia-copy">
+          <h2>{{ post.titulo }}</h2>
+          {% if post.texto %}
+          <p>{{ post.texto }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% if post.galeria %}
+      <div class="historia-galeria">
+        {% for midia in post.galeria %}
+        <figure>
+          {% if midia.tipo == 'video' %}
+          <video controls playsinline preload="metadata"
+            src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}">
+          </video>
+          {% else %}
+          <img src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}"
+               alt="{{ post.titulo }}" loading="lazy">
+          {% endif %}
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  {% else %}
+    <p class="historia-vazio">Ainda não há marcos publicados nesta história.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -27,10 +27,12 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 import arraial
+import aniversario
 import batismo
 import campanha_eventos
 import casais
 import gallery
+import historia
 import louvor
 import mocidade
 import pastores
@@ -357,6 +359,162 @@ def galeria_publica():
     igreja = load_json("igreja.json")
     posts = gallery.listar_posts_ativos()
     return render_template("galeria.html", igreja=igreja, posts=posts)
+
+
+# ---------- Aniversário (mídia — mesmo login do painel) ----------
+
+@app.route("/aniversario")
+def aniversario_page():
+    igreja = load_json("igreja.json")
+    return render_template(
+        "aniversario.html",
+        igreja=igreja,
+        posts=aniversario.listar_posts(),
+    )
+
+
+@app.route("/aniversario/admin", methods=["GET", "POST"])
+@login_required
+def aniversario_admin():
+    if request.method == "POST":
+        titulo = (request.form.get("titulo") or "").strip()
+        data_evento = (request.form.get("data_evento") or "").strip()
+        texto = (request.form.get("texto") or "").strip()
+        arquivos = request.files.getlist("arquivos")
+        salvos: list[tuple[str, str]] = []
+        aniversario.init_db()
+        for arquivo in arquivos:
+            if not arquivo or not arquivo.filename:
+                continue
+            if not aniversario.extensao_ok(arquivo.filename):
+                flash("Arquivo inválido. Use foto ou vídeo.", "erro")
+                return redirect(url_for("aniversario_admin"))
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_final = f"{uuid.uuid4().hex}{extensao}"
+            arquivo.save(aniversario.UPLOAD_DIR / nome_final)
+            salvos.append((nome_final, aniversario.tipo_arquivo(nome_final)))
+        if not salvos:
+            flash("Envie ao menos uma foto ou vídeo.", "erro")
+            return redirect(url_for("aniversario_admin"))
+        aniversario.criar_post(
+            titulo=titulo,
+            data_evento=data_evento,
+            texto=texto,
+            arquivos=salvos,
+        )
+        flash("Álbum de aniversário publicado.", "ok")
+        return redirect(url_for("aniversario_admin"))
+
+    return render_template(
+        "aniversario_admin.html",
+        igreja=load_json("igreja.json"),
+        posts=aniversario.listar_posts(),
+    )
+
+
+@app.route("/aniversario/admin/<int:post_id>/apagar", methods=["POST"])
+@login_required
+def aniversario_apagar(post_id: int):
+    if aniversario.apagar_post(post_id):
+        flash("Álbum removido.", "ok")
+    else:
+        flash("Não foi possível remover.", "erro")
+    return redirect(url_for("aniversario_admin"))
+
+
+# ---------- História CEASDREI (mídia — nunca na home) ----------
+
+@app.route("/historia")
+def historia_page():
+    igreja = load_json("igreja.json")
+    ano_raw = (request.args.get("ano") or "").strip()
+    ano_filtro = None
+    if ano_raw.isdigit():
+        ano_filtro = int(ano_raw)
+    return render_template(
+        "historia.html",
+        igreja=igreja,
+        posts=historia.listar_posts(ano=ano_filtro),
+        anos=historia.listar_anos(),
+        ano_filtro=ano_filtro,
+    )
+
+
+@app.route("/historia/admin", methods=["GET", "POST"])
+@login_required
+def historia_admin():
+    if request.method == "POST":
+        titulo = (request.form.get("titulo") or "").strip()
+        data_evento = (request.form.get("data_evento") or "").strip()
+        ano = (request.form.get("ano") or "").strip()
+        texto = (request.form.get("texto") or "").strip()
+        historia.init_db()
+        salvos: list[tuple[str, str]] = []
+        destaque_nome = ""
+
+        destaque = request.files.get("destaque")
+        if destaque and destaque.filename:
+            if Path(destaque.filename).suffix.lower() not in historia.ALLOWED_IMAGE:
+                flash("Destaque precisa ser imagem.", "erro")
+                return redirect(url_for("historia_admin"))
+            nome_seguro = secure_filename(destaque.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            destaque_nome = f"destaque-{uuid.uuid4().hex}{extensao}"
+            destaque.save(historia.UPLOAD_DIR / destaque_nome)
+            salvos.append((destaque_nome, "imagem"))
+
+        for arquivo in request.files.getlist("arquivos"):
+            if not arquivo or not arquivo.filename:
+                continue
+            if not historia.extensao_ok(arquivo.filename):
+                flash("Arquivo inválido na galeria.", "erro")
+                return redirect(url_for("historia_admin"))
+            nome_seguro = secure_filename(arquivo.filename)
+            extensao = Path(nome_seguro).suffix.lower()
+            nome_final = f"{uuid.uuid4().hex}{extensao}"
+            arquivo.save(historia.UPLOAD_DIR / nome_final)
+            salvos.append((nome_final, historia.tipo_arquivo(nome_final)))
+
+        if not destaque_nome and not salvos:
+            flash("Envie uma imagem de destaque ou arquivos da galeria.", "erro")
+            return redirect(url_for("historia_admin"))
+
+        if not destaque_nome and salvos:
+            # primeira imagem vira destaque se não veio arquivo de destaque
+            for nome, tipo in salvos:
+                if tipo == "imagem":
+                    destaque_nome = nome
+                    break
+            if not destaque_nome:
+                destaque_nome = salvos[0][0]
+
+        historia.criar_post(
+            titulo=titulo,
+            data_evento=data_evento,
+            ano=ano,
+            texto=texto,
+            destaque=destaque_nome,
+            arquivos=salvos,
+        )
+        flash("Marco da história publicado.", "ok")
+        return redirect(url_for("historia_admin"))
+
+    return render_template(
+        "historia_admin.html",
+        igreja=load_json("igreja.json"),
+        posts=historia.listar_posts(),
+    )
+
+
+@app.route("/historia/admin/<int:post_id>/apagar", methods=["POST"])
+@login_required
+def historia_apagar(post_id: int):
+    if historia.apagar_post(post_id):
+        flash("Marco removido.", "ok")
+    else:
+        flash("Não foi possível remover.", "erro")
+    return redirect(url_for("historia_admin"))
 
 
 # ---------- Papo de Altar (mídia — mesmo login do painel) ----------
@@ -2609,6 +2767,8 @@ porta_altar.init_db()
 lideres_midia.init_db()
 louvor.init_db()
 som.init_db()
+aniversario.init_db()
+historia.init_db()
 for _slug in campanha_eventos.EVENTOS:
     campanha_eventos.init_db(_slug)
 

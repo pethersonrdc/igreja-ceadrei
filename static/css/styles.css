@@ -6690,3 +6690,267 @@ body.tema-som .btn-primary.btn-som:hover {
     grid-column: auto;
   }
 }
+
+/* ---------- Aniversário (público, mídia) ---------- */
+body.tema-aniversario {
+  background:
+    radial-gradient(900px 420px at 8% -5%, rgba(184, 137, 58, 0.16), transparent 55%),
+    radial-gradient(700px 380px at 100% 0%, rgba(26, 58, 82, 0.12), transparent 50%),
+    linear-gradient(180deg, #fbf8f3 0%, #f3ebe0 100%);
+}
+
+.aniversario-hero h1 {
+  font-family: var(--font-display);
+  color: var(--sea-deep);
+}
+
+.aniversario-post {
+  margin: 0 0 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.aniversario-post-head {
+  margin-bottom: 1rem;
+}
+
+.aniversario-post-head time {
+  display: inline-block;
+  margin: 0.25rem 0 0.5rem;
+  color: var(--gold-deep);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.aniversario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.aniversario-media {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: #111;
+  aspect-ratio: 1;
+}
+
+.aniversario-media img,
+.aniversario-media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.aniversario-media--video {
+  aspect-ratio: 16 / 10;
+  grid-column: span 2;
+}
+
+.aniversario-vazio,
+.historia-vazio {
+  color: var(--ink-soft);
+}
+
+/* ---------- História CEASDREI ---------- */
+body.tema-historia {
+  background:
+    radial-gradient(ellipse at top, rgba(184, 137, 58, 0.22), transparent 48%),
+    linear-gradient(180deg, #0d2436 0%, #122033 42%, #1a3a52 100%);
+  color: #f7f4ef;
+}
+
+body.tema-historia .site-header {
+  background: rgba(13, 36, 54, 0.92);
+  border-bottom: 1px solid rgba(184, 137, 58, 0.28);
+}
+
+body.tema-historia .site-nav a,
+body.tema-historia .brand span {
+  color: #f7f4ef;
+}
+
+.historia-hero {
+  padding: 3rem 1.25rem 2rem;
+  text-align: center;
+}
+
+.historia-hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.historia-emblema {
+  display: block;
+  margin: 0 auto 1rem;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(184, 137, 58, 0.55), 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+body.tema-historia .eyebrow {
+  color: #e8c878;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+body.tema-historia .historia-hero h1,
+body.tema-historia .historia-copy h2 {
+  font-family: var(--font-display);
+  color: #f7f4ef;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+}
+
+body.tema-historia .historia-hero p,
+body.tema-historia .historia-copy p {
+  color: rgba(247, 244, 239, 0.82);
+}
+
+.historia-filtros {
+  padding-top: 0;
+}
+
+.historia-anos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+}
+
+.historia-ano {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.4rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(184, 137, 58, 0.45);
+  border-radius: 999px;
+  color: #e8c878;
+  text-decoration: none;
+  font-weight: 600;
+  background: rgba(13, 36, 54, 0.45);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.historia-ano:hover,
+.historia-ano.is-active {
+  background: linear-gradient(135deg, #b8893a, #8f6a28);
+  color: #122033;
+  border-color: transparent;
+}
+
+.historia-timeline {
+  max-width: 900px;
+  margin: 0 auto;
+  padding-bottom: 3rem;
+}
+
+.historia-card {
+  position: relative;
+  margin: 0 0 2rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(184, 137, 58, 0.35);
+  border-radius: 1.1rem;
+  background:
+    linear-gradient(160deg, rgba(26, 58, 82, 0.75), rgba(13, 36, 54, 0.92));
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+}
+
+.historia-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.historia-ano-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: #b8893a;
+  color: #122033;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.historia-card-meta time {
+  color: #e8c878;
+  font-weight: 600;
+}
+
+.historia-card-body {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 760px) {
+  .historia-card-body {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.historia-destaque {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(184, 137, 58, 0.35);
+  aspect-ratio: 4 / 3;
+  background: #0a1622;
+}
+
+.historia-destaque img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historia-galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.historia-galeria figure {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  aspect-ratio: 1;
+  background: #0a1622;
+}
+
+.historia-galeria img,
+.historia-galeria video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.historia-admin-datas {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .historia-admin-datas {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+body.tema-historia.tema-admin-midia .admin-card,
+body.tema-aniversario.tema-admin-midia .admin-card {
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
+}
+
+body.tema-historia .site-footer {
+  background: rgba(8, 18, 28, 0.9);
+  color: rgba(247, 244, 239, 0.75);
+  border-top: 1px solid rgba(184, 137, 58, 0.25);
+}

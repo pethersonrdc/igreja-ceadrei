@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-aniversario tema-admin-midia{% endblock %}
+
+{% block title %}Aniversário — Painel mídia{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Mídia · mesmo login</p>
+  <h1>Publicar Aniversário</h1>
+  <p>Álbum público de fotos e vídeos. Não entra no carrossel da home.</p>
+  <div class="hero-actions">
+    <a class="btn btn-ghost-dark" href="{{ url_for('aniversario_page') }}">Ver página pública</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
+  </div>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flash-list">
+      {% for cat, msg in messages %}
+      <li class="admin-msg {% if cat == 'erro' %}admin-msg--erro{% else %}admin-msg--ok{% endif %}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card" method="post" enctype="multipart/form-data" action="{{ url_for('aniversario_admin') }}">
+    <h2>Novo álbum</h2>
+    <label for="titulo">Título</label>
+    <input id="titulo" name="titulo" type="text" required placeholder="Ex.: Aniversário da igreja 2026">
+
+    <label for="data_evento">Data do evento</label>
+    <input id="data_evento" name="data_evento" type="date">
+
+    <label for="texto">Texto (opcional)</label>
+    <textarea id="texto" name="texto" rows="3" placeholder="Breve descrição do momento"></textarea>
+
+    <label for="arquivos">Fotos e vídeos</label>
+    <input id="arquivos" name="arquivos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*" multiple required>
+
+    <button class="btn btn-primary" type="submit">Publicar</button>
+  </form>
+</section>
+
+<section class="section">
+  <h2>Publicados</h2>
+  {% if posts %}
+  <ul class="admin-list">
+    {% for post in posts %}
+    <li class="admin-card">
+      <strong>{{ post.titulo }}</strong>
+      <p>{% if post.data_br %}{{ post.data_br }} · {% endif %}{{ post.midias|length }} arquivo(s)</p>
+      <form method="post" action="{{ url_for('aniversario_apagar', post_id=post.id) }}" onsubmit="return confirm('Apagar este álbum?');">
+        <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nenhum álbum ainda.</p>
+  {% endif %}
+</section>
+{% endblock %}

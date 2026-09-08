@@ -30,6 +30,8 @@ UPLOAD_SUBDIRS = (
     "maranata",
     "soldadinhos",
     "home",
+    "aniversario",
+    "historia",
 )
 
 

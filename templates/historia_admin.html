@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block body_class %}tema-historia tema-admin-midia{% endblock %}
+
+{% block title %}História CEASDREI — Painel mídia{% endblock %}
+
+{% block content %}
+<section class="page-hero historia-hero historia-hero--admin">
+  <div class="historia-hero-inner">
+    <img class="historia-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="56" height="56">
+    <p class="eyebrow">Mídia · mesmo login</p>
+    <h1>Publicar História CEASDREI</h1>
+    <p>Marcos por data e ano. Só aparece na aba História — nunca na home.</p>
+    <div class="hero-actions">
+      <a class="btn btn-ghost-dark" href="{{ url_for('historia_page') }}">Ver página pública</a>
+      <a class="btn btn-ghost-dark" href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul class="flash-list">
+      {% for cat, msg in messages %}
+      <li class="admin-msg {% if cat == 'erro' %}admin-msg--erro{% else %}admin-msg--ok{% endif %}">{{ msg }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form class="admin-card historia-admin-form" method="post" enctype="multipart/form-data" action="{{ url_for('historia_admin') }}">
+    <h2>Novo marco</h2>
+
+    <label for="titulo">Título do evento</label>
+    <input id="titulo" name="titulo" type="text" required placeholder="Ex.: Fundação da igreja">
+
+    <div class="historia-admin-datas">
+      <div>
+        <label for="data_evento">Data (calendário)</label>
+        <input id="data_evento" name="data_evento" type="date">
+      </div>
+      <div>
+        <label for="ano">Ano (se não usar data completa)</label>
+        <input id="ano" name="ano" type="number" min="1900" max="2100" placeholder="Ex.: 2010">
+      </div>
+    </div>
+
+    <label for="texto">Texto / relato</label>
+    <textarea id="texto" name="texto" rows="5" placeholder="Conte o que aconteceu neste marco da história..."></textarea>
+
+    <label for="destaque">Imagem de destaque</label>
+    <input id="destaque" name="destaque" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*">
+
+    <label for="arquivos">Galeria extra (fotos e vídeos, opcional)</label>
+    <input id="arquivos" name="arquivos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*" multiple>
+
+    <button class="btn btn-primary" type="submit">Publicar marco</button>
+  </form>
+</section>
+
+<section class="section">
+  <h2>Marcos publicados</h2>
+  {% if posts %}
+  <ul class="admin-list">
+    {% for post in posts %}
+    <li class="admin-card">
+      <strong>{{ post.titulo }}</strong>
+      <p>
+        {% if post.ano %}{{ post.ano }}{% endif %}
+        {% if post.data_br %} · {{ post.data_br }}{% endif %}
+      </p>
+      <form method="post" action="{{ url_for('historia_apagar', post_id=post.id) }}" onsubmit="return confirm('Apagar este marco?');">
+        <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>Nenhum marco ainda.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -27,11 +27,15 @@
       <a href="{{ url_for('cultos_page') }}">Cultos</a>
       <a href="{{ url_for('eventos_page') }}">Eventos</a>
       <a href="{{ url_for('galeria_publica') }}">Mídia</a>
+      <a href="{{ url_for('aniversario_page') }}">Aniversário</a>
+      <a href="{{ url_for('historia_page') }}">História</a>
       <a href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
       <a href="{{ url_for('louvor_page') }}">Grupo de Louvor</a>
       <a href="{{ url_for('contato') }}">Contato</a>
       {% if admin_logado %}
       <a href="{{ url_for('admin_galeria') }}">Painel</a>
+      <a href="{{ url_for('aniversario_admin') }}">Aniversário</a>
+      <a href="{{ url_for('historia_admin') }}">História</a>
       <a href="{{ url_for('porta_altar_admin') }}">Papo</a>
       <a class="nav-sair" href="{{ url_for('admin_logout') }}">Sair</a>
       {% endif %}
