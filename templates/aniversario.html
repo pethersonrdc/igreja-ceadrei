@@ -33,48 +33,26 @@
   <div class="section-head">
     <p class="eyebrow">Marcadas pela mídia</p>
     <h2>Fotos especiais em destaque</h2>
-    <p>Modelo Spotlight — foto grande com moldura dourada e miniaturas embaixo.</p>
+    <p>Modelo Polaroid — cards inclinados, estilo foto impressa.</p>
   </div>
 
-  <div class="spotlight" data-spotlight data-spotlight-interval="3500">
-    <div class="film-strip film-strip--ouro film-strip--spotlight">
-      <div class="film-strip-badge">EM DESTAQUE</div>
-      <div class="film-strip-edge film-strip-edge--top" aria-hidden="true"></div>
-      <div class="spotlight-stage">
-        <figure class="spotlight-main">
-          <img
-            data-spotlight-main
-            src="{{ url_for('static', filename='uploads/aniversario/' + destaque_itens[0].arquivo) }}"
-            alt="{{ destaque_itens[0].titulo }}"
-          >
-          <figcaption class="film-strip-caption" data-spotlight-caption>
-            <strong>{{ destaque_itens[0].titulo }}</strong>
-            {% if destaque_itens[0].data_br %}<span>{{ destaque_itens[0].data_br }}</span>{% endif %}
-          </figcaption>
-        </figure>
+  <div class="polaroid-rail" data-polaroid-rail>
+    {% for item in destaque_itens %}
+    <figure class="polaroid-card polaroid-card--{{ (loop.index0 % 5) + 1 }}">
+      <div class="polaroid-photo">
+        <img
+          src="{{ url_for('static', filename='uploads/aniversario/' + item.arquivo) }}"
+          alt="{{ item.titulo }}"
+          loading="{% if loop.index <= 3 %}eager{% else %}lazy{% endif %}"
+        >
       </div>
-      <div class="film-strip-edge film-strip-edge--bottom" aria-hidden="true"></div>
-    </div>
-
-    {% if destaque_itens|length > 1 %}
-    <div class="spotlight-thumbs" role="list">
-      {% for item in destaque_itens %}
-      <button
-        class="spotlight-thumb{% if loop.first %} is-active{% endif %}"
-        type="button"
-        role="listitem"
-        data-spotlight-thumb
-        data-src="{{ url_for('static', filename='uploads/aniversario/' + item.arquivo) }}"
-        data-titulo="{{ item.titulo }}"
-        data-data="{{ item.data_br or '' }}"
-        aria-label="Ver {{ item.titulo }}"
-      >
-        <img src="{{ url_for('static', filename='uploads/aniversario/' + item.arquivo) }}" alt="" loading="lazy">
-      </button>
-      {% endfor %}
-    </div>
-    <p class="aniversario-carousel-hint">Troca automática · toque na miniatura para escolher</p>
-    {% endif %}
+      <figcaption class="polaroid-caption">
+        <strong>{{ item.titulo }}</strong>
+        {% if item.data_br %}<span>{{ item.data_br }}</span>{% endif %}
+        {% if item.texto %}<em>{{ item.texto }}</em>{% endif %}
+      </figcaption>
+    </figure>
+    {% endfor %}
   </div>
 </section>
 {% endif %}
@@ -141,8 +119,7 @@
 {% endblock %}
 
 {% block scripts %}
-{% if destaque_itens or albuns %}
+{% if albuns %}
 <script src="{{ url_for('static', filename='js/film-strip.js') }}"></script>
-<script src="{{ url_for('static', filename='js/spotlight.js') }}"></script>
 {% endif %}
 {% endblock %}
