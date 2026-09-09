@@ -158,6 +158,14 @@
     }, 1500);
   }
 
+  function podeCompartilharArquivo(file) {
+    try {
+      return !!(navigator.canShare && navigator.canShare({ files: [file] }));
+    } catch (err) {
+      return false;
+    }
+  }
+
   function bindButton(btn) {
     var hint = document.querySelector(btn.getAttribute("data-hint") || ".onibus-share-hint");
     btn.addEventListener("click", function (ev) {
@@ -176,7 +184,7 @@
           var fileName = "assento-" + num + "-ceasdrei.png";
           var file = new File([blob], fileName, { type: "image/png" });
           var texto = payload.texto || "";
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          if (podeCompartilharArquivo(file)) {
             return navigator
               .share({
                 files: [file],
@@ -185,6 +193,13 @@
               })
               .then(function () {
                 mostrarHint(hint, "Card do assento compartilhado.");
+              })
+              .catch(function () {
+                baixarBlob(blob, fileName);
+                mostrarHint(
+                  hint,
+                  "Card baixado. No WhatsApp, anexe a imagem do assento para enviar."
+                );
               });
           }
           baixarBlob(blob, fileName);
@@ -201,7 +216,7 @@
           );
         })
         .catch(function () {
-          if (payload.texto) {
+          if (payload && payload.texto) {
             window.open(
               "https://wa.me/?text=" + encodeURIComponent(payload.texto),
               "_blank",
@@ -215,5 +230,13 @@
     });
   }
 
-  document.querySelectorAll(".js-onibus-share").forEach(bindButton);
+  function init() {
+    document.querySelectorAll(".js-onibus-share").forEach(bindButton);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();

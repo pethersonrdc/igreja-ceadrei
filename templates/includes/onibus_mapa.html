@@ -5,7 +5,7 @@
 #}
 {% set editavel = onibus_editavel|default(false) %}
 {% set onibus_link = url_for('home', _external=True) + '#escala-onibus-home' %}
-{% set onibus_logo = url_for('static', filename='images/emblema.png', _external=True) %}
+{% set onibus_logo = url_for('static', filename='images/emblema.png') %}
 {% set onibus_igreja = igreja.nome if igreja is defined and igreja.nome else 'IGREJA CEASDREI' %}
 
 {% macro onibus_share_btn(num, assento) -%}
