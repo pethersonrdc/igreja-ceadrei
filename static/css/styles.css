@@ -1998,12 +1998,16 @@ body.tema-porta-altar .porta-altar-form textarea:hover {
   gap: 0.45rem;
 }
 
-.status-form select {
+.status-form select,
+.status-form input[type="text"],
+.status-form input[type="number"] {
   min-height: 40px;
   border-radius: 10px;
   border: 1px solid rgba(18, 32, 51, 0.16);
   padding: 0.35rem 0.5rem;
   font: inherit;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .status-form .btn {
@@ -4006,7 +4010,9 @@ body.tema-batismo-painel .status-pill--desistir {
   color: #ffffff;
 }
 
-body.tema-batismo-painel .status-form select {
+body.tema-batismo-painel .status-form select,
+body.tema-batismo-painel .status-form input[type="text"],
+body.tema-batismo-painel .status-form input[type="number"] {
   border: 2px solid #0d3b66;
   color: #0f1c2e;
   font-weight: 600;
