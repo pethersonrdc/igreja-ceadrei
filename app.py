@@ -301,7 +301,10 @@ def home():
             )
         )
     videos_pos_culto = porta_altar.listar_videos_publicos(tipo="pos_culto")[:2]
-    onibus_mapa = batismo.mapa_assentos_onibus()
+    onibus_mapa = batismo.mapa_assentos_onibus(
+        igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+        link=url_for("home", _external=True) + "#escala-onibus-home",
+    )
     return render_template(
         "index.html",
         igreja=igreja,
@@ -326,6 +329,13 @@ def home():
         onibus_mapa=onibus_mapa,
         onibus_tem_ocupacao=any(
             (onibus_mapa.get(n) or {}).get("ocupado") for n in batismo.ONIBUS_NUMEROS
+        ),
+        whatsapp_onibus=batismo.url_whatsapp(
+            batismo.texto_whatsapp_onibus(
+                list(onibus_mapa.values()),
+                igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+                link=url_for("home", _external=True) + "#escala-onibus-home",
+            )
         ),
     )
 
@@ -1056,9 +1066,18 @@ def batismo_admin():
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["batismo"],
         onibus_linhas=batismo.ONIBUS_LINHAS,
-        onibus_mapa=batismo.mapa_assentos_onibus(),
+        onibus_mapa=batismo.mapa_assentos_onibus(
+            igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+            link=url_for("home", _external=True) + "#escala-onibus-home",
+        ),
         inscritos_pagos=batismo.listar_inscritos_pagos(),
         onibus_tem_ocupacao=batismo.onibus_tem_ocupacao(),
+        whatsapp_onibus=batismo.url_whatsapp(
+            batismo.texto_whatsapp_onibus(
+                igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+                link=url_for("home", _external=True) + "#escala-onibus-home",
+            )
+        ),
     )
 
 

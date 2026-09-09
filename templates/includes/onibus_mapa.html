@@ -26,11 +26,17 @@
               {% endfor %}
             </select>
             <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+            {% if assento and assento.ocupado and assento.whatsapp %}
+            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            {% endif %}
           </form>
           {% else %}
           <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
             <span class="onibus-num">{{ num }}</span>
             <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
+            {% if assento and assento.ocupado and assento.whatsapp %}
+            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            {% endif %}
           </div>
           {% endif %}
         {% endfor %}
@@ -56,11 +62,17 @@
               {% endfor %}
             </select>
             <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+            {% if assento and assento.ocupado and assento.whatsapp %}
+            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            {% endif %}
           </form>
           {% else %}
           <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
             <span class="onibus-num">{{ num }}</span>
             <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
+            {% if assento and assento.ocupado and assento.whatsapp %}
+            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+            {% endif %}
           </div>
           {% endif %}
         {% endfor %}

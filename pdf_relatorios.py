@@ -43,7 +43,7 @@ def _formatar_pessoas(texto: str) -> str:
 class RelatorioInscricoesPDF(FPDF):
     """PDF paisagem A4 com fundo, tipografia Unicode e tabela de alto contraste."""
 
-    # Cores (alto contraste)
+    # Cores (alto contraste) — tema claro (padrão)
     COR_TITULO = (18, 40, 72)
     COR_SUB = (35, 55, 85)
     COR_CAB_BG = (22, 58, 98)
@@ -53,15 +53,30 @@ class RelatorioInscricoesPDF(FPDF):
     COR_TEXTO = (12, 20, 32)
     COR_BORDA = (40, 70, 110)
     COR_RODAPE = (50, 65, 85)
+    COR_FAIXA = (255, 255, 255)
 
-    def __init__(self, fundo_path: Path | None = None):
+    def __init__(self, fundo_path: Path | None = None, tema: str = "claro"):
         super().__init__(orientation="L", unit="mm", format="A4")
         self.set_auto_page_break(auto=True, margin=14)
         self._registrar_fontes()
+        if (tema or "").strip().lower() == "escuro":
+            # Texto branco sobre fundo escuro (legível na arte do batismo)
+            self.COR_TITULO = (255, 255, 255)
+            self.COR_SUB = (220, 235, 250)
+            self.COR_CAB_BG = (10, 35, 60)
+            self.COR_CAB_TXT = (255, 255, 255)
+            self.COR_LINHA_A = (18, 48, 78)
+            self.COR_LINHA_B = (12, 38, 64)
+            self.COR_TEXTO = (255, 255, 255)
+            self.COR_BORDA = (120, 170, 210)
+            self.COR_RODAPE = (230, 240, 250)
+            self.COR_FAIXA = (12, 36, 58)
         if fundo_path and fundo_path.is_file():
-            self.set_page_background(_fundo_para_pdf(fundo_path))
+            # Tema escuro: menos clareamento para manter a arte; texto branco compensa
+            clarear = 0.35 if tema == "escuro" else 0.78
+            self.set_page_background(_fundo_para_pdf(fundo_path, clarear=clarear))
         else:
-            self.set_page_background((245, 248, 252))
+            self.set_page_background((245, 248, 252) if tema != "escuro" else (12, 28, 48))
 
     def _registrar_fontes(self) -> None:
         regular = FONTS_DIR / "DejaVuSans.ttf"
@@ -77,8 +92,7 @@ class RelatorioInscricoesPDF(FPDF):
         self.set_font(self._family, estilo, tamanho)
 
     def cabecalho_relatorio(self, titulo: str, responsavel: str) -> None:
-        # Faixa superior semitransparente via retângulo sólido claro
-        self.set_fill_color(255, 255, 255)
+        self.set_fill_color(*self.COR_FAIXA)
         self.set_draw_color(*self.COR_BORDA)
         self.set_line_width(0.4)
         y0 = 8
@@ -206,7 +220,8 @@ class RelatorioInscricoesPDF(FPDF):
 
 def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
     fundo = BASE_DIR / "static" / "images" / "batismo" / "fundo-cadastro.png"
-    pdf = RelatorioInscricoesPDF(fundo_path=fundo)
+    # Tema escuro: texto branco (legível sobre a arte escura da água)
+    pdf = RelatorioInscricoesPDF(fundo_path=fundo, tema="escuro")
     pdf.add_page()
     pdf.cabecalho_relatorio(
         "Inscrições — Evento Batismo CEASDREI",

@@ -819,8 +819,20 @@ def listar_assentos_onibus() -> list[dict]:
     return resultado
 
 
-def mapa_assentos_onibus() -> dict[int, dict]:
-    return {int(a["numero"]): a for a in listar_assentos_onibus()}
+def mapa_assentos_onibus(
+    *,
+    igreja_nome: str = "IGREJA CEASDREI",
+    link: str = "",
+) -> dict[int, dict]:
+    mapa = {int(a["numero"]): a for a in listar_assentos_onibus()}
+    for assento in mapa.values():
+        if assento.get("ocupado"):
+            assento["whatsapp"] = url_whatsapp(
+                texto_whatsapp_assento(assento, igreja_nome=igreja_nome, link=link)
+            )
+        else:
+            assento["whatsapp"] = ""
+    return mapa
 
 
 def onibus_tem_ocupacao() -> bool:
@@ -875,3 +887,57 @@ def limpar_escala_onibus() -> int:
             """
         )
         return int(cur.rowcount)
+
+
+def url_whatsapp(texto: str) -> str:
+    from urllib.parse import quote
+
+    return "https://wa.me/?text=" + quote((texto or "").strip())
+
+
+def texto_whatsapp_assento(
+    assento: dict, igreja_nome: str = "IGREJA CEASDREI", link: str = ""
+) -> str:
+    """Mensagem de um assento ocupado para o WhatsApp."""
+    numero = assento.get("numero") or "—"
+    nome = (assento.get("nome") or "").strip() or "—"
+    linhas = [
+        "*Assento do ônibus — Evento Batismo*",
+        f"{igreja_nome}",
+        "",
+        f"Assento *{numero}*: {nome}",
+    ]
+    if assento.get("valor_pago_texto"):
+        linhas.append(f"Pagamento: {assento['valor_pago_texto']}")
+    if assento.get("familia"):
+        linhas.append(f"Inscrição: {assento['familia']}")
+    linhas.extend(["", "Ônibus Semi Leito 7470 · 44 lugares"])
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)
+
+
+def texto_whatsapp_onibus(
+    assentos: list[dict] | None = None,
+    igreja_nome: str = "IGREJA CEASDREI",
+    link: str = "",
+) -> str:
+    """Lista completa da escala do ônibus (só assentos ocupados)."""
+    itens = assentos if assentos is not None else listar_assentos_onibus()
+    ocupados = [a for a in itens if a.get("ocupado")]
+    linhas = [
+        "*Escala do Ônibus — Evento Batismo*",
+        f"{igreja_nome}",
+        "Semi Leito 7470 · 44 lugares",
+        "",
+    ]
+    if not ocupados:
+        linhas.append("Nenhum assento preenchido ainda.")
+    else:
+        for a in ocupados:
+            linhas.append(f"• Assento {a.get('numero')}: {a.get('nome') or '—'}")
+        linhas.append("")
+        linhas.append(f"Total ocupados: {len(ocupados)} / 44")
+    if link:
+        linhas.extend(["", link])
+    return "\n".join(linhas)

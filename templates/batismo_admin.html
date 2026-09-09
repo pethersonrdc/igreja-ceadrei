@@ -197,8 +197,9 @@
   <p class="admin-help">Ainda não há famílias com status Pago. Salve o valor pago na tabela acima para liberar o vínculo.</p>
   {% endif %}
 
-  <div class="admin-card" style="margin-bottom:1rem">
-    <form method="post" action="{{ url_for('batismo_limpar_onibus') }}" onsubmit="return confirm('Limpar todos os assentos da escala do ônibus? Use depois que o evento passar.');">
+  <div class="admin-card" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center">
+    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
+    <form method="post" action="{{ url_for('batismo_limpar_onibus') }}" onsubmit="return confirm('Limpar todos os assentos da escala do ônibus? Use depois que o evento passar.');" style="margin:0">
       <button class="btn btn-ghost-dark" type="submit">Limpar escala (após o evento)</button>
     </form>
   </div>

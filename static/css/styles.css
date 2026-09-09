@@ -7645,3 +7645,16 @@ body.tema-historia .site-footer {
     max-width: none;
   }
 }
+
+.onibus-wa {
+  display: inline-block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #d7ffe6;
+  text-decoration: underline;
+}
+
+.onibus-wa:hover {
+  color: #ffffff;
+}

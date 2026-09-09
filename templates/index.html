@@ -477,6 +477,11 @@
     <h2>Escala do ônibus</h2>
     <p>Assentos do Semi Leito 7470 (44 lugares). A Evangelista Sueli organiza após a confirmação do pagamento.</p>
   </div>
+  {% if whatsapp_onibus %}
+  <p class="hero-actions" style="margin-bottom:1rem">
+    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+  </p>
+  {% endif %}
   {% include 'includes/onibus_mapa.html' %}
 </section>
 {% endif %}

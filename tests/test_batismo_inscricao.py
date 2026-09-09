@@ -189,6 +189,36 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertGreaterEqual(limpos, 44)
         self.assertFalse(batismo.mapa_assentos_onibus()[15]["ocupado"])
 
+    def test_whatsapp_escala_onibus(self) -> None:
+        inscricao_id = self._criar(nome_completo="Ana Whats")
+        batismo.atualizar_valor_pago(inscricao_id, "90")
+        batismo.salvar_assento_onibus(7, nome="Ana Whats", inscricao_id=inscricao_id)
+        texto = batismo.texto_whatsapp_onibus(igreja_nome="IGREJA CEASDREI")
+        self.assertIn("Assento 7: Ana Whats", texto)
+        url = batismo.url_whatsapp(texto)
+        self.assertTrue(url.startswith("https://wa.me/?text="))
+
+        with self.client.session_transaction() as sess:
+            sess["batismo_ok"] = True
+        html = self.client.get("/batismo/admin").get_data(as_text=True)
+        self.assertIn("Compartilhar escala no WhatsApp", html)
+        self.assertIn("wa.me", html)
+
+        home = self.client.get("/").get_data(as_text=True)
+        self.assertIn("Compartilhar no WhatsApp", home)
+
+    def test_pdf_batismo_tema_escuro_texto_branco(self) -> None:
+        from pdf_relatorios import RelatorioInscricoesPDF, gerar_pdf_batismo
+
+        pdf = RelatorioInscricoesPDF(tema="escuro")
+        self.assertEqual(pdf.COR_TEXTO, (255, 255, 255))
+        self.assertEqual(pdf.COR_TITULO, (255, 255, 255))
+        inscricao_id = self._criar(nome_completo="PDF Branco")
+        batismo.atualizar_valor_pago(inscricao_id, "50")
+        corpo = gerar_pdf_batismo(batismo.listar_inscricoes())
+        self.assertTrue(corpo.startswith(b"%PDF"))
+        self.assertGreater(len(corpo), 1000)
+
 
 if __name__ == "__main__":
     unittest.main()
