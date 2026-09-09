@@ -1065,19 +1065,6 @@ def batismo_admin():
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["batismo"],
-        onibus_linhas=batismo.ONIBUS_LINHAS,
-        onibus_mapa=batismo.mapa_assentos_onibus(
-            igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
-            link=url_for("home", _external=True) + "#escala-onibus-home",
-        ),
-        inscritos_pagos=batismo.listar_inscritos_pagos(),
-        onibus_tem_ocupacao=batismo.onibus_tem_ocupacao(),
-        whatsapp_onibus=batismo.url_whatsapp(
-            batismo.texto_whatsapp_onibus(
-                igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
-                link=url_for("home", _external=True) + "#escala-onibus-home",
-            )
-        ),
     )
 
 
@@ -1163,6 +1150,31 @@ def batismo_apagar_inscricao(inscricao_id: int):
     return redirect(url_for("batismo_admin"))
 
 
+@app.route("/cadastro/onibus")
+@batismo_login_required
+def cadastro_onibus():
+    """Página separada da escala do ônibus (lista de batismo fica no admin)."""
+    igreja = load_json("igreja.json")
+    link_home = url_for("home", _external=True) + "#escala-onibus-home"
+    return render_template(
+        "cadastro_onibus.html",
+        igreja=igreja,
+        onibus_linhas=batismo.ONIBUS_LINHAS,
+        onibus_mapa=batismo.mapa_assentos_onibus(
+            igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+            link=link_home,
+        ),
+        inscritos_pagos=batismo.listar_inscritos_pagos(),
+        onibus_tem_ocupacao=batismo.onibus_tem_ocupacao(),
+        whatsapp_onibus=batismo.url_whatsapp(
+            batismo.texto_whatsapp_onibus(
+                igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
+                link=link_home,
+            )
+        ),
+    )
+
+
 @app.route("/batismo/admin/onibus/assento/<int:numero>", methods=["POST"])
 @batismo_login_required
 def batismo_salvar_assento(numero: int):
@@ -1176,7 +1188,7 @@ def batismo_salvar_assento(numero: int):
             flash(f"Assento {numero} liberado.", "ok")
     else:
         flash("Não foi possível salvar o assento.", "erro")
-    return redirect(url_for("batismo_admin") + "#escala-onibus")
+    return redirect(url_for("cadastro_onibus"))
 
 
 @app.route("/batismo/admin/onibus/limpar", methods=["POST"])
@@ -1184,7 +1196,7 @@ def batismo_salvar_assento(numero: int):
 def batismo_limpar_onibus():
     total = batismo.limpar_escala_onibus()
     flash(f"Escala do ônibus limpa ({total} assentos).", "ok")
-    return redirect(url_for("batismo_admin") + "#escala-onibus")
+    return redirect(url_for("cadastro_onibus"))
 
 
 @app.route("/batismo/inscricao", methods=["GET", "POST"])

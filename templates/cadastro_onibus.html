@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block body_class %}pagina-fundo tema-batismo-painel{% endblock %}
+
+{% block title %}Cadastro / ônibus — {{ igreja.nome }}{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">Cadastro / ônibus</p>
+  <h1>Escala do ônibus — Semi Leito 7470</h1>
+  <p>
+    Após confirmar o pagamento (status <strong>Pago</strong>) na lista de batismo,
+    coloque o nome no número do assento e vincule a inscrição. O mapa também aparece na página inicial.
+  </p>
+  <p class="section-link">
+    <a href="{{ url_for('batismo_admin') }}">Voltar às famílias (Batismo)</a>
+    ·
+    <a href="{{ url_for('home') }}#escala-onibus-home">Ver na página inicial</a>
+    ·
+    <a href="{{ url_for('batismo_logout') }}">Sair</a>
+  </p>
+</section>
+
+<section class="section pagina-fundo-content" id="escala-onibus">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+      <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {% if not inscritos_pagos %}
+  <p class="admin-help">
+    Ainda não há famílias com status Pago.
+    <a href="{{ url_for('batismo_admin') }}">Abra o admin de Batismo</a>
+    e salve o valor pago para liberar o vínculo.
+  </p>
+  {% endif %}
+
+  <div class="admin-card" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center">
+    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
+    <form method="post" action="{{ url_for('batismo_limpar_onibus') }}" onsubmit="return confirm('Limpar todos os assentos da escala do ônibus? Use depois que o evento passar.');" style="margin:0">
+      <button class="btn btn-ghost-dark" type="submit">Limpar escala (após o evento)</button>
+    </form>
+  </div>
+
+  {% with onibus_editavel=true %}
+    {% include 'includes/onibus_mapa.html' %}
+  {% endwith %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/onibus-share.js') }}"></script>
+{% endblock %}

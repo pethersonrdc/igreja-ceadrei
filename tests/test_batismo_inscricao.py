@@ -167,7 +167,8 @@ class BatismoInscricaoTest(unittest.TestCase):
         html = self.client.get("/batismo/admin").get_data(as_text=True)
         self.assertIn("Pago", html)
         self.assertIn('value="pago"', html)
-        self.assertIn("Escala do ônibus", html)
+        self.assertIn("Cadastro / ônibus", html)
+        self.assertIn("/cadastro/onibus", html)
 
     def test_escala_onibus_assento_e_limpeza(self) -> None:
         inscricao_id = self._criar(nome_completo="Maria Onibus")
@@ -208,12 +209,16 @@ class BatismoInscricaoTest(unittest.TestCase):
 
         with self.client.session_transaction() as sess:
             sess["batismo_ok"] = True
-        html = self.client.get("/batismo/admin").get_data(as_text=True)
-        self.assertIn("Compartilhar escala no WhatsApp", html)
-        self.assertIn("js-onibus-share", html)
-        self.assertIn("onibus-share.js", html)
-        self.assertIn("Assento 7 - Ana Whats", html)
-        self.assertIn("Confirmado no site", html)
+        admin = self.client.get("/batismo/admin").get_data(as_text=True)
+        self.assertIn("Cadastro / ônibus", admin)
+        self.assertNotIn("js-onibus-share", admin)
+
+        onibus = self.client.get("/cadastro/onibus").get_data(as_text=True)
+        self.assertIn("Compartilhar escala no WhatsApp", onibus)
+        self.assertIn("js-onibus-share", onibus)
+        self.assertIn("onibus-share.js", onibus)
+        self.assertIn("Assento 7 - Ana Whats", onibus)
+        self.assertIn("Confirmado no site", onibus)
 
         home = self.client.get("/").get_data(as_text=True)
         self.assertIn("Compartilhar escala no WhatsApp", home)
