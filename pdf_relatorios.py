@@ -215,10 +215,11 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
 
     colunas = [
         ("ID", 12),
-        ("Família", 58),
-        ("Pessoas", 110),
-        ("Telefone", 36),
-        ("Status", 41),
+        ("Família", 48),
+        ("Pessoas", 90),
+        ("Telefone", 32),
+        ("Status", 28),
+        ("Valor", 28),
     ]
     linhas = []
     for item in inscricoes:
@@ -230,6 +231,7 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
                 _formatar_pessoas(pessoas),
                 (item.get("telefone") or "").strip(),
                 (item.get("status_texto") or "").strip(),
+                (item.get("valor_pago_texto") or "").strip(),
             ]
         )
 

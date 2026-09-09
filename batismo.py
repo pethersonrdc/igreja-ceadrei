@@ -34,7 +34,41 @@ STATUS_OPCOES = {
     "vou": "Vou para o batismo",
     "analise": "Em análise",
     "desistir": "Desistir do batismo",
+    "pago": "Pago",
 }
+
+# Famílias escolhem só estas opções no formulário público.
+STATUS_PUBLICO_OPCOES = {
+    "vou": "Vou para o batismo",
+    "analise": "Em análise",
+    "desistir": "Desistir do batismo",
+}
+
+# Mapa Semi Leito 7470 — 44 lugares (frente → fundo).
+# esquerda/direita: (janela, corredor) olhando da frente para trás.
+ONIBUS_LINHAS: list[dict] = [
+    {"tipo": "cabine", "esquerda": "Motorista", "direita": "Escada"},
+    {"tipo": "assentos", "esquerda": (1, 2), "direita": (4, 3)},
+    {"tipo": "assentos", "esquerda": (5, 6), "direita": (8, 7)},
+    {"tipo": "assentos", "esquerda": (9, 10), "direita": (12, 11)},
+    {"tipo": "assentos", "esquerda": (13, 14), "direita": (16, 15)},
+    {"tipo": "assentos", "esquerda": (17, 18), "direita": (20, 19)},
+    {"tipo": "assentos", "esquerda": (21, 22), "direita": (24, 23)},
+    {"tipo": "assentos", "esquerda": (25, 26), "direita": (28, 27)},
+    {"tipo": "assentos", "esquerda": (29, 30), "direita": (32, 31)},
+    {"tipo": "assentos", "esquerda": (33, 34), "direita": (36, 35)},
+    {"tipo": "assentos", "esquerda": (37, 38), "direita": (40, 39)},
+    {"tipo": "assentos", "esquerda": (41, 42), "direita": None},
+    {"tipo": "assentos", "esquerda": (43, 44), "direita": None},
+    {
+        "tipo": "fundo",
+        "esquerda": "Frigobar / Cafeteira",
+        "direita": "Sanitário",
+    },
+]
+
+ONIBUS_NUMEROS: tuple[int, ...] = tuple(range(1, 45))
+
 
 # Valor pago: campo editável no admin. Guardamos normalizado (ex.: "100.00")
 # e exibimos/imprimimos como "R$ 100,00" no comprovante.
@@ -133,6 +167,21 @@ def _garantir_colunas(conn: sqlite3.Connection) -> None:
         )
 
 
+def _garantir_assentos_onibus(conn: sqlite3.Connection) -> None:
+    """Garante as 44 poltronas do Semi Leito 7470."""
+    existentes = {
+        int(row["numero"])
+        for row in conn.execute("SELECT numero FROM onibus_assentos").fetchall()
+    }
+    for numero in ONIBUS_NUMEROS:
+        if numero in existentes:
+            continue
+        conn.execute(
+            "INSERT INTO onibus_assentos (numero, nome, inscricao_id, atualizado_em) VALUES (?, '', NULL, '')",
+            (numero,),
+        )
+
+
 def _normalizar_sexo(valor: str) -> str:
     letra = (valor or "").strip().upper()
     return letra if letra in {"F", "M"} else ""
@@ -168,9 +217,18 @@ def init_db() -> None:
                 status TEXT NOT NULL DEFAULT 'analise',
                 criado_em TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS onibus_assentos (
+                numero INTEGER PRIMARY KEY,
+                nome TEXT NOT NULL DEFAULT '',
+                inscricao_id INTEGER,
+                atualizado_em TEXT NOT NULL DEFAULT '',
+                FOREIGN KEY (inscricao_id) REFERENCES inscricoes(id) ON DELETE SET NULL
+            );
             """
         )
         _garantir_colunas(conn)
+        _garantir_assentos_onibus(conn)
 
 
 def agora() -> datetime:
@@ -432,17 +490,30 @@ def atualizar_status(inscricao_id: int, status: str) -> bool:
 
 
 def atualizar_valor_pago(inscricao_id: int, valor_pago: str) -> bool:
-    """Registra (ou limpa) o valor pago digitado no admin."""
+    """
+    Registra (ou limpa) o valor pago digitado no admin.
+    Ao salvar um valor, o status passa automaticamente para «Pago».
+    """
     normalizado = parse_valor_pago(valor_pago)
     if normalizado is None:
         return False
     init_db()
     pago_em = agora().isoformat(timespec="seconds") if normalizado else ""
     with _connect() as conn:
-        cur = conn.execute(
-            "UPDATE inscricoes SET valor_pago = ?, pago_em = ? WHERE id = ?",
-            (normalizado, pago_em, inscricao_id),
-        )
+        if normalizado:
+            cur = conn.execute(
+                """
+                UPDATE inscricoes
+                SET valor_pago = ?, pago_em = ?, status = 'pago'
+                WHERE id = ?
+                """,
+                (normalizado, pago_em, inscricao_id),
+            )
+        else:
+            cur = conn.execute(
+                "UPDATE inscricoes SET valor_pago = ?, pago_em = ? WHERE id = ?",
+                ("", "", inscricao_id),
+            )
         return cur.rowcount > 0
 
 
@@ -714,3 +785,93 @@ def gerar_comprovante_pagamento_pdf(
     buffer = io.BytesIO(pdf.output())
     buffer.seek(0)
     return buffer
+
+
+def listar_inscritos_pagos() -> list[dict]:
+    """Famílias com status pago (podem ir para a escala do ônibus)."""
+    return [
+        i
+        for i in listar_inscricoes()
+        if i.get("status") == "pago" or i.get("tem_pagamento")
+    ]
+
+
+def listar_assentos_onibus() -> list[dict]:
+    init_db()
+    with _connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT a.numero, a.nome, a.inscricao_id, a.atualizado_em,
+                   i.nome_completo, i.valor_pago, i.status
+            FROM onibus_assentos a
+            LEFT JOIN inscricoes i ON i.id = a.inscricao_id
+            ORDER BY a.numero
+            """
+        ).fetchall()
+    resultado = []
+    for row in rows:
+        item = dict(row)
+        item["nome"] = (item.get("nome") or "").strip()
+        item["ocupado"] = bool(item["nome"])
+        item["valor_pago_texto"] = formatar_valor_pago_brl(item.get("valor_pago") or "")
+        item["familia"] = (item.get("nome_completo") or "").strip()
+        resultado.append(item)
+    return resultado
+
+
+def mapa_assentos_onibus() -> dict[int, dict]:
+    return {int(a["numero"]): a for a in listar_assentos_onibus()}
+
+
+def onibus_tem_ocupacao() -> bool:
+    return any(a.get("ocupado") for a in listar_assentos_onibus())
+
+
+def salvar_assento_onibus(
+    numero: int,
+    *,
+    nome: str = "",
+    inscricao_id: int | None = None,
+) -> bool:
+    if numero not in ONIBUS_NUMEROS:
+        return False
+    init_db()
+    nome_limpo = (nome or "").strip()
+    insc_id = None
+    if inscricao_id:
+        insc = obter_inscricao(int(inscricao_id))
+        if not insc:
+            return False
+        insc_id = int(insc["id"])
+        if not nome_limpo:
+            nome_limpo = (insc.get("nome_completo") or "").strip()
+    if not nome_limpo:
+        insc_id = None
+    with _connect() as conn:
+        cur = conn.execute(
+            """
+            UPDATE onibus_assentos
+            SET nome = ?, inscricao_id = ?, atualizado_em = ?
+            WHERE numero = ?
+            """,
+            (
+                nome_limpo,
+                insc_id,
+                agora().isoformat(timespec="seconds") if nome_limpo else "",
+                numero,
+            ),
+        )
+        return cur.rowcount > 0
+
+
+def limpar_escala_onibus() -> int:
+    """Remove todos os nomes da escala (após o evento)."""
+    init_db()
+    with _connect() as conn:
+        cur = conn.execute(
+            """
+            UPDATE onibus_assentos
+            SET nome = '', inscricao_id = NULL, atualizado_em = ''
+            """
+        )
+        return int(cur.rowcount)

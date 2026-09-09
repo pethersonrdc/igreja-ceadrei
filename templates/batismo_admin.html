@@ -22,6 +22,8 @@
   <p class="section-link">
     <a href="{{ url_for('batismo_inscricao') }}">Abrir página de inscrição</a>
     ·
+    <a href="#escala-onibus">Escala do ônibus</a>
+    ·
     <a href="{{ url_for('home') }}">Ver destaque no início</a>
     ·
     <a href="{{ url_for('batismo_logout') }}">Sair</a>
@@ -180,6 +182,30 @@
   {% else %}
   <p>Nenhuma inscrição recebida ainda. Compartilhe a página de inscrição com as famílias.</p>
   {% endif %}
+</section>
+
+<section class="section pagina-fundo-content" id="escala-onibus">
+  <div class="section-head">
+    <h2>Escala do ônibus</h2>
+    <p>
+      Após confirmar o pagamento (status <strong>Pago</strong>), coloque o nome no número do assento
+      e vincule a inscrição/comprovante. O mapa aparece também na página inicial.
+    </p>
+  </div>
+
+  {% if not inscritos_pagos %}
+  <p class="admin-help">Ainda não há famílias com status Pago. Salve o valor pago na tabela acima para liberar o vínculo.</p>
+  {% endif %}
+
+  <div class="admin-card" style="margin-bottom:1rem">
+    <form method="post" action="{{ url_for('batismo_limpar_onibus') }}" onsubmit="return confirm('Limpar todos os assentos da escala do ônibus? Use depois que o evento passar.');">
+      <button class="btn btn-ghost-dark" type="submit">Limpar escala (após o evento)</button>
+    </form>
+  </div>
+
+  {% with onibus_editavel=true %}
+    {% include 'includes/onibus_mapa.html' %}
+  {% endwith %}
 </section>
 
 {% with

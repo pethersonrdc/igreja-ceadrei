@@ -1,0 +1,75 @@
+{# Mapa Semi Leito 7470 — 44 lugares.
+   Uso: {% include 'includes/onibus_mapa.html' %}
+   Variáveis: onibus_linhas, onibus_mapa
+   Opcional: onibus_editavel=true + inscritos_pagos (admin)
+#}
+{% set editavel = onibus_editavel|default(false) %}
+<div class="onibus-mapa" aria-label="Mapa do ônibus Semi Leito 7470 — 44 lugares">
+  <p class="onibus-mapa-titulo">Ônibus Semi Leito 7470 · 44 lugares</p>
+  <div class="onibus-frente">Frente do ônibus</div>
+  {% for linha in onibus_linhas %}
+  <div class="onibus-linha onibus-linha--{{ linha.tipo }}">
+    <div class="onibus-lado onibus-lado--esq">
+      {% if linha.tipo == 'assentos' and linha.esquerda %}
+        {% for num in linha.esquerda %}
+          {% set assento = onibus_mapa.get(num) %}
+          {% if editavel %}
+          <form class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% endif %}" method="post" action="{{ url_for('batismo_salvar_assento', numero=num) }}">
+            <span class="onibus-num">{{ num }}</span>
+            <input type="text" name="nome" value="{{ assento.nome if assento else '' }}" placeholder="Nome" aria-label="Nome no assento {{ num }}">
+            <select name="inscricao_id" aria-label="Vincular inscrição paga ao assento {{ num }}">
+              <option value="">— inscrição paga —</option>
+              {% for insc in inscritos_pagos|default([]) %}
+              <option value="{{ insc.id }}" {% if assento and assento.inscricao_id == insc.id %}selected{% endif %}>
+                {{ insc.nome_completo }}{% if insc.valor_pago_texto %} ({{ insc.valor_pago_texto }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+          </form>
+          {% else %}
+          <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
+            <span class="onibus-num">{{ num }}</span>
+            <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <div class="onibus-bloco">{{ linha.esquerda }}</div>
+      {% endif %}
+    </div>
+    <div class="onibus-corredor" aria-hidden="true">Tapete</div>
+    <div class="onibus-lado onibus-lado--dir">
+      {% if linha.tipo == 'assentos' and linha.direita %}
+        {% for num in linha.direita %}
+          {% set assento = onibus_mapa.get(num) %}
+          {% if editavel %}
+          <form class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% endif %}" method="post" action="{{ url_for('batismo_salvar_assento', numero=num) }}">
+            <span class="onibus-num">{{ num }}</span>
+            <input type="text" name="nome" value="{{ assento.nome if assento else '' }}" placeholder="Nome" aria-label="Nome no assento {{ num }}">
+            <select name="inscricao_id" aria-label="Vincular inscrição paga ao assento {{ num }}">
+              <option value="">— inscrição paga —</option>
+              {% for insc in inscritos_pagos|default([]) %}
+              <option value="{{ insc.id }}" {% if assento and assento.inscricao_id == insc.id %}selected{% endif %}>
+                {{ insc.nome_completo }}{% if insc.valor_pago_texto %} ({{ insc.valor_pago_texto }}){% endif %}
+              </option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-ghost-dark" type="submit">Salvar</button>
+          </form>
+          {% else %}
+          <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
+            <span class="onibus-num">{{ num }}</span>
+            <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
+          </div>
+          {% endif %}
+        {% endfor %}
+      {% elif linha.direita %}
+        <div class="onibus-bloco">{{ linha.direita }}</div>
+      {% else %}
+        <div class="onibus-bloco onibus-bloco--vazio" aria-hidden="true"></div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>

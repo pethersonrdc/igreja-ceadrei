@@ -117,6 +117,7 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertTrue(item["tem_pagamento"])
         self.assertEqual(item["valor_pago"], "85.50")
         self.assertEqual(item["valor_pago_texto"], "R$ 85,50")
+        self.assertEqual(item["status"], "pago")
         self.assertTrue(item["pago_em"])
 
         buffer = batismo.gerar_comprovante_pagamento_pdf(
@@ -153,16 +154,40 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertIsNone(batismo.parse_valor_pago("abc"))
         self.assertEqual(batismo.formatar_valor_pago_brl("1250.75"), "R$ 1.250,75")
 
-    def test_comprovante_sem_valor_redireciona(self) -> None:
-        inscricao_id = self._criar()
+    def test_salvar_valor_muda_status_para_pago(self) -> None:
+        inscricao_id = self._criar(status="analise")
+        self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, "120,00"))
+        item = batismo.obter_inscricao(inscricao_id)
+        self.assertEqual(item["status"], "pago")
+        self.assertEqual(item["status_texto"], "Pago")
+        self.assertEqual(item["valor_pago_texto"], "R$ 120,00")
+
         with self.client.session_transaction() as sess:
             sess["batismo_ok"] = True
-        resp = self.client.get(
-            f"/batismo/admin/inscricao/{inscricao_id}/comprovante.pdf",
-            follow_redirects=False,
+        html = self.client.get("/batismo/admin").get_data(as_text=True)
+        self.assertIn("Pago", html)
+        self.assertIn('value="pago"', html)
+        self.assertIn("Escala do ônibus", html)
+
+    def test_escala_onibus_assento_e_limpeza(self) -> None:
+        inscricao_id = self._criar(nome_completo="Maria Onibus")
+        batismo.atualizar_valor_pago(inscricao_id, "100")
+        self.assertTrue(
+            batismo.salvar_assento_onibus(15, nome="Maria Onibus", inscricao_id=inscricao_id)
         )
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn("/batismo/admin", resp.headers["Location"])
+        mapa = batismo.mapa_assentos_onibus()
+        self.assertTrue(mapa[15]["ocupado"])
+        self.assertEqual(mapa[15]["nome"], "Maria Onibus")
+        self.assertEqual(mapa[15]["inscricao_id"], inscricao_id)
+
+        home = self.client.get("/").get_data(as_text=True)
+        self.assertIn("Escala do ônibus", home)
+        self.assertIn("Maria Onibus", home)
+        self.assertIn(">15<", home)
+
+        limpos = batismo.limpar_escala_onibus()
+        self.assertGreaterEqual(limpos, 44)
+        self.assertFalse(batismo.mapa_assentos_onibus()[15]["ocupado"])
 
 
 if __name__ == "__main__":

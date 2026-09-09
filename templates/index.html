@@ -470,6 +470,17 @@
 </section>
 {% endif %}
 
+{% if onibus_linhas is defined and onibus_mapa is defined %}
+<section class="section onibus-home" id="escala-onibus-home">
+  <div class="section-head">
+    <p class="eyebrow">Evento Batismo</p>
+    <h2>Escala do ônibus</h2>
+    <p>Assentos do Semi Leito 7470 (44 lugares). A Evangelista Sueli organiza após a confirmação do pagamento.</p>
+  </div>
+  {% include 'includes/onibus_mapa.html' %}
+</section>
+{% endif %}
+
 {% if casais_fotos or casais_programacao %}
 <section class="section gallery-home casais-home">
   <div class="section-head">

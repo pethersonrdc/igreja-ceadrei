@@ -301,6 +301,7 @@ def home():
             )
         )
     videos_pos_culto = porta_altar.listar_videos_publicos(tipo="pos_culto")[:2]
+    onibus_mapa = batismo.mapa_assentos_onibus()
     return render_template(
         "index.html",
         igreja=igreja,
@@ -321,6 +322,11 @@ def home():
         escala_louvor=escala_louvor,
         whatsapp_escala_louvor=whatsapp_escala_louvor,
         videos_pos_culto=videos_pos_culto,
+        onibus_linhas=batismo.ONIBUS_LINHAS,
+        onibus_mapa=onibus_mapa,
+        onibus_tem_ocupacao=any(
+            (onibus_mapa.get(n) or {}).get("ocupado") for n in batismo.ONIBUS_NUMEROS
+        ),
     )
 
 
@@ -1049,6 +1055,10 @@ def batismo_admin():
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["batismo"],
+        onibus_linhas=batismo.ONIBUS_LINHAS,
+        onibus_mapa=batismo.mapa_assentos_onibus(),
+        inscritos_pagos=batismo.listar_inscritos_pagos(),
+        onibus_tem_ocupacao=batismo.onibus_tem_ocupacao(),
     )
 
 
@@ -1079,7 +1089,10 @@ def batismo_atualizar_pagamento(inscricao_id: int):
     valor = request.form.get("valor_pago", "").strip()
     if batismo.atualizar_valor_pago(inscricao_id, valor):
         if valor:
-            flash("Valor pago salvo. Você já pode baixar o comprovante.", "ok")
+            flash(
+                "Valor pago salvo. Status alterado para Pago — comprovante liberado.",
+                "ok",
+            )
         else:
             flash("Pagamento removido desta inscrição.", "ok")
     else:
@@ -1131,6 +1144,30 @@ def batismo_apagar_inscricao(inscricao_id: int):
     return redirect(url_for("batismo_admin"))
 
 
+@app.route("/batismo/admin/onibus/assento/<int:numero>", methods=["POST"])
+@batismo_login_required
+def batismo_salvar_assento(numero: int):
+    nome = request.form.get("nome", "").strip()
+    insc_raw = request.form.get("inscricao_id", "").strip()
+    insc_id = int(insc_raw) if insc_raw.isdigit() else None
+    if batismo.salvar_assento_onibus(numero, nome=nome, inscricao_id=insc_id):
+        if nome or insc_id:
+            flash(f"Assento {numero} atualizado.", "ok")
+        else:
+            flash(f"Assento {numero} liberado.", "ok")
+    else:
+        flash("Não foi possível salvar o assento.", "erro")
+    return redirect(url_for("batismo_admin") + "#escala-onibus")
+
+
+@app.route("/batismo/admin/onibus/limpar", methods=["POST"])
+@batismo_login_required
+def batismo_limpar_onibus():
+    total = batismo.limpar_escala_onibus()
+    flash(f"Escala do ônibus limpa ({total} assentos).", "ok")
+    return redirect(url_for("batismo_admin") + "#escala-onibus")
+
+
 @app.route("/batismo/inscricao", methods=["GET", "POST"])
 def batismo_inscricao():
     igreja = load_json("igreja.json")
@@ -1166,7 +1203,7 @@ def batismo_inscricao():
             erro = "Adicione ao menos uma pessoa da família."
         elif not telefone:
             erro = "Informe o telefone de contato. O número evita cadastro repetido."
-        elif status not in batismo.STATUS_OPCOES:
+        elif status not in batismo.STATUS_PUBLICO_OPCOES:
             erro = "Selecione uma confirmação válida."
         else:
             existente = batismo.buscar_inscricao_existente(
@@ -1201,7 +1238,7 @@ def batismo_inscricao():
         igreja=igreja,
         fotos=fotos,
         erro=erro,
-        status_opcoes=batismo.STATUS_OPCOES,
+        status_opcoes=batismo.STATUS_PUBLICO_OPCOES,
     )
 
 
