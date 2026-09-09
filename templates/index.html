@@ -479,7 +479,7 @@
   </div>
   {% if whatsapp_onibus %}
   <p class="hero-actions" style="margin-bottom:1rem">
-    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar no WhatsApp</a>
+    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
   </p>
   {% endif %}
   {% include 'includes/onibus_mapa.html' %}
@@ -537,5 +537,8 @@
 {% endif %}
 {% if escala_hoje %}
 <script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>
+{% endif %}
+{% if onibus_linhas is defined and onibus_mapa is defined %}
+<script src="{{ url_for('static', filename='js/onibus-share.js') }}"></script>
 {% endif %}
 {% endblock %}

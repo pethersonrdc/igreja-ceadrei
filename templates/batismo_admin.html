@@ -219,3 +219,7 @@
   {% include 'partials/evento_responsavel_form.html' %}
 {% endwith %}
 {% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/onibus-share.js') }}"></script>
+{% endblock %}

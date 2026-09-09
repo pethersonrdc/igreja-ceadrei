@@ -898,22 +898,15 @@ def url_whatsapp(texto: str) -> str:
 def texto_whatsapp_assento(
     assento: dict, igreja_nome: str = "IGREJA CEASDREI", link: str = ""
 ) -> str:
-    """Mensagem de um assento ocupado para o WhatsApp."""
+    """Texto curto para acompanhar o card do assento no WhatsApp."""
     numero = assento.get("numero") or "—"
     nome = (assento.get("nome") or "").strip() or "—"
     linhas = [
-        "*Assento do ônibus — Evento Batismo*",
-        f"{igreja_nome}",
-        "",
-        f"Assento *{numero}*: {nome}",
+        f"Assento {numero} - {nome}",
+        "Confirmado no site",
     ]
-    if assento.get("valor_pago_texto"):
-        linhas.append(f"Pagamento: {assento['valor_pago_texto']}")
-    if assento.get("familia"):
-        linhas.append(f"Inscrição: {assento['familia']}")
-    linhas.extend(["", "Ônibus Semi Leito 7470 · 44 lugares"])
     if link:
-        linhas.extend(["", link])
+        linhas.append(link)
     return "\n".join(linhas)
 
 

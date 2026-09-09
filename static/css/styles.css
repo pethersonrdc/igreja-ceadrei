@@ -7649,6 +7649,11 @@ body.tema-historia .site-footer {
 .onibus-wa {
   display: inline-block;
   margin-top: 0.15rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
   font-size: 0.68rem;
   font-weight: 700;
   color: #d7ffe6;
@@ -7657,4 +7662,8 @@ body.tema-historia .site-footer {
 
 .onibus-wa:hover {
   color: #ffffff;
+}
+
+.onibus-share-hint {
+  margin-top: 0.75rem;
 }

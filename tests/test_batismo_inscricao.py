@@ -198,14 +198,27 @@ class BatismoInscricaoTest(unittest.TestCase):
         url = batismo.url_whatsapp(texto)
         self.assertTrue(url.startswith("https://wa.me/?text="))
 
+        texto_assento = batismo.texto_whatsapp_assento(
+            {"numero": 7, "nome": "Ana Whats"},
+            link="https://example.com/#escala-onibus-home",
+        )
+        self.assertIn("Assento 7 - Ana Whats", texto_assento)
+        self.assertIn("Confirmado no site", texto_assento)
+        self.assertNotIn("Pagamento", texto_assento)
+
         with self.client.session_transaction() as sess:
             sess["batismo_ok"] = True
         html = self.client.get("/batismo/admin").get_data(as_text=True)
         self.assertIn("Compartilhar escala no WhatsApp", html)
-        self.assertIn("wa.me", html)
+        self.assertIn("js-onibus-share", html)
+        self.assertIn("onibus-share.js", html)
+        self.assertIn("Assento 7 - Ana Whats", html)
+        self.assertIn("Confirmado no site", html)
 
         home = self.client.get("/").get_data(as_text=True)
-        self.assertIn("Compartilhar no WhatsApp", home)
+        self.assertIn("Compartilhar escala no WhatsApp", home)
+        self.assertIn("js-onibus-share", home)
+        self.assertIn("onibus-share.js", home)
 
     def test_pdf_batismo_tema_escuro_texto_branco(self) -> None:
         from pdf_relatorios import RelatorioInscricoesPDF, gerar_pdf_batismo

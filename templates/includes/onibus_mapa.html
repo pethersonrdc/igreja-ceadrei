@@ -1,9 +1,35 @@
 {# Mapa Semi Leito 7470 — 44 lugares.
    Uso: {% include 'includes/onibus_mapa.html' %}
-   Variáveis: onibus_linhas, onibus_mapa
+   Variáveis: onibus_linhas, onibus_mapa, igreja
    Opcional: onibus_editavel=true + inscritos_pagos (admin)
 #}
 {% set editavel = onibus_editavel|default(false) %}
+{% set onibus_link = url_for('home', _external=True) + '#escala-onibus-home' %}
+{% set onibus_logo = url_for('static', filename='images/emblema.png', _external=True) %}
+{% set onibus_igreja = igreja.nome if igreja is defined and igreja.nome else 'IGREJA CEASDREI' %}
+
+{% macro onibus_share_btn(num, assento) -%}
+{%- if assento and assento.ocupado -%}
+<button
+  type="button"
+  class="onibus-wa js-onibus-share"
+  data-hint="#onibus-share-hint"
+  data-payload='{{ {
+    "numero": num,
+    "nome": assento.nome,
+    "igreja": onibus_igreja,
+    "logo": onibus_logo,
+    "link": onibus_link,
+    "texto": (
+      "Assento " ~ num ~ " - " ~ assento.nome ~ "\n"
+      ~ "Confirmado no site\n"
+      ~ onibus_link
+    )
+  }|tojson }}'
+>Compartilhar</button>
+{%- endif -%}
+{%- endmacro %}
+
 <div class="onibus-mapa" aria-label="Mapa do ônibus Semi Leito 7470 — 44 lugares">
   <p class="onibus-mapa-titulo">Ônibus Semi Leito 7470 · 44 lugares</p>
   <div class="onibus-frente">Frente do ônibus</div>
@@ -26,17 +52,13 @@
               {% endfor %}
             </select>
             <button class="btn btn-ghost-dark" type="submit">Salvar</button>
-            {% if assento and assento.ocupado and assento.whatsapp %}
-            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            {% endif %}
+            {{ onibus_share_btn(num, assento) }}
           </form>
           {% else %}
           <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
             <span class="onibus-num">{{ num }}</span>
             <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
-            {% if assento and assento.ocupado and assento.whatsapp %}
-            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            {% endif %}
+            {{ onibus_share_btn(num, assento) }}
           </div>
           {% endif %}
         {% endfor %}
@@ -62,17 +84,13 @@
               {% endfor %}
             </select>
             <button class="btn btn-ghost-dark" type="submit">Salvar</button>
-            {% if assento and assento.ocupado and assento.whatsapp %}
-            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            {% endif %}
+            {{ onibus_share_btn(num, assento) }}
           </form>
           {% else %}
           <div class="onibus-assento {% if assento and assento.ocupado %}is-ocupado{% else %}is-livre{% endif %}">
             <span class="onibus-num">{{ num }}</span>
             <span class="onibus-nome">{% if assento and assento.ocupado %}{{ assento.nome }}{% else %}Livre{% endif %}</span>
-            {% if assento and assento.ocupado and assento.whatsapp %}
-            <a class="onibus-wa" href="{{ assento.whatsapp }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            {% endif %}
+            {{ onibus_share_btn(num, assento) }}
           </div>
           {% endif %}
         {% endfor %}
@@ -85,3 +103,4 @@
   </div>
   {% endfor %}
 </div>
+<p class="onibus-share-hint admin-help" id="onibus-share-hint" hidden></p>
