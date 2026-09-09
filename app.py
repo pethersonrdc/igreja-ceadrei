@@ -1046,6 +1046,7 @@ def batismo_admin():
         fotos=batismo.listar_fotos(),
         inscricoes=batismo.listar_inscricoes(),
         status_opcoes=batismo.STATUS_OPCOES,
+        valor_pago_opcoes=batismo.VALOR_PAGO_OPCOES,
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["batismo"],
@@ -1071,6 +1072,44 @@ def batismo_atualizar_status(inscricao_id: int):
     else:
         flash("Não foi possível atualizar o status.", "erro")
     return redirect(url_for("batismo_admin"))
+
+
+@app.route("/batismo/admin/inscricao/<int:inscricao_id>/pagamento", methods=["POST"])
+@batismo_login_required
+def batismo_atualizar_pagamento(inscricao_id: int):
+    valor = request.form.get("valor_pago", "").strip()
+    if batismo.atualizar_valor_pago(inscricao_id, valor):
+        if valor:
+            flash("Valor pago salvo. Você já pode baixar o comprovante.", "ok")
+        else:
+            flash("Pagamento removido desta inscrição.", "ok")
+    else:
+        flash("Não foi possível salvar o valor pago.", "erro")
+    return redirect(url_for("batismo_admin"))
+
+
+@app.route("/batismo/admin/inscricao/<int:inscricao_id>/comprovante.pdf")
+@batismo_login_required
+def batismo_baixar_comprovante(inscricao_id: int):
+    igreja = load_json("igreja.json")
+    inscricao = batismo.obter_inscricao(inscricao_id)
+    if not inscricao:
+        flash("Inscrição não encontrada.", "erro")
+        return redirect(url_for("batismo_admin"))
+    if not inscricao.get("tem_pagamento"):
+        flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
+        return redirect(url_for("batismo_admin"))
+    try:
+        buffer = batismo.gerar_comprovante_pagamento_pdf(inscricao, igreja)
+    except ValueError:
+        flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
+        return redirect(url_for("batismo_admin"))
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"comprovante-pagamento-batismo-{inscricao_id:04d}.pdf",
+        mimetype="application/pdf",
+    )
 
 
 @app.route("/batismo/admin/evento/<int:evento_id>/apagar", methods=["POST"])
@@ -1217,6 +1256,8 @@ def batismo_exportar_excel():
             "Telefone",
             "Participantes",
             "Status",
+            "Valor pago",
+            "Pago em",
             "Enviado em",
         ]
     )
@@ -1239,6 +1280,8 @@ def batismo_exportar_excel():
                 item["telefone"],
                 item["participantes_texto"],
                 item["status_texto"],
+                item.get("valor_pago_texto") or "",
+                (item.get("pago_em") or "").replace("T", " "),
                 item["criado_em"].replace("T", " "),
             ]
         )

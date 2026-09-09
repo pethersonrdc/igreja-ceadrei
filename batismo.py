@@ -36,6 +36,21 @@ STATUS_OPCOES = {
     "desistir": "Desistir do batismo",
 }
 
+# Valores em reais (chave = número inteiro como texto). A equipe escolhe no admin
+# e o comprovante PDF imprime o rótulo (ex.: R$ 100,00).
+VALOR_PAGO_OPCOES: dict[str, str] = {
+    "": "Sem pagamento registrado",
+    "50": "R$ 50,00",
+    "100": "R$ 100,00",
+    "150": "R$ 150,00",
+    "200": "R$ 200,00",
+    "250": "R$ 250,00",
+    "300": "R$ 300,00",
+    "350": "R$ 350,00",
+    "400": "R$ 400,00",
+    "500": "R$ 500,00",
+}
+
 PARTICIPANTE_OPCOES = {
     "marido": "Marido",
     "mulher": "Mulher",
@@ -72,6 +87,14 @@ def _garantir_colunas(conn: sqlite3.Connection) -> None:
     if "sexo_mulher" not in cols:
         conn.execute(
             "ALTER TABLE inscricoes ADD COLUMN sexo_mulher TEXT NOT NULL DEFAULT ''"
+        )
+    if "valor_pago" not in cols:
+        conn.execute(
+            "ALTER TABLE inscricoes ADD COLUMN valor_pago TEXT NOT NULL DEFAULT ''"
+        )
+    if "pago_em" not in cols:
+        conn.execute(
+            "ALTER TABLE inscricoes ADD COLUMN pago_em TEXT NOT NULL DEFAULT ''"
         )
 
 
@@ -337,6 +360,13 @@ def _enriquecer_inscricao(item: dict) -> dict:
     item["rg_mulher"] = item.get("rg_mulher") or ""
     item["sexo_marido"] = _normalizar_sexo(item.get("sexo_marido") or "")
     item["sexo_mulher"] = _normalizar_sexo(item.get("sexo_mulher") or "")
+    valor = (item.get("valor_pago") or "").strip()
+    if valor not in VALOR_PAGO_OPCOES:
+        valor = ""
+    item["valor_pago"] = valor
+    item["valor_pago_texto"] = VALOR_PAGO_OPCOES.get(valor, "")
+    item["pago_em"] = (item.get("pago_em") or "").strip()
+    item["tem_pagamento"] = bool(valor)
     return item
 
 
@@ -362,6 +392,33 @@ def atualizar_status(inscricao_id: int, status: str) -> bool:
             (status, inscricao_id),
         )
         return cur.rowcount > 0
+
+
+def atualizar_valor_pago(inscricao_id: int, valor_pago: str) -> bool:
+    """Registra (ou limpa) o valor pago escolhido no picklist do admin."""
+    chave = (valor_pago or "").strip()
+    if chave not in VALOR_PAGO_OPCOES:
+        return False
+    init_db()
+    pago_em = agora().isoformat(timespec="seconds") if chave else ""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE inscricoes SET valor_pago = ?, pago_em = ? WHERE id = ?",
+            (chave, pago_em, inscricao_id),
+        )
+        return cur.rowcount > 0
+
+
+def formatar_data_hora(iso: str) -> str:
+    bruto = (iso or "").replace("T", " ").strip()
+    if not bruto:
+        return "—"
+    try:
+        return datetime.fromisoformat(bruto.replace(" ", "T")).strftime(
+            "%d/%m/%Y às %H:%M"
+        )
+    except ValueError:
+        return bruto
 
 
 def apagar_inscricao(inscricao_id: int) -> bool:
@@ -409,13 +466,7 @@ def gerar_bilhete_pdf(inscricao: dict, igreja: dict | None = None) -> io.BytesIO
 
     igreja = igreja or {}
     nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
-    criado = (inscricao.get("criado_em") or "").replace("T", " ")
-    try:
-        criado_fmt = datetime.fromisoformat(
-            (inscricao.get("criado_em") or "").replace(" ", "T")
-        ).strftime("%d/%m/%Y às %H:%M")
-    except ValueError:
-        criado_fmt = criado or "—"
+    criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
 
     pdf = FPDF(orientation="P", unit="mm", format=(148, 210))
     pdf.set_auto_page_break(auto=False)
@@ -487,6 +538,132 @@ def gerar_bilhete_pdf(inscricao: dict, igreja: dict | None = None) -> io.BytesIO
         120,
         5,
         "Guarde este convite. Não é necessário cadastrar de novo.",
+        align="C",
+    )
+
+    pdf.set_fill_color(26, 92, 110)
+    pdf.rect(0, 195, 148, 15, "F")
+    pdf.set_text_color(245, 251, 252)
+    pdf.set_font(familia, "", 8)
+    pdf.set_xy(10, 198)
+    pdf.cell(128, 8, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
+
+    buffer = io.BytesIO(pdf.output())
+    buffer.seek(0)
+    return buffer
+
+
+def gerar_comprovante_pagamento_pdf(
+    inscricao: dict, igreja: dict | None = None
+) -> io.BytesIO:
+    """
+    Comprovante no mesmo formato do convite, com o valor escolhido no picklist.
+    O valor vem do banco (valor_pago) — a equipe seleciona no admin e o PDF imprime.
+    """
+    from fpdf import FPDF
+
+    if not inscricao.get("tem_pagamento"):
+        raise ValueError("Inscrição sem valor de pagamento registrado.")
+
+    igreja = igreja or {}
+    nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
+    valor_texto = inscricao.get("valor_pago_texto") or VALOR_PAGO_OPCOES.get(
+        inscricao.get("valor_pago") or "", "—"
+    )
+    pago_fmt = formatar_data_hora(inscricao.get("pago_em") or "")
+    criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
+
+    pdf = FPDF(orientation="P", unit="mm", format=(148, 210))
+    pdf.set_auto_page_break(auto=False)
+    pdf.add_page()
+    fontes = _fontes_pdf()
+    if fontes:
+        pdf.add_font("Ticket", "", str(fontes[0]))
+        pdf.add_font("Ticket", "B", str(fontes[1]))
+        familia = "Ticket"
+    else:
+        familia = "Helvetica"
+
+    pdf.set_fill_color(26, 92, 110)
+    pdf.rect(0, 0, 148, 18, "F")
+    pdf.set_text_color(245, 251, 252)
+    pdf.set_font(familia, "B", 11)
+    pdf.set_xy(10, 5)
+    pdf.cell(128, 8, nome_igreja, align="C")
+
+    if EMBLEMA_PATH.exists():
+        pdf.image(str(EMBLEMA_PATH), x=64, y=24, w=20)
+
+    pdf.set_text_color(18, 54, 64)
+    pdf.set_font(familia, "B", 15)
+    pdf.set_xy(10, 48)
+    pdf.cell(128, 8, "Comprovante de pagamento", align="C")
+    pdf.set_font(familia, "", 11)
+    pdf.set_xy(10, 56)
+    pdf.cell(128, 7, "Evento Batismo", align="C")
+
+    protocolo = f"Protocolo Nº {int(inscricao.get('id') or 0):04d}"
+    pdf.set_font(familia, "B", 10)
+    pdf.set_xy(10, 66)
+    pdf.cell(128, 6, protocolo, align="C")
+
+    pdf.set_draw_color(46, 125, 140)
+    pdf.set_line_width(0.4)
+    pdf.line(18, 75, 130, 75)
+
+    # Destaque do valor pago (o que a equipe escolheu no picklist)
+    pdf.set_fill_color(232, 244, 247)
+    pdf.set_draw_color(26, 92, 110)
+    pdf.rect(18, 80, 112, 22, "DF")
+    pdf.set_text_color(18, 54, 64)
+    pdf.set_font(familia, "", 9)
+    pdf.set_xy(18, 82)
+    pdf.cell(112, 5, "Valor pago", align="C")
+    pdf.set_font(familia, "B", 16)
+    pdf.set_xy(18, 88)
+    pdf.cell(112, 10, valor_texto, align="C")
+
+    pdf.set_font(familia, "B", 12)
+    pdf.set_xy(14, 108)
+    titulo = (inscricao.get("nome_completo") or "Família").strip() or "Família"
+    pdf.multi_cell(120, 7, titulo, align="C")
+
+    pdf.set_font(familia, "", 10)
+    pessoas = _nomes_para_bilhete(inscricao)
+    if pessoas:
+        pdf.set_x(14)
+        pdf.multi_cell(120, 6, "Pessoas: " + ", ".join(pessoas), align="C")
+    pdf.set_x(14)
+    pdf.multi_cell(120, 6, f"Telefone: {inscricao.get('telefone') or '—'}", align="C")
+    pdf.set_x(14)
+    pdf.multi_cell(
+        120,
+        6,
+        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
+        align="C",
+    )
+    pdf.set_x(14)
+    pdf.multi_cell(120, 6, f"Inscrito em: {criado_fmt}", align="C")
+    pdf.set_x(14)
+    pdf.multi_cell(120, 6, f"Pagamento registrado em: {pago_fmt}", align="C")
+    y = pdf.get_y()
+
+    pdf.set_y(max(y + 8, 155))
+    pdf.set_font(familia, "B", 10)
+    pdf.set_x(14)
+    pdf.multi_cell(
+        120,
+        6,
+        "Este documento comprova o registro do pagamento referente ao Evento Batismo.",
+        align="C",
+    )
+    pdf.ln(2)
+    pdf.set_font(familia, "", 9)
+    pdf.set_x(14)
+    pdf.multi_cell(
+        120,
+        5,
+        "Guarde este comprovante. Em caso de dúvida, fale com a Evangelista Sueli.",
         align="C",
     )
 

@@ -110,6 +110,46 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertTrue(corpo.startswith(b"%PDF"))
         self.assertGreater(len(corpo), 1000)
 
+    def test_picklist_valor_pago_e_comprovante(self) -> None:
+        inscricao_id = self._criar(nome_completo="rebeca neguinha")
+        self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, "100"))
+        item = batismo.obter_inscricao(inscricao_id)
+        self.assertTrue(item["tem_pagamento"])
+        self.assertEqual(item["valor_pago"], "100")
+        self.assertEqual(item["valor_pago_texto"], "R$ 100,00")
+        self.assertTrue(item["pago_em"])
+
+        buffer = batismo.gerar_comprovante_pagamento_pdf(
+            item, {"nome": "IGREJA CEASDREI"}
+        )
+        corpo = buffer.getvalue()
+        self.assertTrue(corpo.startswith(b"%PDF"))
+        self.assertGreater(len(corpo), 1000)
+
+        with self.client.session_transaction() as sess:
+            sess["batismo_ok"] = True
+        resp = self.client.get(
+            f"/batismo/admin/inscricao/{inscricao_id}/comprovante.pdf"
+        )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.mimetype, "application/pdf")
+
+        html = self.client.get("/batismo/admin").get_data(as_text=True)
+        self.assertIn("Valor pago", html)
+        self.assertIn("Baixar comprovante", html)
+        self.assertIn("R$ 100,00", html)
+
+    def test_comprovante_sem_valor_redireciona(self) -> None:
+        inscricao_id = self._criar()
+        with self.client.session_transaction() as sess:
+            sess["batismo_ok"] = True
+        resp = self.client.get(
+            f"/batismo/admin/inscricao/{inscricao_id}/comprovante.pdf",
+            follow_redirects=False,
+        )
+        self.assertEqual(resp.status_code, 302)
+        self.assertIn("/batismo/admin", resp.headers["Location"])
+
 
 if __name__ == "__main__":
     unittest.main()
