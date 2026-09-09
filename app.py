@@ -206,8 +206,12 @@ def som_login_required(view):
 
 def _css_asset_version() -> str:
     """Bust browser/nginx cache of styles.css after deploy."""
+    return _static_mtime("css/styles.css")
+
+
+def _static_mtime(relative: str) -> str:
     try:
-        path = Path(app.static_folder) / "css" / "styles.css"
+        path = Path(app.static_folder) / relative
         return str(int(path.stat().st_mtime))
     except OSError:
         return "1"
@@ -229,6 +233,8 @@ def inject_admin():
         "louvor_logado": bool(session.get("louvor_ok")),
         "som_logado": bool(session.get("som_ok")),
         "css_asset_version": _css_asset_version(),
+        "carousel_js_version": _static_mtime("js/carousel.js"),
+        "galeria_lightbox_js_version": _static_mtime("js/galeria-lightbox.js"),
         "galeria_srcset": gallery.srcset_galeria,
         "galeria_sizes": gallery.sizes_galeria,
         "galeria_dimensao": gallery.dimensao_imagem,

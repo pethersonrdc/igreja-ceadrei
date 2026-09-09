@@ -67,6 +67,6 @@
 
 {% block scripts %}
 {% if posts %}
-<script type="module" src="{{ url_for('static', filename='js/galeria-lightbox.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/galeria-lightbox.js') }}?v={{ galeria_lightbox_js_version }}"></script>
 {% endif %}
 {% endblock %}

@@ -361,18 +361,14 @@
       <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
         {% set dim = galeria_dimensao(foto.arquivo) %}
         <img
-          {% if loop.first %}
           src="{{ galeria_src_grid(foto.arquivo) }}"
           srcset="{{ galeria_srcset(foto.arquivo) }}"
-          {% else %}
-          src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
-          data-src="{{ galeria_src_grid(foto.arquivo) }}"
-          data-srcset="{{ galeria_srcset(foto.arquivo) }}"
-          {% endif %}
           sizes="{{ galeria_sizes() }}"
           alt="{{ galeria_destaque.titulo }} — foto {{ loop.index }}"
           width="{{ dim[0] }}"
           height="{{ dim[1] }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+          decoding="async"
         >
       </figure>
       {% endfor %}
@@ -521,7 +517,7 @@
 {% set tem_carousel_batismo = batismo_fotos and batismo_fotos|length > 1 %}
 {% set tem_carousel_casais = casais_fotos and casais_fotos|length > 1 %}
 {% if tem_carousel_culto or tem_carousel_batismo or tem_carousel_casais %}
-<script src="{{ url_for('static', filename='js/carousel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/carousel.js') }}?v={{ carousel_js_version }}"></script>
 {% endif %}
 {% if escala_hoje %}
 <script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>

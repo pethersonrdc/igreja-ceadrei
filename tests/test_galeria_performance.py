@@ -107,18 +107,19 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         self.assertIn("galeria-lightbox.js", html)
         self.assertIn("photoswipe", html.lower())
 
-    def test_home_carrossel_sob_demanda(self) -> None:
+    def test_home_carrossel_com_src_real(self) -> None:
         nomes = [self._criar_foto(f"home{i}") for i in range(3)]
         post_id = gallery.criar_post("Culto", "Domingo", "Carrossel", nomes)
         self._post_ids.append(post_id)
 
         html = self.client.get("/").get_data(as_text=True)
-        self.assertIn("data-src=", html)
-        self.assertIn("data-srcset=", html)
         stem0 = Path(nomes[0]).stem
         stem1 = Path(nomes[1]).stem
+        # Sempre src real (evita tela branca se o JS antigo estiver em cache)
         self.assertIn(f'src="/static/uploads/galeria/{stem0}_960.jpg"', html)
-        self.assertIn(f'data-src="/static/uploads/galeria/{stem1}_960.jpg"', html)
+        self.assertIn(f'src="/static/uploads/galeria/{stem1}_960.jpg"', html)
+        self.assertNotIn("data:image/gif;base64", html)
+        self.assertIn("carousel.js?v=", html)
 
 
 if __name__ == "__main__":
