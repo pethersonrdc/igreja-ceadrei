@@ -36,20 +36,8 @@ STATUS_OPCOES = {
     "desistir": "Desistir do batismo",
 }
 
-# Valores em reais (chave = número inteiro como texto). A equipe escolhe no admin
-# e o comprovante PDF imprime o rótulo (ex.: R$ 100,00).
-VALOR_PAGO_OPCOES: dict[str, str] = {
-    "": "Sem pagamento registrado",
-    "50": "R$ 50,00",
-    "100": "R$ 100,00",
-    "150": "R$ 150,00",
-    "200": "R$ 200,00",
-    "250": "R$ 250,00",
-    "300": "R$ 300,00",
-    "350": "R$ 350,00",
-    "400": "R$ 400,00",
-    "500": "R$ 500,00",
-}
+# Valor pago: campo editável no admin. Guardamos normalizado (ex.: "100.00")
+# e exibimos/imprimimos como "R$ 100,00" no comprovante.
 
 PARTICIPANTE_OPCOES = {
     "marido": "Marido",
@@ -57,6 +45,53 @@ PARTICIPANTE_OPCOES = {
     "filhos": "Filhos",
     "familia": "Pessoas da família",
 }
+
+
+def parse_valor_pago(bruto: str) -> str | None:
+    """
+    Aceita vazio, '100', '100,50', 'R$ 1.250,00', '100.5'.
+    Retorna string normalizada '1234.56', '' se vazio, ou None se inválido.
+    """
+    texto = (bruto or "").strip()
+    if not texto:
+        return ""
+    limpo = (
+        texto.replace("R$", "")
+        .replace("r$", "")
+        .replace(" ", "")
+        .strip()
+    )
+    if not limpo:
+        return ""
+    # Formato BR: 1.234,56 → remove milhares e troca vírgula
+    if "," in limpo:
+        limpo = limpo.replace(".", "").replace(",", ".")
+    try:
+        valor = float(limpo)
+    except ValueError:
+        return None
+    if valor < 0 or valor > 1_000_000:
+        return None
+    return f"{valor:.2f}"
+
+
+def formatar_valor_pago_brl(valor_norm: str) -> str:
+    """'100.00' → 'R$ 100,00'."""
+    norm = (valor_norm or "").strip()
+    if not norm:
+        return ""
+    try:
+        valor = float(norm)
+    except ValueError:
+        return ""
+    inteiro, centavos = f"{valor:.2f}".split(".")
+    # milhares com ponto
+    partes: list[str] = []
+    while inteiro:
+        partes.append(inteiro[-3:])
+        inteiro = inteiro[:-3]
+    inteiro_fmt = ".".join(reversed(partes))
+    return f"R$ {inteiro_fmt},{centavos}"
 
 
 def _connect() -> sqlite3.Connection:
@@ -360,11 +395,13 @@ def _enriquecer_inscricao(item: dict) -> dict:
     item["rg_mulher"] = item.get("rg_mulher") or ""
     item["sexo_marido"] = _normalizar_sexo(item.get("sexo_marido") or "")
     item["sexo_mulher"] = _normalizar_sexo(item.get("sexo_mulher") or "")
-    valor = (item.get("valor_pago") or "").strip()
-    if valor not in VALOR_PAGO_OPCOES:
+    valor_bruto = (item.get("valor_pago") or "").strip()
+    # Aceita valores antigos do picklist ("100") e os novos normalizados ("100.00")
+    valor = parse_valor_pago(valor_bruto)
+    if valor is None:
         valor = ""
     item["valor_pago"] = valor
-    item["valor_pago_texto"] = VALOR_PAGO_OPCOES.get(valor, "")
+    item["valor_pago_texto"] = formatar_valor_pago_brl(valor)
     item["pago_em"] = (item.get("pago_em") or "").strip()
     item["tem_pagamento"] = bool(valor)
     return item
@@ -395,16 +432,16 @@ def atualizar_status(inscricao_id: int, status: str) -> bool:
 
 
 def atualizar_valor_pago(inscricao_id: int, valor_pago: str) -> bool:
-    """Registra (ou limpa) o valor pago escolhido no picklist do admin."""
-    chave = (valor_pago or "").strip()
-    if chave not in VALOR_PAGO_OPCOES:
+    """Registra (ou limpa) o valor pago digitado no admin."""
+    normalizado = parse_valor_pago(valor_pago)
+    if normalizado is None:
         return False
     init_db()
-    pago_em = agora().isoformat(timespec="seconds") if chave else ""
+    pago_em = agora().isoformat(timespec="seconds") if normalizado else ""
     with _connect() as conn:
         cur = conn.execute(
             "UPDATE inscricoes SET valor_pago = ?, pago_em = ? WHERE id = ?",
-            (chave, pago_em, inscricao_id),
+            (normalizado, pago_em, inscricao_id),
         )
         return cur.rowcount > 0
 
@@ -558,7 +595,7 @@ def gerar_comprovante_pagamento_pdf(
 ) -> io.BytesIO:
     """
     Comprovante no mesmo formato do convite, com o valor escolhido no picklist.
-    O valor vem do banco (valor_pago) — a equipe seleciona no admin e o PDF imprime.
+    O valor vem do banco (valor_pago) — a equipe digita no admin e o PDF imprime.
     """
     from fpdf import FPDF
 
@@ -567,9 +604,9 @@ def gerar_comprovante_pagamento_pdf(
 
     igreja = igreja or {}
     nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
-    valor_texto = inscricao.get("valor_pago_texto") or VALOR_PAGO_OPCOES.get(
-        inscricao.get("valor_pago") or "", "—"
-    )
+    valor_texto = inscricao.get("valor_pago_texto") or formatar_valor_pago_brl(
+        inscricao.get("valor_pago") or ""
+    ) or "—"
     pago_fmt = formatar_data_hora(inscricao.get("pago_em") or "")
     criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
 

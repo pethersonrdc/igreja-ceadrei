@@ -1046,7 +1046,6 @@ def batismo_admin():
         fotos=batismo.listar_fotos(),
         inscricoes=batismo.listar_inscricoes(),
         status_opcoes=batismo.STATUS_OPCOES,
-        valor_pago_opcoes=batismo.VALOR_PAGO_OPCOES,
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
         editar_evento=editar_evento,
         info_evento=pastores.RESPONSAVEIS_EVENTO["batismo"],

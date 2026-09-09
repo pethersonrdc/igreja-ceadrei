@@ -110,13 +110,13 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertTrue(corpo.startswith(b"%PDF"))
         self.assertGreater(len(corpo), 1000)
 
-    def test_picklist_valor_pago_e_comprovante(self) -> None:
+    def test_valor_pago_editavel_e_comprovante(self) -> None:
         inscricao_id = self._criar(nome_completo="rebeca neguinha")
-        self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, "100"))
+        self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, "85,50"))
         item = batismo.obter_inscricao(inscricao_id)
         self.assertTrue(item["tem_pagamento"])
-        self.assertEqual(item["valor_pago"], "100")
-        self.assertEqual(item["valor_pago_texto"], "R$ 100,00")
+        self.assertEqual(item["valor_pago"], "85.50")
+        self.assertEqual(item["valor_pago_texto"], "R$ 85,50")
         self.assertTrue(item["pago_em"])
 
         buffer = batismo.gerar_comprovante_pagamento_pdf(
@@ -136,8 +136,22 @@ class BatismoInscricaoTest(unittest.TestCase):
 
         html = self.client.get("/batismo/admin").get_data(as_text=True)
         self.assertIn("Valor pago", html)
+        self.assertIn('name="valor_pago"', html)
+        self.assertIn('placeholder="Ex.: 100,00"', html)
         self.assertIn("Baixar comprovante", html)
-        self.assertIn("R$ 100,00", html)
+        self.assertIn("85,50", html)
+
+        # limpar pagamento
+        self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, ""))
+        item2 = batismo.obter_inscricao(inscricao_id)
+        self.assertFalse(item2["tem_pagamento"])
+
+    def test_parse_valor_pago_formatos(self) -> None:
+        self.assertEqual(batismo.parse_valor_pago("100"), "100.00")
+        self.assertEqual(batismo.parse_valor_pago("R$ 1.250,75"), "1250.75")
+        self.assertEqual(batismo.parse_valor_pago(""), "")
+        self.assertIsNone(batismo.parse_valor_pago("abc"))
+        self.assertEqual(batismo.formatar_valor_pago_brl("1250.75"), "R$ 1.250,75")
 
     def test_comprovante_sem_valor_redireciona(self) -> None:
         inscricao_id = self._criar()

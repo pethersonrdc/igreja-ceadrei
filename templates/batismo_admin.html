@@ -141,14 +141,20 @@
               <button class="btn btn-ghost-dark" type="submit">Salvar</button>
             </form>
             <form method="post" action="{{ url_for('batismo_atualizar_pagamento', inscricao_id=item.id) }}" class="status-form" style="margin-top:0.55rem">
-              <label class="admin-meta" for="valor-pago-{{ item.id }}">Valor pago</label>
-              <select id="valor-pago-{{ item.id }}" name="valor_pago" aria-label="Valor pago da inscrição">
-                {% for chave, rotulo in valor_pago_opcoes.items() %}
-                <option value="{{ chave }}" {% if item.valor_pago == chave %}selected{% endif %}>{{ rotulo }}</option>
-                {% endfor %}
-              </select>
+              <label class="admin-meta" for="valor-pago-{{ item.id }}">Valor pago (R$)</label>
+              <input
+                id="valor-pago-{{ item.id }}"
+                name="valor_pago"
+                type="text"
+                inputmode="decimal"
+                placeholder="Ex.: 100,00"
+                value="{{ item.valor_pago_texto.replace('R$ ', '') if item.tem_pagamento else '' }}"
+                aria-label="Valor pago da inscrição"
+                autocomplete="off"
+              >
               <button class="btn btn-ghost-dark" type="submit">Salvar valor</button>
             </form>
+            <p class="admin-meta" style="margin:0.25rem 0 0">Deixe em branco e salve para remover o pagamento.</p>
             <p class="admin-meta" style="margin-top:0.5rem">
               <a href="{{ url_for('batismo_baixar_convite', inscricao_id=item.id) }}">Baixar convite</a>
               {% if item.tem_pagamento %}
