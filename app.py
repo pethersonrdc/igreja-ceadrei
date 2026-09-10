@@ -1086,7 +1086,7 @@ def batismo_atualizar_status(inscricao_id: int):
         flash("Status atualizado.", "ok")
     else:
         flash("Não foi possível atualizar o status.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/pagamento", methods=["POST"])
@@ -1103,7 +1103,7 @@ def batismo_atualizar_pagamento(inscricao_id: int):
             flash("Pagamento removido desta inscrição.", "ok")
     else:
         flash("Não foi possível salvar o valor pago.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/comprovante.pdf")
@@ -1113,15 +1113,15 @@ def batismo_baixar_comprovante(inscricao_id: int):
     inscricao = batismo.obter_inscricao(inscricao_id)
     if not inscricao:
         flash("Inscrição não encontrada.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     if not inscricao.get("tem_pagamento"):
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     try:
         buffer = batismo.gerar_comprovante_pagamento_pdf(inscricao, igreja)
     except ValueError:
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     return send_file(
         buffer,
         as_attachment=True,
@@ -1147,18 +1147,20 @@ def batismo_apagar_inscricao(inscricao_id: int):
         flash("Família removida da lista de batismo.", "ok")
     else:
         flash("Inscrição não encontrada.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/cadastro/onibus")
 @batismo_login_required
 def cadastro_onibus():
-    """Página separada da escala do ônibus (lista de batismo fica no admin)."""
+    """Cadastro / ônibus: inscrições das famílias + escala de assentos."""
     igreja = load_json("igreja.json")
     link_home = url_for("home", _external=True) + "#escala-onibus-home"
     return render_template(
         "cadastro_onibus.html",
         igreja=igreja,
+        inscricoes=batismo.listar_inscricoes(),
+        status_opcoes=batismo.STATUS_OPCOES,
         onibus_linhas=batismo.ONIBUS_LINHAS,
         onibus_mapa=batismo.mapa_assentos_onibus(
             igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
