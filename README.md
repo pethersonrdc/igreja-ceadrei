@@ -267,6 +267,8 @@ bash /var/www/igreja-ceadrei/deploy/hostinger/update.sh
 - `https://igrejaceasdrei.com.br/sitemap.xml`
 - `https://igrejaceasdrei.com.br/robots.txt`
 
+Esses arquivos ficam em `seo/` e o Nginx serve direto (mais confiável que o Gunicorn).
+
 Arquivos:
 - `deploy/hostinger/setup.sh` — instalação
 - `deploy/hostinger/update.sh` — update
