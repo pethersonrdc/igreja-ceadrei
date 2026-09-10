@@ -219,11 +219,42 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertIn("onibus-share.js", onibus)
         self.assertIn("Assento 7 - Ana Whats", onibus)
         self.assertIn("Confirmado no site", onibus)
+        self.assertIn("Exportar Excel", onibus)
+        self.assertIn("Exportar PDF", onibus)
+        self.assertIn("/cadastro/onibus/exportar.xlsx", onibus)
+        self.assertIn("/cadastro/onibus/exportar.pdf", onibus)
 
         home = self.client.get("/").get_data(as_text=True)
         self.assertIn("Compartilhar escala no WhatsApp", home)
         self.assertIn("js-onibus-share", home)
         self.assertIn("onibus-share.js", home)
+
+    def test_exportar_escala_onibus_excel_e_pdf(self) -> None:
+        inscricao_id = self._criar(nome_completo="Família Export")
+        batismo.atualizar_valor_pago(inscricao_id, "120")
+        batismo.salvar_assento_onibus(3, nome="Carlos Export", inscricao_id=inscricao_id)
+
+        with self.client.session_transaction() as sess:
+            sess["batismo_ok"] = True
+
+        xlsx = self.client.get("/cadastro/onibus/exportar.xlsx")
+        self.assertEqual(xlsx.status_code, 200)
+        self.assertIn(
+            "spreadsheetml",
+            xlsx.headers.get("Content-Type", ""),
+        )
+        self.assertTrue(xlsx.data[:2] == b"PK")
+
+        pdf = self.client.get("/cadastro/onibus/exportar.pdf")
+        self.assertEqual(pdf.status_code, 200)
+        self.assertIn("application/pdf", pdf.headers.get("Content-Type", ""))
+        self.assertTrue(pdf.data.startswith(b"%PDF"))
+        self.assertGreater(len(pdf.data), 1000)
+
+        from pdf_relatorios import gerar_pdf_onibus
+
+        corpo = gerar_pdf_onibus(batismo.listar_assentos_onibus())
+        self.assertTrue(corpo.startswith(b"%PDF"))
 
     def test_pdf_batismo_tema_escuro_texto_branco(self) -> None:
         from pdf_relatorios import RelatorioInscricoesPDF, gerar_pdf_batismo

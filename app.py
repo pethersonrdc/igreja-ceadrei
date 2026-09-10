@@ -1175,6 +1175,67 @@ def cadastro_onibus():
     )
 
 
+@app.route("/cadastro/onibus/exportar.xlsx")
+@batismo_login_required
+def cadastro_onibus_exportar_excel():
+    from openpyxl import Workbook
+
+    assentos = batismo.listar_assentos_onibus()
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Escala Onibus"
+    ws.append(
+        [
+            "Assento",
+            "Situação",
+            "Nome",
+            "Família",
+            "Telefone",
+            "Valor pago",
+            "Status inscrição",
+            "Atualizado em",
+        ]
+    )
+    for item in assentos:
+        ws.append(
+            [
+                item.get("numero"),
+                item.get("situacao") or "",
+                item.get("nome") or "",
+                item.get("familia") or "",
+                item.get("telefone") or "",
+                item.get("valor_pago_texto") or "",
+                item.get("status_texto") or "",
+                (item.get("atualizado_em") or "").replace("T", " "),
+            ]
+        )
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="escala-onibus-batismo.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@app.route("/cadastro/onibus/exportar.pdf")
+@batismo_login_required
+def cadastro_onibus_exportar_pdf():
+    import pdf_relatorios
+
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_onibus(batismo.listar_assentos_onibus()))
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="escala-onibus-batismo.pdf",
+        mimetype="application/pdf",
+    )
+
+
 @app.route("/batismo/admin/onibus/assento/<int:numero>", methods=["POST"])
 @batismo_login_required
 def batismo_salvar_assento(numero: int):
