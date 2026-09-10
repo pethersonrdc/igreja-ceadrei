@@ -13,6 +13,7 @@ from pathlib import Path
 
 from flask import (
     Flask,
+    Response,
     flash,
     jsonify,
     redirect,
@@ -2249,6 +2250,90 @@ def louvor_page():
         whatsapp_dia=whatsapp_dia,
         whatsapp_mes=whatsapp_mes,
     )
+
+
+# ---------- SEO (Google Search Console) ----------
+
+SITE_CANONICO = os.environ.get("SITE_URL", "https://igrejaceasdrei.com.br").rstrip("/")
+
+
+def _url_absoluta(caminho: str) -> str:
+    """Monta URL absoluta preferindo o domínio público do site."""
+    if not caminho.startswith("/"):
+        caminho = "/" + caminho
+    return f"{SITE_CANONICO}{caminho}"
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    linhas = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /batismo/admin",
+        "Disallow: /batismo/login",
+        "Disallow: /casais/admin",
+        "Disallow: /casais/login",
+        "Disallow: /pastores/",
+        "Disallow: /arraial/admin",
+        "Disallow: /arraial/login",
+        "Disallow: /mocidade/admin",
+        "Disallow: /mocidade/login",
+        "Disallow: /louvor/admin",
+        "Disallow: /louvor/login",
+        "Disallow: /evento/*/admin",
+        "Disallow: /evento/*/login",
+        "",
+        f"Sitemap: {_url_absoluta('/sitemap.xml')}",
+        "",
+    ]
+    return Response("\n".join(linhas), mimetype="text/plain; charset=utf-8")
+
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    """Lista as páginas públicas para o Google indexar o site."""
+    rotas_estaticas = [
+        ("/", "1.0", "weekly"),
+        ("/sobre", "0.8", "monthly"),
+        ("/cultos", "0.9", "weekly"),
+        ("/eventos", "0.8", "weekly"),
+        ("/contato", "0.7", "monthly"),
+        ("/galeria", "0.7", "weekly"),
+        ("/mensagem-do-dia", "0.8", "daily"),
+        ("/porta-do-altar", "0.7", "weekly"),
+        ("/batismo/inscricao", "0.8", "weekly"),
+        ("/casais", "0.7", "weekly"),
+        ("/casais/inscricao", "0.7", "weekly"),
+        ("/comunicado", "0.6", "weekly"),
+        ("/calendario-lideres", "0.5", "weekly"),
+        ("/arraial", "0.6", "monthly"),
+        ("/mocidade", "0.7", "weekly"),
+        ("/louvor", "0.7", "weekly"),
+    ]
+    for slug in campanha_eventos.EVENTOS:
+        rotas_estaticas.append((f"/evento/{slug}", "0.6", "weekly"))
+
+    hoje = date.today().isoformat()
+    urls = []
+    for caminho, prioridade, frequencia in rotas_estaticas:
+        loc = _url_absoluta(caminho)
+        urls.append(
+            "  <url>\n"
+            f"    <loc>{loc}</loc>\n"
+            f"    <lastmod>{hoje}</lastmod>\n"
+            f"    <changefreq>{frequencia}</changefreq>\n"
+            f"    <priority>{prioridade}</priority>\n"
+            "  </url>"
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + "\n".join(urls)
+        + "\n</urlset>\n"
+    )
+    return Response(xml, mimetype="application/xml; charset=utf-8")
 
 
 # ---------- API ----------

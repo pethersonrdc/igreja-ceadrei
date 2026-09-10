@@ -263,6 +263,10 @@ Com VPS o disco é fixo: posts e fotos **não somem** ao atualizar (use `DATA_DI
 bash /var/www/igreja-ceadrei/deploy/hostinger/update.sh
 ```
 
+**Google Search Console:** depois do update, o site responde em:
+- `https://igrejaceasdrei.com.br/sitemap.xml`
+- `https://igrejaceasdrei.com.br/robots.txt`
+
 Arquivos:
 - `deploy/hostinger/setup.sh` — instalação
 - `deploy/hostinger/update.sh` — update
