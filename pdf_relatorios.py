@@ -256,6 +256,54 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
     return bytes(pdf.output())
 
 
+def gerar_pdf_onibus(assentos: list[dict]) -> bytes:
+    """Lista da escala do ônibus (Cadastro / ônibus) — todos os 44 assentos."""
+    fundo = BASE_DIR / "static" / "images" / "batismo" / "fundo-cadastro.png"
+    pdf = RelatorioInscricoesPDF(fundo_path=fundo, tema="escuro")
+    pdf.add_page()
+    pdf.cabecalho_relatorio(
+        "Escala do ônibus — Evento Batismo CEASDREI",
+        "Semi Leito 7470 · 44 lugares · Responsável: Evangelista Sueli",
+    )
+
+    colunas = [
+        ("Assento", 18),
+        ("Situação", 24),
+        ("Nome", 58),
+        ("Família", 52),
+        ("Telefone", 32),
+        ("Valor", 28),
+        ("Status", 28),
+    ]
+    linhas = []
+    for item in assentos:
+        linhas.append(
+            [
+                str(item.get("numero", "")),
+                (item.get("situacao") or ("Ocupado" if item.get("ocupado") else "Livre")),
+                (item.get("nome") or "").strip() or "—",
+                (item.get("familia") or item.get("nome_completo") or "").strip() or "—",
+                (item.get("telefone") or "").strip() or "—",
+                (item.get("valor_pago_texto") or "").strip() or "—",
+                (item.get("status_texto") or "").strip() or "—",
+            ]
+        )
+
+    ocupados = sum(1 for a in assentos if a.get("ocupado"))
+    pdf.tabela(
+        colunas,
+        linhas,
+        vazio="Nenhum assento na escala.",
+        wrap_cols={2, 3},
+    )
+    pdf.set_text_color(*pdf.COR_SUB)
+    pdf.fonte("", 10)
+    pdf.ln(2)
+    pdf.cell(0, 7, f"Total ocupados: {ocupados} / {len(assentos) or 44}", new_x="LMARGIN", new_y="NEXT")
+    pdf.rodape_relatorio()
+    return bytes(pdf.output())
+
+
 def gerar_pdf_casais(inscricoes: list[dict]) -> bytes:
     fundo = BASE_DIR / "static" / "images" / "casais" / "fundo.png"
     pdf = RelatorioInscricoesPDF(fundo_path=fundo if fundo.is_file() else None)

@@ -48,6 +48,22 @@
   </p>
   {% endif %}
 
+  <div class="section-head">
+    <h2>Escala do ônibus</h2>
+    <p>
+      Exporte a lista em Excel ou PDF para acompanhar o evento.
+      Também dá para baixar as
+      <a href="{{ url_for('batismo_exportar_excel') }}">famílias em Excel</a>
+      ou
+      <a href="{{ url_for('batismo_exportar_pdf') }}">PDF</a>.
+    </p>
+  </div>
+
+  <div class="hero-actions batismo-export">
+    <a class="btn btn-primary" href="{{ url_for('cadastro_onibus_exportar_excel') }}">Exportar Excel</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('cadastro_onibus_exportar_pdf') }}">Exportar PDF</a>
+  </div>
+
   <div class="admin-card" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center">
     <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
     <form method="post" action="{{ url_for('batismo_limpar_onibus') }}" onsubmit="return confirm('Limpar todos os assentos da escala do ônibus? Use depois que o evento passar.');" style="margin:0">

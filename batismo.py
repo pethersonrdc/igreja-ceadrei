@@ -802,7 +802,7 @@ def listar_assentos_onibus() -> list[dict]:
         rows = conn.execute(
             """
             SELECT a.numero, a.nome, a.inscricao_id, a.atualizado_em,
-                   i.nome_completo, i.valor_pago, i.status
+                   i.nome_completo, i.telefone, i.valor_pago, i.status
             FROM onibus_assentos a
             LEFT JOIN inscricoes i ON i.id = a.inscricao_id
             ORDER BY a.numero
@@ -815,6 +815,9 @@ def listar_assentos_onibus() -> list[dict]:
         item["ocupado"] = bool(item["nome"])
         item["valor_pago_texto"] = formatar_valor_pago_brl(item.get("valor_pago") or "")
         item["familia"] = (item.get("nome_completo") or "").strip()
+        item["telefone"] = (item.get("telefone") or "").strip()
+        item["status_texto"] = STATUS_OPCOES.get(item.get("status") or "", "")
+        item["situacao"] = "Ocupado" if item["ocupado"] else "Livre"
         resultado.append(item)
     return resultado
 
