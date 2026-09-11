@@ -45,9 +45,16 @@ BASE_DIR = Path(__file__).resolve().parent
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
 DATA_DIR = BASE_DIR / "data"
 
-app = Flask(__name__)
+# template_folder absoluto evita servir HTML antigo se o CWD do Gunicorn estiver errado
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static"),
+)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
+# Versão visível para confirmar deploy no ar
+APP_BUILD = os.environ.get("APP_BUILD", "onibus-familias-20260911")
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ceasdrei")
@@ -964,6 +971,27 @@ def admin_apagar_post(post_id: int):
 
 
 # ---------- Evento Batismo ----------
+
+@app.route("/_versao")
+def app_versao():
+    """Diagnóstico rápido: confirma qual código o Gunicorn está rodando."""
+    admin_tpl = BASE_DIR / "templates" / "batismo_admin.html"
+    onibus_tpl = BASE_DIR / "templates" / "cadastro_onibus.html"
+    admin_txt = admin_tpl.read_text(encoding="utf-8", errors="ignore") if admin_tpl.is_file() else ""
+    onibus_txt = onibus_tpl.read_text(encoding="utf-8", errors="ignore") if onibus_tpl.is_file() else ""
+    return jsonify(
+        {
+            "build": APP_BUILD,
+            "app_file": str(Path(__file__).resolve()),
+            "base_dir": str(BASE_DIR),
+            "cwd": os.getcwd(),
+            "admin_tem_abrir_cadastro": "Abrir Cadastro / ônibus" in admin_txt,
+            "admin_tem_exportar_excel": "Exportar Excel" in admin_txt
+            and "Abrir Cadastro / ônibus" not in admin_txt,
+            "onibus_tem_inscricoes": "Inscrições das famílias" in onibus_txt,
+        }
+    )
+
 
 @app.route("/batismo/login", methods=["GET", "POST"])
 def batismo_login():

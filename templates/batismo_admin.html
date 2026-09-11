@@ -85,13 +85,16 @@
   <div class="section-head">
     <h2>Inscrições das famílias</h2>
     <p>
-      A lista completa, status, valor pago e exportação Excel/PDF ficam em
-      <a href="{{ url_for('cadastro_onibus') }}#inscricoes-familias">Cadastro / ônibus</a>.
+      A lista completa (status, valor pago e Excel/PDF) foi movida para
+      <strong>Cadastro / ônibus</strong>.
     </p>
   </div>
   <div class="hero-actions batismo-export">
-    <a class="btn btn-primary" href="{{ url_for('cadastro_onibus') }}#inscricoes-familias">Abrir Cadastro / ônibus</a>
+    <a class="btn btn-primary" href="{{ url_for('cadastro_onibus') }}#inscricoes-familias">
+      Abrir Cadastro / ônibus
+    </a>
   </div>
+  <p class="admin-meta">Build: {{ config.get('APP_BUILD', 'onibus-familias-20260911') if false else 'onibus-familias-20260911' }}</p>
 </section>
 
 {% with
