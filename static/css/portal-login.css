@@ -2,7 +2,7 @@
 
 body.tema-portal-login {
   min-height: 100vh;
-  background: #0a0604;
+  background: #0a0604 !important;
   color: #f0d78c;
 }
 
