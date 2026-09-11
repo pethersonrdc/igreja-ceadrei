@@ -3,12 +3,13 @@
 # Uso (root): sudo bash /var/www/igreja-ceadrei/deploy/hostinger/atualizar-seguro.sh
 set -u
 APP_DIR="${APP_DIR:-/var/www/igreja-ceadrei}"
-BRANCH="${BRANCH:-cursor/portal-admin-tema-d63c}"
-
+# Se BRANCH não for passado, mantém a branch atual (não força portal-admin-tema).
+# Ex.: BRANCH=cursor/base-dados-congelar-d63c sudo bash deploy/hostinger/atualizar-seguro.sh
 git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 cd "$APP_DIR"
+BRANCH="${BRANCH:-$(sudo -u www-data git -C "$APP_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo cursor/base-dados-congelar-d63c)}"
 
-echo "==== 1) Código novo ===="
+echo "==== 1) Código novo (branch=$BRANCH) ===="
 sudo -u www-data git fetch origin
 sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
