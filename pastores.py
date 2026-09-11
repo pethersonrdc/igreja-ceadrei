@@ -28,42 +28,36 @@ H1_PASTORES = (
     "Área pastoral da CEASDREI — organize a escala, a palavra e o calendário dos líderes."
 )
 
-# Lista inicial da escala (persistida no SQLite; pode incluir/remover no admin)
+# Lista inicial (só se a tabela estiver vazia). Sem prefixo "Ob." —
+# use "Obr." no admin para não misturar com a lista antiga.
 OBREIROS_PADRAO = [
-    "Dc. Anderson Calixto",
+    "Col. Saymon",
     "Dc. Ana Beatriz",
+    "Dc. Anderson Calixto",
+    "Dc. Caren Nascimento",
     "Dc. Cassia Souza",
+    "Dc. Daiane",
     "Dc. Daniele",
-    "Dc. Michael",
-    "Dc. Edna do Carmo",
     "Dc. Diogo Kauan",
-    "Dc. Maria Santos",
-    "Ob. Eder",
-    "Evan. Sueli",
-    "Dc. Regiane",
+    "Dc. Edna do Carmo",
+    "Dc. Gladson",
     "Dc. Karen",
     "Dc. Luana",
-    "Dc. Petherson",
-    "Dc. Milena Nascimento",
-    "Dc. Michele Calixto",
-    "Miss. Jussara",
-    "Ob. Nivaldo",
-    "Pres. Marcelo",
-    "Dc. Ricardo",
-    "Ob. Daiane",
-    "Dc. Robson",
-    "Col. Saymon",
-    "Dc. Gladson",
-    "Ob. Welligton",
-    "Ob. Wellington",
-    "Ob. Marilza",
-    "Dc. Vinicius",
-    "Dc. Caren Nascimento",
-    "Dc. Daiane",
     "Dc. Maria Manoel",
+    "Dc. Maria Santos",
+    "Dc. Michael",
+    "Dc. Michele Calixto",
+    "Dc. Milena Nascimento",
+    "Dc. Petherson",
+    "Dc. Regiane",
+    "Dc. Ricardo",
     "Dc. Rivaldo Silva",
+    "Dc. Robson",
     "Dc. Rosy",
-    "Ob. Maria da Graças",
+    "Dc. Vinicius",
+    "Evan. Sueli",
+    "Miss. Jussara",
+    "Pres. Marcelo",
 ]
 
 
@@ -229,7 +223,10 @@ def _ensure_schema() -> None:
             );
             """
         )
-        _seed_obreiros(conn)
+        # Em produção (DATA_DIR) o seed/import fica a cargo de init_db —
+        # evita preencher e depois misturar com JSON antigo do git.
+        if not persistencia.usando_disco_persistente():
+            _seed_obreiros(conn)
         cols = {
             row["name"]
             for row in conn.execute("PRAGMA table_info(eventos_lideres)").fetchall()
@@ -350,25 +347,47 @@ def _escrever_json(path: Path, payload: dict | list) -> None:
     )
 
 
-def _caminhos_backup_escala() -> list[Path]:
-    """Disco persistente primeiro (Render), depois o JSON do repositório."""
-    caminhos: list[Path] = []
+def _caminho_escala_json() -> Path:
+    """Com DATA_DIR: só o disco persistente. Sem DATA_DIR: JSON do repo (dev)."""
     if persistencia.usando_disco_persistente():
-        caminhos.append(persistencia.db_path("escala_obreiros.json"))
-    caminhos.append(ESCALA_JSON_PATH)
-    return caminhos
+        return persistencia.db_path("escala_obreiros.json")
+    return ESCALA_JSON_PATH
+
+
+def _caminho_obreiros_json() -> Path:
+    """Com DATA_DIR: só o disco persistente. Sem DATA_DIR: JSON do repo (dev)."""
+    if persistencia.usando_disco_persistente():
+        return persistencia.db_path("obreiros_lista.json")
+    return OBREIROS_JSON_PATH
+
+
+def _caminhos_backup_escala() -> list[Path]:
+    return [_caminho_escala_json()]
 
 
 def _caminhos_backup_obreiros() -> list[Path]:
-    caminhos: list[Path] = []
-    if persistencia.usando_disco_persistente():
-        caminhos.append(persistencia.db_path("obreiros_lista.json"))
-    caminhos.append(OBREIROS_JSON_PATH)
-    return caminhos
+    return [_caminho_obreiros_json()]
+
+
+def _garantir_json_persistente(nome: str, seed_repo: Path) -> Path:
+    """
+    Em produção (DATA_DIR): se o JSON ainda não existe no disco persistente,
+    copia o seed do git UMA vez. Nunca relê o git depois disso.
+    """
+    alvo = persistencia.db_path(nome)
+    if alvo.is_file():
+        return alvo
+    if seed_repo.is_file():
+        try:
+            alvo.parent.mkdir(parents=True, exist_ok=True)
+            alvo.write_text(seed_repo.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
+    return alvo
 
 
 def exportar_escala_json() -> None:
-    """Salva a escala no JSON (repo + DATA_DIR no Render)."""
+    """Salva a escala no JSON da fonte ativa (DATA_DIR ou repo)."""
     _ensure_schema()
     with _connect() as conn:
         rows = conn.execute(
@@ -387,7 +406,7 @@ def exportar_escala_json() -> None:
 
 
 def exportar_obreiros_json() -> None:
-    """Salva a lista de nomes do picklist no JSON (repo + DATA_DIR)."""
+    """Salva a lista de nomes do picklist no JSON da fonte ativa."""
     _ensure_schema()
     with _connect() as conn:
         rows = conn.execute(
@@ -456,40 +475,64 @@ def _importar_escala_de(
 
 def _importar_escala_json(conn: sqlite3.Connection) -> None:
     """
-    No Render: usa o JSON do disco persistente como fonte principal.
-    O JSON do Git só preenche datas que ainda não existem.
+    Fonte única: DATA_DIR quando definido (produção), senão JSON do repo (dev).
+    Nunca mescla git + disco — isso recolocava dados apagados após restart.
     """
-    persist = (
-        persistencia.db_path("escala_obreiros.json")
-        if persistencia.usando_disco_persistente()
-        else None
-    )
-    if persist and persist.exists():
-        _importar_escala_de(conn, persist, sobrescrever=True)
-        _importar_escala_de(conn, ESCALA_JSON_PATH, sobrescrever=False)
-    else:
-        _importar_escala_de(conn, ESCALA_JSON_PATH, sobrescrever=True)
+    if persistencia.usando_disco_persistente():
+        total = conn.execute("SELECT COUNT(*) AS c FROM escala").fetchone()["c"]
+        if total > 0:
+            return
+        path = _garantir_json_persistente("escala_obreiros.json", ESCALA_JSON_PATH)
+        if path.is_file():
+            _importar_escala_de(conn, path, sobrescrever=True)
+        return
+    _importar_escala_de(conn, ESCALA_JSON_PATH, sobrescrever=True)
 
 
 def _importar_obreiros_json(conn: sqlite3.Connection) -> None:
-    caminhos = _caminhos_backup_obreiros()
-    # Persistente primeiro (se existir), senão Git — só INSERT OR IGNORE
-    for path in caminhos:
+    """
+    Fonte única: DATA_DIR quando definido. Não relê data/obreiros_lista.json do git
+    em produção (era isso que trazia de volta os "Ob." apagados).
+    Com lista já gerenciada no SQLite, não reimporta no boot.
+    """
+    if persistencia.usando_disco_persistente():
+        total = conn.execute("SELECT COUNT(*) AS c FROM obreiros").fetchone()["c"]
+        if total > 0:
+            return
+        path = _garantir_json_persistente("obreiros_lista.json", OBREIROS_JSON_PATH)
         payload = _ler_json(path)
-        if not isinstance(payload, dict):
+        if isinstance(payload, dict):
+            nomes = payload.get("obreiros") or []
+            if isinstance(nomes, list):
+                criado = agora().isoformat(timespec="seconds")
+                for nome in nomes:
+                    limpo = " ".join(str(nome or "").split())
+                    if not limpo:
+                        continue
+                    conn.execute(
+                        "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
+                        (limpo, criado),
+                    )
+        total = conn.execute("SELECT COUNT(*) AS c FROM obreiros").fetchone()["c"]
+        if total == 0:
+            _seed_obreiros(conn)
+        return
+
+    payload = _ler_json(OBREIROS_JSON_PATH)
+    if not isinstance(payload, dict):
+        return
+    nomes = payload.get("obreiros") or []
+    if not isinstance(nomes, list):
+        return
+    criado = agora().isoformat(timespec="seconds")
+    for nome in nomes:
+        limpo = " ".join(str(nome or "").split())
+        if not limpo:
             continue
-        nomes = payload.get("obreiros") or []
-        if not isinstance(nomes, list):
-            continue
-        criado = agora().isoformat(timespec="seconds")
-        for nome in nomes:
-            limpo = " ".join(str(nome or "").split())
-            if not limpo:
-                continue
-            conn.execute(
-                "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
-                (limpo, criado),
-            )
+        conn.execute(
+            "INSERT OR IGNORE INTO obreiros (nome, criado_em) VALUES (?, ?)",
+            (limpo, criado),
+        )
 
 
 # ---------- Lista de obreiros (picklist) ----------

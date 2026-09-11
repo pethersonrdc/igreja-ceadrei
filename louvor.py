@@ -19,8 +19,38 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
 UPLOAD_DIR = persistencia.upload_dir("louvor")
 DB_PATH = Path(os.environ.get("LOUVOR_DB_PATH", str(persistencia.db_path("louvor.db"))))
-ESCALA_JSON_PATH = BASE_DIR / "data" / "escala_louvor.json"
-MEMBROS_JSON_PATH = BASE_DIR / "data" / "louvor_membros.json"
+ESCALA_JSON_REPO = BASE_DIR / "data" / "escala_louvor.json"
+MEMBROS_JSON_REPO = BASE_DIR / "data" / "louvor_membros.json"
+
+
+def _caminho_escala_json() -> Path:
+    if persistencia.usando_disco_persistente():
+        return persistencia.db_path("escala_louvor.json")
+    return ESCALA_JSON_REPO
+
+
+def _caminho_membros_json() -> Path:
+    if persistencia.usando_disco_persistente():
+        return persistencia.db_path("louvor_membros.json")
+    return MEMBROS_JSON_REPO
+
+
+def _garantir_json_persistente(nome: str, seed_repo: Path) -> Path:
+    alvo = persistencia.db_path(nome)
+    if alvo.is_file():
+        return alvo
+    if seed_repo.is_file():
+        try:
+            alvo.parent.mkdir(parents=True, exist_ok=True)
+            alvo.write_text(seed_repo.read_text(encoding="utf-8"), encoding="utf-8")
+        except OSError:
+            pass
+    return alvo
+
+
+# Compat: nomes antigos usados em export/import
+ESCALA_JSON_PATH = ESCALA_JSON_REPO
+MEMBROS_JSON_PATH = MEMBROS_JSON_REPO
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
@@ -164,7 +194,8 @@ def _ensure_schema() -> None:
             )
             """
         )
-        _seed_membros(conn)
+        if not persistencia.usando_disco_persistente():
+            _seed_membros(conn)
     _db_schema_ok = True
 
 
@@ -261,7 +292,7 @@ def exportar_escala_json() -> None:
         rows = conn.execute(
             "SELECT data, equipe, criado_em FROM escala ORDER BY data ASC"
         ).fetchall()
-    _escrever_json(ESCALA_JSON_PATH, {"escala": [dict(r) for r in rows]})
+    _escrever_json(_caminho_escala_json(), {"escala": [dict(r) for r in rows]})
 
 
 def exportar_membros_json() -> None:
@@ -270,11 +301,18 @@ def exportar_membros_json() -> None:
         rows = conn.execute(
             "SELECT nome FROM membros_escala ORDER BY nome COLLATE NOCASE ASC"
         ).fetchall()
-    _escrever_json(MEMBROS_JSON_PATH, {"membros": [r["nome"] for r in rows]})
+    _escrever_json(_caminho_membros_json(), {"membros": [r["nome"] for r in rows]})
 
 
 def _importar_escala_json(conn: sqlite3.Connection) -> None:
-    payload = _ler_json(ESCALA_JSON_PATH)
+    if persistencia.usando_disco_persistente():
+        total = conn.execute("SELECT COUNT(*) AS c FROM escala").fetchone()["c"]
+        if total > 0:
+            return
+        path = _garantir_json_persistente("escala_louvor.json", ESCALA_JSON_REPO)
+    else:
+        path = ESCALA_JSON_REPO
+    payload = _ler_json(path)
     if not isinstance(payload, dict):
         return
     items = payload.get("escala") or []
@@ -289,23 +327,55 @@ def _importar_escala_json(conn: sqlite3.Connection) -> None:
         criado = (item.get("criado_em") or "").strip() or agora().isoformat(
             timespec="seconds"
         )
-        conn.execute(
-            """
-            INSERT INTO escala (data, equipe, criado_em)
-            VALUES (?, ?, ?)
-            ON CONFLICT(data) DO UPDATE SET
-                equipe = excluded.equipe
-            """,
-            (
-                data_iso,
-                (item.get("equipe") or "").strip(),
-                criado,
-            ),
-        )
+        if persistencia.usando_disco_persistente():
+            conn.execute(
+                """
+                INSERT OR IGNORE INTO escala (data, equipe, criado_em)
+                VALUES (?, ?, ?)
+                """,
+                (data_iso, (item.get("equipe") or "").strip(), criado),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO escala (data, equipe, criado_em)
+                VALUES (?, ?, ?)
+                ON CONFLICT(data) DO UPDATE SET
+                    equipe = excluded.equipe
+                """,
+                (
+                    data_iso,
+                    (item.get("equipe") or "").strip(),
+                    criado,
+                ),
+            )
 
 
 def _importar_membros_json(conn: sqlite3.Connection) -> None:
-    payload = _ler_json(MEMBROS_JSON_PATH)
+    if persistencia.usando_disco_persistente():
+        total = conn.execute("SELECT COUNT(*) AS c FROM membros_escala").fetchone()["c"]
+        if total > 0:
+            return
+        path = _garantir_json_persistente("louvor_membros.json", MEMBROS_JSON_REPO)
+        payload = _ler_json(path)
+        if isinstance(payload, dict):
+            nomes = payload.get("membros") or []
+            if isinstance(nomes, list):
+                criado = agora().isoformat(timespec="seconds")
+                for nome in nomes:
+                    limpo = " ".join(str(nome or "").split())
+                    if not limpo:
+                        continue
+                    conn.execute(
+                        "INSERT OR IGNORE INTO membros_escala (nome, criado_em) VALUES (?, ?)",
+                        (limpo, criado),
+                    )
+        total = conn.execute("SELECT COUNT(*) AS c FROM membros_escala").fetchone()["c"]
+        if total == 0:
+            _seed_membros(conn)
+        return
+
+    payload = _ler_json(MEMBROS_JSON_REPO)
     if not isinstance(payload, dict):
         return
     nomes = payload.get("membros") or []
