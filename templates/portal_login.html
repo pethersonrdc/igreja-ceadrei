@@ -1,27 +1,92 @@
 {% extends "base.html" %}
 
+{% block body_class %}pagina-fundo tema-portal-login{% endblock %}
+
 {% block title %}Portal CEASDREI — Entrar{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--portal" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/portal/fundo-login.jpg') }}"
+    alt=""
+    decoding="async"
+    fetchpriority="high"
+  >
+  <span class="portal-login-ember portal-login-ember--1"></span>
+  <span class="portal-login-ember portal-login-ember--2"></span>
+  <span class="portal-login-ember portal-login-ember--3"></span>
+  <span class="portal-login-ember portal-login-ember--4"></span>
+  <span class="portal-login-ember portal-login-ember--5"></span>
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero">
-  <p class="eyebrow">Administração</p>
-  <h1>Portal CEASDREI</h1>
-  <p>Um acesso para todos os eventos e a aparência do site.</p>
-</section>
+<section class="section portal-login-wrap pagina-fundo-content">
+  <form
+    class="portal-login-card"
+    method="post"
+    action="{{ url_for('portal_login', next=request.args.get('next', '')) }}"
+    id="portal-login-form"
+  >
+    <div class="portal-login-brand">
+      <img
+        class="portal-login-emblema"
+        src="{{ url_for('static', filename='images/emblema.png') }}"
+        alt="Emblema {{ igreja.nome }}"
+        width="88"
+        height="88"
+        decoding="async"
+      >
+      <p class="portal-login-eyebrow">{{ igreja.nome }}</p>
+      <h1 class="portal-login-title">Portal CEASDREI</h1>
+      <p class="portal-login-lead">Um acesso para todos os eventos e a aparência do site.</p>
+    </div>
 
-<section class="section admin-login-wrap">
-  <form class="admin-card portal-login-card" method="post" action="{{ url_for('portal_login', next=request.args.get('next', '')) }}">
-    <label for="usuario">Usuário</label>
-    <input id="usuario" name="usuario" type="text" required autofocus autocomplete="username" placeholder="ceasdrei" value="ceasdrei">
+    <label class="portal-login-label" for="usuario">Usuário</label>
+    <input
+      class="portal-login-input"
+      id="usuario"
+      name="usuario"
+      type="text"
+      required
+      autofocus
+      autocomplete="username"
+      placeholder="ceasdrei"
+      value="ceasdrei"
+    >
 
-    <label for="senha">Senha</label>
-    <input id="senha" name="senha" type="password" required autocomplete="current-password" placeholder="Digite a senha">
+    <label class="portal-login-label" for="senha">Senha</label>
+    <input
+      class="portal-login-input"
+      id="senha"
+      name="senha"
+      type="password"
+      required
+      autocomplete="current-password"
+      placeholder="Digite a senha"
+    >
 
     {% if erro %}
-    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    <p class="portal-login-erro" role="alert">{{ erro }}</p>
     {% endif %}
 
-    <button class="btn btn-primary" type="submit">Entrar no portal</button>
+    <button class="portal-login-btn" type="submit">
+      <span class="portal-login-btn-text">Entrar no portal</span>
+      <span class="portal-login-btn-glow" aria-hidden="true"></span>
+    </button>
   </form>
 </section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var form = document.getElementById("portal-login-form");
+  if (!form) return;
+  form.addEventListener("submit", function () {
+    form.classList.add("is-sending");
+  });
+})();
+</script>
 {% endblock %}

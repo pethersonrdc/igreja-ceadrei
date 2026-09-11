@@ -33,6 +33,16 @@ class PortalAdminTest(unittest.TestCase):
         else:
             self._tema_path.write_text(self._tema_backup, encoding="utf-8")
 
+    def test_portal_login_visual_fundo_e_emblema(self) -> None:
+        resp = self.client.get("/portal/login")
+        self.assertEqual(resp.status_code, 200)
+        html = resp.get_data(as_text=True)
+        self.assertIn("tema-portal-login", html)
+        self.assertIn("images/portal/fundo-login.jpg", html)
+        self.assertIn("images/emblema.png", html)
+        self.assertIn("portal-login-card", html)
+        self.assertIn("portal-login-ember", html)
+
     def test_portal_login_abre_hub_e_admins(self) -> None:
         negado = self.client.get("/portal", follow_redirects=False)
         self.assertIn(negado.status_code, (302, 301))
