@@ -10,16 +10,7 @@
   href="{{ url_for('portal_css_asset') }}?v={{ build_id }}"
 >
 <style>
-  /* Fallback se o arquivo CSS ainda não estiver no disco */
-  body.tema-portal-login {
-    background: #0a0604 !important;
-    color: #f0d78c;
-  }
-  body.tema-portal-login .fundo-pagina--portal {
-    background-image: url("{{ url_for('portal_fundo_asset') }}");
-    background-size: cover;
-    background-position: center 28%;
-  }
+{{ portal_login_css|safe }}
 </style>
 {% endblock %}
 
@@ -27,7 +18,7 @@
 <div class="fundo-pagina fundo-pagina--portal" aria-hidden="true">
   <img
     class="fundo-pagina-img"
-    src="{{ url_for('portal_fundo_asset') }}"
+    src="{{ url_for('portal_fundo_asset') }}?v={{ build_id }}"
     alt=""
     decoding="async"
     fetchpriority="high"

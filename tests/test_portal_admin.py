@@ -40,15 +40,48 @@ class PortalAdminTest(unittest.TestCase):
         self.assertIn("tema-portal-login", html)
         self.assertIn("/portal/assets/fundo.jpg", html)
         self.assertIn("/portal/assets/portal-login.css", html)
-        self.assertIn("images/emblema.png", html)
         self.assertIn("portal-login-card", html)
         self.assertIn("portal-login-ember", html)
+        # CSS embutido no HTML (funciona mesmo com static incompleto)
+        self.assertIn(".portal-login-card", html)
+        self.assertIn("images/emblema.png", html)
         fundo = self.client.get("/portal/assets/fundo.jpg")
         self.assertEqual(fundo.status_code, 200)
+        self.assertEqual(fundo.mimetype, "image/jpeg")
         self.assertGreater(len(fundo.data), 1000)
         css = self.client.get("/portal/assets/portal-login.css")
         self.assertEqual(css.status_code, 200)
         self.assertIn("tema-portal-login", css.get_data(as_text=True))
+
+    def test_portal_assets_sem_arquivos_no_disco(self) -> None:
+        """Assets embutidos: rotas respondem mesmo sem ficheiros em static/."""
+        from pathlib import Path
+
+        css = Path(self.app.static_folder) / "css" / "portal-login.css"
+        img = Path(self.app.static_folder) / "images" / "fundo-portal-login.jpg"
+        css_bak = css.read_bytes() if css.exists() else None
+        img_bak = img.read_bytes() if img.exists() else None
+        try:
+            if css.exists():
+                css.unlink()
+            if img.exists():
+                img.unlink()
+            fundo = self.client.get("/portal/assets/fundo.jpg")
+            self.assertEqual(fundo.status_code, 200)
+            self.assertGreater(len(fundo.data), 1000)
+            style = self.client.get("/portal/assets/portal-login.css")
+            self.assertEqual(style.status_code, 200)
+            self.assertIn("portal-login-card", style.get_data(as_text=True))
+            login = self.client.get("/portal/login")
+            self.assertEqual(login.status_code, 200)
+            self.assertIn("portal-login-card", login.get_data(as_text=True))
+        finally:
+            if css_bak is not None:
+                css.parent.mkdir(parents=True, exist_ok=True)
+                css.write_bytes(css_bak)
+            if img_bak is not None:
+                img.parent.mkdir(parents=True, exist_ok=True)
+                img.write_bytes(img_bak)
 
     def test_portal_login_abre_hub_e_admins(self) -> None:
         negado = self.client.get("/portal", follow_redirects=False)

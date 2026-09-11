@@ -19,20 +19,24 @@ sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
-echo "---- extrai assets do login (direto do git) ----"
-mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css"
+echo "---- extrai assets do login (direto do git + módulo embutido) ----"
+mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css" "$APP_DIR/static/images/portal"
 # Força gravar do objeto git (mesmo se o working tree estiver estranho)
 # O redirect roda como root; depois ajustamos dono.
 git show "HEAD:static/images/fundo-portal-login.jpg" \
-  > "$APP_DIR/static/images/fundo-portal-login.jpg"
+  > "$APP_DIR/static/images/fundo-portal-login.jpg" || true
 git show "HEAD:static/css/portal-login.css" \
-  > "$APP_DIR/static/css/portal-login.css"
+  > "$APP_DIR/static/css/portal-login.css" || true
+# Fonte da verdade: bytes embutidos no Python (não depende de LFS/checkout incompleto)
+sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"embed OK\")'"
 chown www-data:www-data \
   "$APP_DIR/static/images/fundo-portal-login.jpg" \
-  "$APP_DIR/static/css/portal-login.css"
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
 chmod 644 \
   "$APP_DIR/static/images/fundo-portal-login.jpg" \
-  "$APP_DIR/static/css/portal-login.css"
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
 ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
   "$APP_DIR/static/css/portal-login.css"
 echo "Assets do portal OK."

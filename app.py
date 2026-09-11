@@ -13,6 +13,7 @@ from pathlib import Path
 
 from flask import (
     Flask,
+    Response,
     flash,
     jsonify,
     redirect,
@@ -40,6 +41,7 @@ import pastores
 import persistencia
 import lideres_midia
 import porta_altar
+import portal_login_assets
 import som
 import tema_site
 
@@ -58,7 +60,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-login-assets-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-login-embed-20260911")
+
+# Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
+portal_login_assets.ensure_portal_login_files(app.static_folder)
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
@@ -3142,27 +3147,36 @@ def portal_login():
         erro = "Usuário ou senha incorretos."
     if session.get("portal_ok"):
         return redirect(url_for("portal_home"))
-    return render_template("portal_login.html", igreja=igreja, erro=erro)
+    return render_template(
+        "portal_login.html",
+        igreja=igreja,
+        erro=erro,
+        portal_login_css=portal_login_assets.PORTAL_LOGIN_CSS,
+    )
 
 
 @app.route("/portal/assets/fundo.jpg")
 def portal_fundo_asset():
-    """Serve o fundo do login via Flask (evita 404 do Nginx/static incompleto)."""
-    return send_from_directory(
-        Path(app.static_folder) / "images",
-        "fundo-portal-login.jpg",
-        max_age=86400,
+    """Fundo do login embutido no app (não depende de arquivo no disco)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_LOGIN_FUNDO_JPG,
+        mimetype="image/jpeg",
     )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
 
 
 @app.route("/portal/assets/portal-login.css")
 def portal_css_asset():
-    """Serve o CSS do login via Flask (fallback se /static/css falhar)."""
-    return send_from_directory(
-        Path(app.static_folder) / "css",
-        "portal-login.css",
-        max_age=86400,
+    """CSS do login embutido no app (não depende de arquivo no disco)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_LOGIN_CSS,
+        mimetype="text/css; charset=utf-8",
     )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
 
 
 @app.route("/portal/logout")
