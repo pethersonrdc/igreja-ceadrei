@@ -7,17 +7,32 @@ BRANCH="${BRANCH:-cursor/portal-admin-tema-d63c}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/igreja}"
 
 cd "$APP_DIR"
+
+if [[ ! -x "$APP_DIR/.venv/bin/gunicorn" ]]; then
+  echo "ERRO: .venv/gunicorn não encontrado em $APP_DIR"
+  echo "Rode antes: sudo bash deploy/hostinger/setup.sh"
+  exit 1
+fi
+
 sudo -u www-data git fetch origin
 sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
+
+# Desliga o serviço ANTIGO (/opt/...) se ainda existir — causa clássica do 502
+systemctl stop igreja 2>/dev/null || true
+systemctl disable igreja 2>/dev/null || true
+if [[ -f /etc/systemd/system/igreja.service ]]; then
+  mv /etc/systemd/system/igreja.service /etc/systemd/system/igreja.service.bak 2>/dev/null || true
+  systemctl daemon-reload || true
+  echo "Serviço antigo 'igreja' desativado (conflito de porta)."
+fi
 
 # Reinício limpo (evita "Address already in use" na porta 8000)
 systemctl stop igreja-ceadrei || true
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
-# Mata qualquer processo que ainda esteja na 8000
 if command -v ss >/dev/null 2>&1; then
   ss -lntp 2>/dev/null | awk '/:8000/ {print}' | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u | while read -r pid; do
     kill -9 "$pid" 2>/dev/null || true
@@ -25,16 +40,31 @@ if command -v ss >/dev/null 2>&1; then
 fi
 sleep 2
 systemctl start igreja-ceadrei
-sleep 2
+sleep 3
 # Se ainda falhar por porta ocupada, tenta mais uma vez
 if ! ss -lntp 2>/dev/null | grep -q ':8000'; then
+  echo "Porta 8000 ainda fechada — nova tentativa..."
   fuser -k 8000/tcp 2>/dev/null || true
   sleep 1
   systemctl restart igreja-ceadrei
-  sleep 2
+  sleep 3
 fi
-systemctl --no-pager --full status igreja-ceadrei | head -25
-ss -lntp | grep 8000 || true
+
+echo "---- status igreja-ceadrei ----"
+systemctl --no-pager --full status igreja-ceadrei | head -30 || true
+echo "---- porta 8000 ----"
+ss -lntp | grep 8000 || echo "NADA na porta 8000"
+echo "---- teste local ----"
+if curl -fsS --max-time 5 http://127.0.0.1:8000/_versao; then
+  echo
+  echo "App OK em 127.0.0.1:8000"
+else
+  echo
+  echo "FALHA: app não respondeu em 127.0.0.1:8000"
+  echo "---- últimos logs ----"
+  journalctl -u igreja-ceadrei -n 40 --no-pager || true
+  exit 1
+fi
 
 # Garante sitemap/robots/favicon + headers de segurança no Nginx ativo
 if [[ -f "$NGINX_CONF" ]]; then
