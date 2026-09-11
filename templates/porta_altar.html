@@ -10,7 +10,7 @@
     class="fundo-pagina-img"
     src="{{ url_for('static', filename='images/porta_altar/fundo.png') }}"
     alt=""
-  >
+   loading="lazy" decoding="async">
 </div>
 {% endblock %}
 
@@ -40,7 +40,7 @@
     {% for video in videos_papo %}
     <article class="porta-altar-card">
       {% if video.capa %}
-      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}" loading="lazy" decoding="async">
       {% endif %}
       <div class="porta-altar-card-body">
         <p class="eyebrow">{{ video.culto_titulo or 'Papo de Altar' }}</p>
@@ -84,7 +84,7 @@
     {% for video in videos_culto %}
     <article class="porta-altar-card">
       {% if video.capa %}
-      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}" loading="lazy" decoding="async">
       {% endif %}
       <div class="porta-altar-card-body">
         <p class="eyebrow">{{ video.culto_titulo or 'Culto' }}</p>

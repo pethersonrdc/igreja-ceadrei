@@ -10,7 +10,7 @@
     class="fundo-pagina-img"
     src="{{ url_for('static', filename='images/mocidade/fundo.png') }}"
     alt=""
-  >
+   loading="lazy" decoding="async">
 </div>
 {% endblock %}
 
@@ -26,7 +26,7 @@
   <article class="ministerio-destaque-card mocidade-card">
     <p class="eyebrow">Em destaque{% if destaque_publico.data_br %} · {{ destaque_publico.data_br }}{% endif %}</p>
     {% if destaque_publico.tem_imagem %}
-    <img src="{{ url_for('static', filename='uploads/mocidade/' + destaque_publico.imagem) }}" alt="Filhos do Rei">
+    <img src="{{ url_for('static', filename='uploads/mocidade/' + destaque_publico.imagem) }}" alt="Filhos do Rei" loading="lazy" decoding="async">
     {% endif %}
     {% if destaque_publico.mensagem %}
     <p class="ministerio-destaque-msg">{{ destaque_publico.mensagem }}</p>
@@ -42,7 +42,7 @@
     <h2>{{ post_ativo.titulo }}</h2>
     <p>{{ post_ativo.texto }}</p>
     {% if post_ativo.foto %}
-    <img src="{{ url_for('static', filename='uploads/mocidade/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}">
+    <img src="{{ url_for('static', filename='uploads/mocidade/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}" loading="lazy" decoding="async">
     {% endif %}
   </article>
 </section>
@@ -55,7 +55,7 @@
     <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos Lideres</a>
   </article>
   <figure class="arraial-lider-foto">
-    <img src="{{ url_for('static', filename=foto_lideres) }}" alt="Diác. Natan e Diác. Ana Beatriz">
+    <img src="{{ url_for('static', filename=foto_lideres) }}" alt="Diác. Natan e Diác. Ana Beatriz" loading="lazy" decoding="async">
     <figcaption>Diác. Natan &amp; Diác. Ana Beatriz</figcaption>
   </figure>
 </section>

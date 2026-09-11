@@ -23,6 +23,7 @@ from flask import (
     session,
     url_for,
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -45,9 +46,34 @@ BASE_DIR = Path(__file__).resolve().parent
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
 DATA_DIR = BASE_DIR / "data"
 
-app = Flask(__name__)
+# template_folder absoluto evita servir HTML antigo se o CWD do Gunicorn estiver errado
+app = Flask(
+    __name__,
+    template_folder=str(BASE_DIR / "templates"),
+    static_folder=str(BASE_DIR / "static"),
+)
+# Nginx → Gunicorn: respeita X-Forwarded-Proto (HTTPS / HSTS)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
+# Versão visível para confirmar deploy no ar
+APP_BUILD = os.environ.get("APP_BUILD", "security-headers-og-20260911")
+
+# CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
+_CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "base-uri 'self'; "
+    "object-src 'none'; "
+    "frame-ancestors 'self'; "
+    "form-action 'self'; "
+    "img-src 'self' data: blob: https://images.unsplash.com; "
+    "media-src 'self' blob:; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "connect-src 'self' https://cdn.jsdelivr.net; "
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com"
+)
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ceasdrei")
@@ -240,7 +266,43 @@ def inject_admin():
         "galeria_dimensao": gallery.dimensao_imagem,
         "galeria_url": gallery.url_static_galeria,
         "galeria_src_grid": gallery.src_galeria_grid,
+        "og_image_default": url_for(
+            "static", filename="images/emblema.png", _external=True
+        ),
     }
+
+
+@app.after_request
+def aplicar_headers_seguranca(response):
+    """Headers básicos de segurança (nota F → A nos scanners)."""
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault(
+        "Referrer-Policy", "strict-origin-when-cross-origin"
+    )
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    )
+    response.headers.setdefault("Content-Security-Policy", _CONTENT_SECURITY_POLICY)
+    # HSTS só em HTTPS (ProxyFix + X-Forwarded-Proto no Nginx)
+    if request.is_secure:
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains",
+        )
+    return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    """Crawlers pedem /favicon.ico; usamos o emblema da igreja."""
+    return send_file(
+        Path(app.static_folder) / "images" / "emblema.png",
+        mimetype="image/png",
+        max_age=60 * 60 * 24 * 30,
+        conditional=True,
+    )
 
 
 def mensagem_do_dia() -> dict:
@@ -965,6 +1027,27 @@ def admin_apagar_post(post_id: int):
 
 # ---------- Evento Batismo ----------
 
+@app.route("/_versao")
+def app_versao():
+    """Diagnóstico rápido: confirma qual código o Gunicorn está rodando."""
+    admin_tpl = BASE_DIR / "templates" / "batismo_admin.html"
+    onibus_tpl = BASE_DIR / "templates" / "cadastro_onibus.html"
+    admin_txt = admin_tpl.read_text(encoding="utf-8", errors="ignore") if admin_tpl.is_file() else ""
+    onibus_txt = onibus_tpl.read_text(encoding="utf-8", errors="ignore") if onibus_tpl.is_file() else ""
+    return jsonify(
+        {
+            "build": APP_BUILD,
+            "app_file": str(Path(__file__).resolve()),
+            "base_dir": str(BASE_DIR),
+            "cwd": os.getcwd(),
+            "admin_tem_abrir_cadastro": "Abrir Cadastro / ônibus" in admin_txt,
+            "admin_tem_exportar_excel": "Exportar Excel" in admin_txt
+            and "Abrir Cadastro / ônibus" not in admin_txt,
+            "onibus_tem_inscricoes": "Inscrições das famílias" in onibus_txt,
+        }
+    )
+
+
 @app.route("/batismo/login", methods=["GET", "POST"])
 def batismo_login():
     igreja = load_json("igreja.json")
@@ -1086,7 +1169,7 @@ def batismo_atualizar_status(inscricao_id: int):
         flash("Status atualizado.", "ok")
     else:
         flash("Não foi possível atualizar o status.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/pagamento", methods=["POST"])
@@ -1103,7 +1186,7 @@ def batismo_atualizar_pagamento(inscricao_id: int):
             flash("Pagamento removido desta inscrição.", "ok")
     else:
         flash("Não foi possível salvar o valor pago.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/comprovante.pdf")
@@ -1113,15 +1196,15 @@ def batismo_baixar_comprovante(inscricao_id: int):
     inscricao = batismo.obter_inscricao(inscricao_id)
     if not inscricao:
         flash("Inscrição não encontrada.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     if not inscricao.get("tem_pagamento"):
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     try:
         buffer = batismo.gerar_comprovante_pagamento_pdf(inscricao, igreja)
     except ValueError:
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
     return send_file(
         buffer,
         as_attachment=True,
@@ -1147,18 +1230,20 @@ def batismo_apagar_inscricao(inscricao_id: int):
         flash("Família removida da lista de batismo.", "ok")
     else:
         flash("Inscrição não encontrada.", "erro")
-    return redirect(url_for("batismo_admin"))
+    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
 
 
 @app.route("/cadastro/onibus")
 @batismo_login_required
 def cadastro_onibus():
-    """Página separada da escala do ônibus (lista de batismo fica no admin)."""
+    """Cadastro / ônibus: inscrições das famílias + escala de assentos."""
     igreja = load_json("igreja.json")
     link_home = url_for("home", _external=True) + "#escala-onibus-home"
     return render_template(
         "cadastro_onibus.html",
         igreja=igreja,
+        inscricoes=batismo.listar_inscricoes(),
+        status_opcoes=batismo.STATUS_OPCOES,
         onibus_linhas=batismo.ONIBUS_LINHAS,
         onibus_mapa=batismo.mapa_assentos_onibus(
             igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
@@ -1172,6 +1257,67 @@ def cadastro_onibus():
                 link=link_home,
             )
         ),
+    )
+
+
+@app.route("/cadastro/onibus/exportar.xlsx")
+@batismo_login_required
+def cadastro_onibus_exportar_excel():
+    from openpyxl import Workbook
+
+    assentos = batismo.listar_assentos_onibus()
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Escala Onibus"
+    ws.append(
+        [
+            "Assento",
+            "Situação",
+            "Nome",
+            "Família",
+            "Telefone",
+            "Valor pago",
+            "Status inscrição",
+            "Atualizado em",
+        ]
+    )
+    for item in assentos:
+        ws.append(
+            [
+                item.get("numero"),
+                item.get("situacao") or "",
+                item.get("nome") or "",
+                item.get("familia") or "",
+                item.get("telefone") or "",
+                item.get("valor_pago_texto") or "",
+                item.get("status_texto") or "",
+                (item.get("atualizado_em") or "").replace("T", " "),
+            ]
+        )
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="escala-onibus-batismo.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@app.route("/cadastro/onibus/exportar.pdf")
+@batismo_login_required
+def cadastro_onibus_exportar_pdf():
+    import pdf_relatorios
+
+    buffer = io.BytesIO(pdf_relatorios.gerar_pdf_onibus(batismo.listar_assentos_onibus()))
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name="escala-onibus-batismo.pdf",
+        mimetype="application/pdf",
     )
 
 

@@ -4041,6 +4041,20 @@ body.tema-batismo-painel .status-form .btn-ghost-dark:hover {
   color: #ffffff;
 }
 
+/* Exportar PDF legível sobre o fundo escuro do painel/ônibus */
+body.tema-batismo-painel .batismo-export .btn-ghost-dark {
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  color: #0f1c2e;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+body.tema-batismo-painel .batismo-export .btn-ghost-dark:hover {
+  background: #ffffff;
+  color: #0d3b66;
+  border-color: #ffffff;
+}
+
 /* Login pastores — texto claro sobre a imagem */
 body.tema-pastores-login {
   --ink: #fff8ee;

@@ -10,7 +10,7 @@
     class="fundo-pagina-img"
     src="{{ url_for('static', filename='images/louvor/fundo.png') }}"
     alt=""
-  >
+   loading="lazy" decoding="async">
 </div>
 {% endblock %}
 
@@ -134,7 +134,7 @@
       </div>
       {% elif video.capa %}
       <a href="{{ video.watch_url or video.link or url_for('static', filename='uploads/louvor/' + video.capa) }}" target="_blank" rel="noopener noreferrer">
-        <img src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="{{ video.titulo }}">
+        <img src="{{ url_for('static', filename='uploads/louvor/' + video.capa) }}" alt="{{ video.titulo }}" loading="lazy" decoding="async">
       </a>
       {% endif %}
       <h3>{{ video.titulo }}</h3>
@@ -164,7 +164,7 @@
     {% for pessoa in integrantes %}
     <article class="louvor-integrante-card">
       {% if pessoa.foto %}
-      <img src="{{ url_for('static', filename='uploads/louvor/' + pessoa.foto) }}" alt="{{ pessoa.nome }}">
+      <img src="{{ url_for('static', filename='uploads/louvor/' + pessoa.foto) }}" alt="{{ pessoa.nome }}" loading="lazy" decoding="async">
       {% endif %}
       <strong>{{ pessoa.nome }}</strong>
       {% if pessoa.funcao %}<span>{{ pessoa.funcao }}</span>{% endif %}

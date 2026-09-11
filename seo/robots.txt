@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /batismo/admin
+Disallow: /batismo/login
+Disallow: /casais/admin
+Disallow: /casais/login
+Disallow: /pastores/
+Disallow: /arraial/admin
+Disallow: /arraial/login
+Disallow: /mocidade/admin
+Disallow: /mocidade/login
+Disallow: /louvor/admin
+Disallow: /louvor/login
+Disallow: /evento/*/admin
+Disallow: /evento/*/login
+
+Sitemap: https://igrejaceasdrei.com.br/sitemap.xml
