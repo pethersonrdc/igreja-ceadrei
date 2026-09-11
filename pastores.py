@@ -256,7 +256,34 @@ def init_db() -> None:
     with _connect() as conn:
         _importar_obreiros_json(conn)
         _importar_escala_json(conn)
+        _limpar_prefixo_ob_legado(conn)
     _db_import_ok = True
+
+
+def _limpar_prefixo_ob_legado(conn: sqlite3.Connection) -> int:
+    """
+    Remove nomes legados 'Ob. ...' (com ponto após Ob).
+    Não mexe em 'Obr....'. Em DATA_DIR, sincroniza o JSON após limpar.
+    """
+    if not persistencia.usando_disco_persistente():
+        return 0
+    cur = conn.execute("DELETE FROM obreiros WHERE nome LIKE 'Ob.%'")
+    removidos = cur.rowcount or 0
+    if removidos:
+        nomes = [
+            r["nome"]
+            for r in conn.execute(
+                "SELECT nome FROM obreiros ORDER BY nome COLLATE NOCASE ASC"
+            ).fetchall()
+        ]
+        try:
+            _escrever_json(
+                persistencia.db_path("obreiros_lista.json"),
+                {"obreiros": nomes},
+            )
+        except OSError:
+            pass
+    return removidos
 
 
 def agora() -> datetime:
@@ -552,6 +579,9 @@ def _seed_obreiros(conn: sqlite3.Connection) -> None:
 def listar_obreiros() -> list[dict]:
     init_db()
     with _connect() as conn:
+        # Garante na tela: Ob. legado some mesmo se algum import antigo
+        # ainda tiver rodado antes do deploy.
+        _limpar_prefixo_ob_legado(conn)
         rows = conn.execute(
             "SELECT id, nome FROM obreiros ORDER BY nome COLLATE NOCASE ASC"
         ).fetchall()
