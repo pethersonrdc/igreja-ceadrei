@@ -95,7 +95,7 @@ security_lines = [
     (
         'add_header Content-Security-Policy "default-src \'self\'; base-uri \'self\'; '
         "object-src 'none'; frame-ancestors 'self'; form-action 'self'; "
-        "img-src 'self' data: blob:; media-src 'self' blob:; "
+        "img-src 'self' data: blob: https://images.unsplash.com; media-src 'self' blob:; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "

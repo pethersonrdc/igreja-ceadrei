@@ -49,11 +49,12 @@ class HomePerformanceTest(unittest.TestCase):
         self.assertNotIn("Source+Sans", html)
         self.assertNotIn("wght@300", html)
 
-    def test_home_hero_local_sem_unsplash(self) -> None:
+    def test_home_hero_com_srcset_e_sem_2000px(self) -> None:
         html = self.client.get("/").get_data(as_text=True)
         self.assertIn("hero-media-img", html)
-        self.assertIn("/static/images/cultos/fundo-cultos.png", html)
-        self.assertNotIn("images.unsplash.com", html)
+        self.assertIn("w=800", html)
+        self.assertIn("srcset=", html)
+        self.assertNotIn("w=2000", html)
         self.assertNotIn('background-image: url("https://images.unsplash.com', html)
 
     def test_home_video_so_carrega_depois_do_toque(self) -> None:

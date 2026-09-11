@@ -105,34 +105,6 @@ def _garantir_link_upload(link: Path, destino: Path) -> None:
                 shutil.copy2(item, alvo)
 
 
-def espelhar_arquivo_upload(subdir: str, nome_arquivo: str) -> None:
-    """
-    Garante que um arquivo gravado no disco persistente também exista em
-    static/uploads/<subdir>/ quando o ambiente não tem symlink (só cópia).
-    Com symlink, static já aponta para o mesmo destino — não faz nada.
-    """
-    nome = (subdir or "").strip().strip("/").replace("\\", "/")
-    arquivo = (nome_arquivo or "").strip()
-    if not nome or not arquivo or not usando_disco_persistente():
-        return
-
-    destino = data_root() / "uploads" / nome / arquivo
-    link = STATIC_UPLOADS / nome
-    if link.is_symlink():
-        return
-    if not destino.is_file():
-        return
-
-    pasta_static = STATIC_UPLOADS / nome
-    pasta_static.mkdir(parents=True, exist_ok=True)
-    alvo = pasta_static / arquivo
-    try:
-        if not alvo.exists() or alvo.stat().st_mtime < destino.stat().st_mtime:
-            shutil.copy2(destino, alvo)
-    except OSError:
-        pass
-
-
 def preparar() -> Path:
     """Garante DATA_DIR e pastas de upload no boot do app."""
     root = data_root()

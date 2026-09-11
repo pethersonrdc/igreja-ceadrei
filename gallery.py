@@ -436,8 +436,6 @@ def gerar_variantes(arquivo: str) -> list[str]:
     if not origem.exists():
         return []
 
-    persistencia.espelhar_arquivo_upload("galeria", arquivo)
-
     criados: list[str] = []
     try:
         with Image.open(origem) as im:
@@ -460,7 +458,6 @@ def gerar_variantes(arquivo: str) -> list[str]:
                 destino = UPLOAD_DIR / nome
                 if destino.exists():
                     criados.append(nome)
-                    persistencia.espelhar_arquivo_upload("galeria", nome)
                     continue
                 if largura_orig <= largura:
                     # Original já é menor/igual: copia como JPG naquele rótulo
@@ -471,7 +468,6 @@ def gerar_variantes(arquivo: str) -> list[str]:
                     copia.thumbnail((largura, largura * 4), Image.Resampling.LANCZOS)
                     copia.save(destino, format="JPEG", quality=82, optimize=True)
                 criados.append(nome)
-                persistencia.espelhar_arquivo_upload("galeria", nome)
     except OSError:
         return []
     return criados
@@ -558,75 +554,36 @@ def garantir_variantes_existentes(limite: int | None = None) -> int:
     return geradas
 
 
-def _eh_variante_nome(nome: str) -> bool:
-    """True para arquivos gerados tipo culto-01_960.jpg."""
-    path = Path(nome)
-    if path.suffix.lower() != ".jpg":
-        return False
-    partes = path.stem.rsplit("_", 1)
-    if len(partes) != 2 or not partes[1].isdigit():
-        return False
-    return int(partes[1]) in VARIANT_WIDTHS
-
-
-def _arquivos_originais_no_upload() -> list[str]:
-    """Originais em uploads/galeria (ignora variantes *_480.jpg etc.)."""
-    if not UPLOAD_DIR.exists():
-        return []
-    return sorted(
-        path.name
-        for path in UPLOAD_DIR.iterdir()
-        if path.is_file() and extensao_ok(path.name) and not _eh_variante_nome(path.name)
-    )
-
-
 def seed_fotos_iniciais() -> int | None:
     """
-    Publica fotos iniciais quando a galeria pública está vazia.
-
-    - Primeira subida: copia de static/images/galeria.
-    - DB vazio com arquivos órfãos no disco (ex.: reset do SQLite): republica
-      a partir dos arquivos existentes (não deixa a Mídia em branco).
-    - Se a mídia apagou tudo de propósito (flag + sem arquivos), não recria.
+    Só na primeira subida (galeria vazia e sem flag).
+    Depois que a mídia apaga ou publica, NÃO recria fotos sozinho.
     """
     import shutil
 
     init_db()
+    if galeria_ja_gerenciada():
+        return None
     if listar_posts_ativos():
-        if not galeria_ja_gerenciada():
-            marcar_galeria_gerenciada(motivo="ja_tinha_posts")
+        # Já há conteúdo (ou DB antigo): marca para não reseedar no futuro
+        marcar_galeria_gerenciada(motivo="ja_tinha_posts")
+        return None
+    if not SEED_DIR.exists():
         return None
 
-    orfaos = _arquivos_originais_no_upload()
-    if galeria_ja_gerenciada() and not orfaos:
+    arquivos_seed = sorted(
+        p for p in SEED_DIR.iterdir() if p.is_file() and extensao_ok(p.name)
+    )
+    if not arquivos_seed:
         return None
 
     salvos: list[str] = []
-    if orfaos:
-        for nome in orfaos:
-            gerar_variantes(nome)
-            persistencia.espelhar_arquivo_upload("galeria", nome)
-            salvos.append(nome)
-        motivo = "reparo_orfaos"
-    else:
-        if not SEED_DIR.exists():
-            return None
-        arquivos_seed = sorted(
-            p for p in SEED_DIR.iterdir() if p.is_file() and extensao_ok(p.name)
-        )
-        if not arquivos_seed:
-            return None
-        for origem in arquivos_seed:
-            destino = UPLOAD_DIR / origem.name
-            if not destino.exists():
-                shutil.copy2(origem, destino)
-            persistencia.espelhar_arquivo_upload("galeria", origem.name)
-            gerar_variantes(origem.name)
-            salvos.append(origem.name)
-        motivo = "seed_inicial"
-
-    if not salvos:
-        return None
+    for origem in arquivos_seed:
+        destino = UPLOAD_DIR / origem.name
+        if not destino.exists():
+            shutil.copy2(origem, destino)
+        gerar_variantes(origem.name)
+        salvos.append(origem.name)
 
     post_id = criar_post(
         culto_titulo="Culto da igreja",
@@ -634,5 +591,5 @@ def seed_fotos_iniciais() -> int | None:
         titulo="Fotos do culto",
         arquivos=salvos,
     )
-    marcar_galeria_gerenciada(motivo=motivo)
+    marcar_galeria_gerenciada(motivo="seed_inicial")
     return post_id
