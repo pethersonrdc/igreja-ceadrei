@@ -7896,6 +7896,139 @@ body.tema-portal-login .fundo-pagina--portal::after {
 
 @keyframes portal-bg-breathe {
   from { transform: scale(1.02); }
+
+/* ---- Opção A: Espada de fogo viva ---- */
+.portal-fire {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.portal-fire-glow {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: min(55vw, 420px);
+  height: 70%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 60%,
+    rgba(255, 150, 40, 0.42) 0%,
+    rgba(255, 80, 10, 0.18) 42%,
+    transparent 72%);
+  filter: blur(18px);
+  animation: portal-fire-pulse 3.6s ease-in-out infinite alternate;
+}
+
+.portal-fire-core {
+  position: absolute;
+  left: 50%;
+  top: 12%;
+  width: clamp(28px, 5vw, 54px);
+  height: 78%;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: linear-gradient(180deg,
+    rgba(255, 240, 180, 0.0) 0%,
+    rgba(255, 210, 90, 0.55) 18%,
+    rgba(255, 120, 20, 0.75) 48%,
+    rgba(255, 60, 0, 0.35) 78%,
+    transparent 100%);
+  box-shadow:
+    0 0 28px rgba(255, 140, 30, 0.55),
+    0 0 60px rgba(255, 90, 10, 0.35);
+  filter: blur(1px);
+  animation: portal-fire-flicker 1.8s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+
+.portal-fire-core--soft {
+  width: clamp(70px, 12vw, 140px);
+  opacity: 0.55;
+  filter: blur(14px);
+  animation-duration: 2.6s;
+  animation-delay: -0.6s;
+}
+
+.portal-fire-wave {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  width: min(48vw, 360px);
+  height: 42%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at 50% 100%,
+    rgba(255, 100, 20, 0.35) 0%,
+    rgba(255, 60, 0, 0.12) 45%,
+    transparent 70%);
+  filter: blur(12px);
+  animation: portal-fire-wave 4.5s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+
+.portal-fire-wave--2 {
+  width: min(36vw, 260px);
+  height: 30%;
+  opacity: 0.7;
+  animation-duration: 3.2s;
+  animation-delay: -1.2s;
+}
+
+.portal-fire-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes portal-fire-pulse {
+  from { opacity: 0.65; transform: translateX(-50%) scale(0.96); }
+  to { opacity: 1; transform: translateX(-50%) scale(1.06); }
+}
+
+@keyframes portal-fire-flicker {
+  0% { opacity: 0.72; transform: translateX(-50%) scaleX(0.92) scaleY(1); }
+  40% { opacity: 1; transform: translateX(-52%) scaleX(1.05) scaleY(1.02); }
+  70% { opacity: 0.85; transform: translateX(-48%) scaleX(0.97) scaleY(0.99); }
+  100% { opacity: 0.95; transform: translateX(-50%) scaleX(1.08) scaleY(1.03); }
+}
+
+@keyframes portal-fire-wave {
+  from { opacity: 0.45; transform: translateX(-50%) scale(0.95); }
+  to { opacity: 0.9; transform: translateX(-50%) scale(1.08); }
+}
+
+.portal-login-ember--6 { left: 28%; bottom: 18%; animation-delay: 0.4s; width: 5px; height: 5px; }
+.portal-login-ember--7 { left: 46%; bottom: 6%; animation-delay: 1.6s; width: 3px; height: 3px; }
+.portal-login-ember--8 { left: 58%; bottom: 20%; animation-delay: 2.8s; }
+.portal-login-ember--9 { left: 72%; bottom: 12%; animation-delay: 0.9s; width: 4px; height: 4px; }
+.portal-login-ember--10 { left: 22%; bottom: 22%; animation-delay: 3.5s; width: 3px; height: 3px; }
+.portal-login-ember--11 { left: 50%; bottom: 10%; animation-delay: 1.9s; width: 5px; height: 5px; }
+.portal-login-ember--12 { left: 84%; bottom: 18%; animation-delay: 2.4s; width: 4px; height: 4px; }
+
+.portal-login-ember {
+  animation-duration: 4.8s;
+}
+
+@media (max-width: 640px) {
+  .portal-fire-core { width: 22px; }
+  .portal-fire-core--soft { width: 70px; }
+  .portal-fire-canvas { opacity: 0.75; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-fire-glow,
+  .portal-fire-core,
+  .portal-fire-wave,
+  .portal-fire-canvas {
+    animation: none !important;
+  }
+  .portal-fire-canvas { display: none; }
+}
+
   to { transform: scale(1.07); }
 }
 

@@ -16,6 +16,18 @@
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--portal" aria-hidden="true">
+  {# Fundo animado: espada de fogo + Bíblia (ideia do cliente) #}
+  <video
+    class="fundo-pagina-video"
+    autoplay
+    muted
+    loop
+    playsinline
+    preload="auto"
+    poster="{{ url_for('portal_fundo_asset') }}?v={{ build_id }}"
+  >
+    <source src="{{ url_for('portal_fundo_video_asset') }}?v={{ build_id }}" type="video/mp4">
+  </video>
   <img
     class="fundo-pagina-img"
     src="{{ url_for('portal_fundo_asset') }}?v={{ build_id }}"
@@ -23,11 +35,20 @@
     decoding="async"
     fetchpriority="high"
   >
+  <div class="portal-fire" aria-hidden="true">
+    <span class="portal-fire-glow"></span>
+    <span class="portal-fire-wave"></span>
+    <span class="portal-fire-wave portal-fire-wave--2"></span>
+  </div>
   <span class="portal-login-ember portal-login-ember--1"></span>
   <span class="portal-login-ember portal-login-ember--2"></span>
   <span class="portal-login-ember portal-login-ember--3"></span>
   <span class="portal-login-ember portal-login-ember--4"></span>
   <span class="portal-login-ember portal-login-ember--5"></span>
+  <span class="portal-login-ember portal-login-ember--6"></span>
+  <span class="portal-login-ember portal-login-ember--7"></span>
+  <span class="portal-login-ember portal-login-ember--8"></span>
+  <canvas class="portal-fire-canvas" id="portal-fire-canvas" width="1" height="1"></canvas>
 </div>
 {% endblock %}
 
@@ -93,10 +114,81 @@
 <script>
 (function () {
   var form = document.getElementById("portal-login-form");
-  if (!form) return;
-  form.addEventListener("submit", function () {
-    form.classList.add("is-sending");
+  if (form) {
+    form.addEventListener("submit", function () {
+      form.classList.add("is-sending");
+    });
+  }
+
+  var video = document.querySelector(".fundo-pagina-video");
+  if (video) {
+    video.play().catch(function () {});
+  }
+
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var canvas = document.getElementById("portal-fire-canvas");
+  if (!canvas || reduce || !canvas.getContext) return;
+  var ctx = canvas.getContext("2d");
+  var particles = [];
+  var running = true;
+
+  function resize() {
+    var parent = canvas.parentElement;
+    if (!parent) return;
+    canvas.width = parent.clientWidth || window.innerWidth;
+    canvas.height = parent.clientHeight || window.innerHeight;
+  }
+
+  function spawn() {
+    var w = canvas.width;
+    var h = canvas.height;
+    particles.push({
+      x: w * (0.38 + Math.random() * 0.24),
+      y: h * (0.48 + Math.random() * 0.4),
+      r: 1 + Math.random() * 2.2,
+      vy: 0.4 + Math.random() * 1.2,
+      vx: (Math.random() - 0.5) * 0.5,
+      life: 0,
+      max: 80 + Math.random() * 100,
+      hue: 24 + Math.random() * 30
+    });
+  }
+
+  function tick() {
+    if (!running) return;
+    var w = canvas.width;
+    var h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    if (particles.length < 36) spawn();
+    for (var i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.life += 1;
+      p.y -= p.vy;
+      p.x += p.vx + Math.sin((p.life + p.x) * 0.04) * 0.25;
+      var t = p.life / p.max;
+      var alpha = t < 0.12 ? t / 0.12 : 1 - (t - 0.12) / 0.88;
+      if (alpha < 0 || p.life >= p.max) {
+        particles.splice(i, 1);
+        continue;
+      }
+      ctx.beginPath();
+      ctx.fillStyle = "hsla(" + p.hue + ", 100%, " + (55 + (1 - t) * 25) + "%, " + (alpha * 0.8) + ")";
+      ctx.shadowColor = "hsla(" + p.hue + ", 100%, 60%, 0.65)";
+      ctx.shadowBlur = 8;
+      ctx.arc(p.x, p.y, p.r * (1 - t * 0.35), 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  resize();
+  window.addEventListener("resize", resize);
+  document.addEventListener("visibilitychange", function () {
+    running = document.visibilityState !== "hidden";
+    if (running) requestAnimationFrame(tick);
   });
+  for (var n = 0; n < 16; n++) spawn();
+  requestAnimationFrame(tick);
 })();
 </script>
 {% endblock %}

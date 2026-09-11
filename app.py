@@ -60,7 +60,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-hub-css-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-biblia-fogo-20260911")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -3169,6 +3169,16 @@ def portal_fundo_asset():
     )
     resp.headers["Cache-Control"] = "public, max-age=86400"
     return resp
+
+
+@app.route("/portal/assets/fundo.mp4")
+def portal_fundo_video_asset():
+    """Vídeo de fundo (espada de fogo + Bíblia)."""
+    path = Path(app.static_folder) / "images" / "portal" / "fundo-espada-biblia.mp4"
+    if not path.is_file():
+        # fallback silencioso: 404 curto
+        return Response(b"", status=404, mimetype="video/mp4")
+    return send_file(path, mimetype="video/mp4", conditional=True, max_age=86400)
 
 
 @app.route("/portal/assets/portal-login.css")
