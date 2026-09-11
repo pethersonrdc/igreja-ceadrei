@@ -60,7 +60,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-card-glass-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-fix-midia-20260911")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -1041,6 +1041,7 @@ def admin_galeria():
             extensao = Path(nome_seguro).suffix.lower()
             nome_final = f"{perfil_id}_{uuid.uuid4().hex}{extensao}"
             arquivo.save(lideres_midia.UPLOAD_DIR / nome_final)
+            persistencia.espelhar_arquivo_upload("lideres", nome_final)
             if lideres_midia.atualizar_foto(perfil_id, nome_final):
                 flash("Foto do líder atualizada.", "ok")
             else:
@@ -1120,6 +1121,7 @@ def admin_galeria():
             nome_final = f"{uuid.uuid4().hex}{extensao}"
             destino = gallery.UPLOAD_DIR / nome_final
             arquivo.save(destino)
+            persistencia.espelhar_arquivo_upload("galeria", nome_final)
             # Original permanece; gera 480/960/1600 para celular nítido e leve
             gallery.gerar_variantes(nome_final)
             salvos.append(nome_final)

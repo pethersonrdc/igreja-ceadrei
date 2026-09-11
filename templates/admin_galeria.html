@@ -219,6 +219,16 @@
     <p>Essas fotos aparecem na página Eventos. Atualize quando quiser.</p>
   </div>
 
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="admin-flash" style="margin-bottom:1rem">
+    {% for cat, msg in messages %}
+    <p class="admin-msg {% if cat == 'ok' %}admin-msg--ok{% else %}admin-msg--erro{% endif %}">{{ msg }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
   <div class="lideres-admin-grid">
     {% for perfil in perfis_lideres %}
     <article class="admin-card lider-perfil-card">

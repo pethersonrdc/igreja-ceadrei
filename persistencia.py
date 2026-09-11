@@ -77,6 +77,9 @@ def _garantir_link_upload(link: Path, destino: Path) -> None:
     destino.mkdir(parents=True, exist_ok=True)
 
     try:
+        # Link quebrado (ex.: apontava para /tmp/... de teste) → remove e recria
+        if link.is_symlink() and not link.exists():
+            link.unlink()
         if link.is_symlink():
             if link.resolve() == destino.resolve():
                 return
@@ -94,15 +97,70 @@ def _garantir_link_upload(link: Path, destino: Path) -> None:
                 link.unlink()
         link.symlink_to(destino, target_is_directory=True)
     except OSError:
-        # Ambiente sem permissão de symlink: usa a pasta persistente direto.
-        # Templates que apontam para static/uploads precisam do link;
-        # nesse caso copiamos arquivos para static também.
-        pasta_static = STATIC_UPLOADS / destino.name
-        pasta_static.mkdir(parents=True, exist_ok=True)
-        for item in destino.iterdir():
-            alvo = pasta_static / item.name
-            if item.is_file() and not alvo.exists():
-                shutil.copy2(item, alvo)
+        # Sem symlink: mantém cópia em static/uploads para o Nginx servir.
+        _espelhar_pasta(destino, STATIC_UPLOADS / destino.name)
+
+
+def _espelhar_pasta(origem: Path, destino_static: Path) -> None:
+    destino_static.mkdir(parents=True, exist_ok=True)
+    if not origem.exists():
+        return
+    for item in origem.iterdir():
+        if not item.is_file() or item.name == ".gitkeep":
+            continue
+        alvo = destino_static / item.name
+        if not alvo.exists() or item.stat().st_mtime > alvo.stat().st_mtime:
+            shutil.copy2(item, alvo)
+
+
+def espelhar_arquivo_upload(subdir: str, nome_arquivo: str) -> Path | None:
+    """
+    Garante que um arquivo novo em DATA_DIR também exista em static/uploads/
+    (necessário quando o symlink falha ou aponta para caminho inválido).
+    """
+    nome = (subdir or "").strip().strip("/")
+    arquivo = (nome_arquivo or "").strip()
+    if not nome or not arquivo:
+        return None
+
+    origem_dir = upload_dir(nome)
+    origem = origem_dir / arquivo
+    if not origem.is_file():
+        return None
+
+    link = STATIC_UPLOADS / nome
+    # Se o link está ok, o arquivo já é visível via static/
+    try:
+        if link.is_symlink() and link.resolve() == origem_dir.resolve():
+            return origem
+    except OSError:
+        pass
+
+    destino_dir = STATIC_UPLOADS / nome
+    destino_dir.mkdir(parents=True, exist_ok=True)
+    destino = destino_dir / arquivo
+    try:
+        if link.is_symlink() and not link.exists():
+            link.unlink()
+    except OSError:
+        pass
+
+    # Se static/uploads/<subdir> ainda é symlink quebrado para outro sítio,
+    # remove e usa pasta real para a cópia.
+    try:
+        if link.is_symlink():
+            try:
+                ok = link.resolve() == origem_dir.resolve()
+            except OSError:
+                ok = False
+            if not ok:
+                link.unlink()
+                destino_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
+
+    shutil.copy2(origem, destino)
+    return destino
 
 
 def preparar() -> Path:
@@ -111,4 +169,15 @@ def preparar() -> Path:
     (root / "uploads").mkdir(parents=True, exist_ok=True)
     for sub in UPLOAD_SUBDIRS:
         upload_dir(sub)
+        # Repara espelho static após deploy/git reset
+        destino = root / "uploads" / sub if usando_disco_persistente() else STATIC_UPLOADS / sub
+        if usando_disco_persistente():
+            _garantir_link_upload(STATIC_UPLOADS / sub, destino)
+            # Cópia de segurança se o link continuar inválido
+            try:
+                link = STATIC_UPLOADS / sub
+                if not link.exists() or (link.is_dir() and not link.is_symlink()):
+                    _espelhar_pasta(destino, STATIC_UPLOADS / sub)
+            except OSError:
+                _espelhar_pasta(destino, STATIC_UPLOADS / sub)
     return root
