@@ -1788,6 +1788,6 @@ def ensure_portal_login_files(static_folder: str | Path) -> None:
             img_path.write_bytes(PORTAL_LOGIN_FUNDO_JPG)
         if not img_alt.is_file() or img_alt.stat().st_size < 1000:
             img_alt.write_bytes(PORTAL_LOGIN_FUNDO_JPG)
-    except OSError:
-        # Sem permissão de escrita: rotas em memória ainda funcionam.
+    except Exception:
+        # Sem permissão / disco cheio / etc.: rotas em memória ainda funcionam.
         pass

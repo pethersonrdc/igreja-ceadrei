@@ -63,7 +63,11 @@ app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo 
 APP_BUILD = os.environ.get("APP_BUILD", "portal-hub-css-20260911")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
-portal_login_assets.ensure_portal_login_files(app.static_folder)
+# Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
+try:
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+except Exception:
+    pass
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
