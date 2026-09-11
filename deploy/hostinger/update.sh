@@ -3,7 +3,8 @@
 # Por padrão usa a branch com headers de segurança + Open Graph.
 set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/igreja-ceadrei}"
-BRANCH="${BRANCH:-cursor/portal-admin-tema-d63c}"
+# Não force portal-admin-tema: isso desfazia fixes de outras branches.
+BRANCH="${BRANCH:-$(sudo -u www-data git -C "${APP_DIR:-/var/www/igreja-ceadrei}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo cursor/base-dados-congelar-d63c)}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/igreja}"
 
 cd "$APP_DIR"
