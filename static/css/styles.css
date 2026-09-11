@@ -7681,3 +7681,133 @@ body.tema-historia .site-footer {
 .onibus-share-hint {
   margin-top: 0.75rem;
 }
+
+/* ---------- Portal CEASDREI ---------- */
+.portal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.75rem;
+}
+
+.portal-tab {
+  display: inline-flex;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line);
+  font-weight: 600;
+}
+
+.portal-tab.is-active {
+  background: var(--sea);
+  color: #fff;
+  border-color: var(--sea);
+}
+
+.portal-lead {
+  max-width: 42rem;
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft);
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.portal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: 1rem;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line);
+  box-shadow: 0 10px 30px rgba(13, 36, 54, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(13, 36, 54, 0.14);
+}
+
+.portal-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+}
+
+.portal-card p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.portal-card span {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  color: var(--gold-deep);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.portal-login-card,
+.portal-tema-form,
+.portal-preview {
+  max-width: 720px;
+}
+
+.portal-tema-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.portal-tema-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.portal-tema-grid input[type="color"] {
+  width: 100%;
+  height: 2.6rem;
+  padding: 0.2rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.portal-tema-span {
+  grid-column: 1 / -1;
+}
+
+.portal-tema-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.portal-swatch {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.portal-flash {
+  margin-bottom: 1rem;
+}

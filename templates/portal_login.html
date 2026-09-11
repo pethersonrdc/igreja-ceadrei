@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Portal CEASDREI — Entrar{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Administração</p>
+  <h1>Portal CEASDREI</h1>
+  <p>Um acesso para todos os eventos e a aparência do site.</p>
+</section>
+
+<section class="section admin-login-wrap">
+  <form class="admin-card portal-login-card" method="post" action="{{ url_for('portal_login', next=request.args.get('next', '')) }}">
+    <label for="usuario">Usuário</label>
+    <input id="usuario" name="usuario" type="text" required autofocus autocomplete="username" placeholder="ceasdrei" value="ceasdrei">
+
+    <label for="senha">Senha</label>
+    <input id="senha" name="senha" type="password" required autocomplete="current-password" placeholder="Digite a senha">
+
+    {% if erro %}
+    <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+    {% endif %}
+
+    <button class="btn btn-primary" type="submit">Entrar no portal</button>
+  </form>
+</section>
+{% endblock %}

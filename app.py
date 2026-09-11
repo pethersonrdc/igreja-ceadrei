@@ -41,6 +41,7 @@ import persistencia
 import lideres_midia
 import porta_altar
 import som
+import tema_site
 
 BASE_DIR = Path(__file__).resolve().parent
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
@@ -57,7 +58,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "security-headers-og-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-admin-tema-20260911")
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
@@ -129,6 +130,133 @@ CAMPANHA_SESSION_KEY = {
     "maranata": "maranata_ok",
     "soldadinhos": "soldadinhos_ok",
 }
+
+# Portal único CEASDREI — um usuário/senha abre todos os painéis
+PORTAL_USER = os.environ.get("PORTAL_USER", "ceasdrei")
+PORTAL_PASSWORD = os.environ.get("PORTAL_PASSWORD", "ceasdrei")
+PORTAL_PASSWORD_HASH = generate_password_hash(PORTAL_PASSWORD)
+PORTAL_SESSION_KEYS = (
+    "portal_ok",
+    "admin_ok",
+    "batismo_ok",
+    "casais_ok",
+    "pastores_ok",
+    "arraial_ok",
+    "mocidade_ok",
+    "leoas_ok",
+    "leaodejuda_ok",
+    "maranata_ok",
+    "soldadinhos_ok",
+    "louvor_ok",
+    "som_ok",
+)
+
+
+def portal_login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("portal_ok"):
+            return redirect(url_for("portal_login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def _portal_abrir_todos_paineis() -> None:
+    """Com o portal logado, libera acesso a todos os admins de eventos."""
+    for chave in PORTAL_SESSION_KEYS:
+        session[chave] = True
+
+
+def _portal_fechar_todos_paineis() -> None:
+    for chave in PORTAL_SESSION_KEYS:
+        session.pop(chave, None)
+
+
+def _portal_modulos() -> list[dict]:
+    """Cards do hub: todos os eventos/áreas administrativas."""
+    return [
+        {
+            "titulo": "Mídia / Galeria",
+            "desc": "Fotos, post da home e aviso.",
+            "url": url_for("admin_galeria"),
+        },
+        {
+            "titulo": "Aniversário",
+            "desc": "Publicações de aniversário.",
+            "url": url_for("aniversario_admin"),
+        },
+        {
+            "titulo": "História",
+            "desc": "Linha do tempo da igreja.",
+            "url": url_for("historia_admin"),
+        },
+        {
+            "titulo": "Papo de Altar",
+            "desc": "Vídeos e perguntas.",
+            "url": url_for("porta_altar_admin"),
+        },
+        {
+            "titulo": "Batismo",
+            "desc": "Inscrições, fotos e ônibus.",
+            "url": url_for("batismo_admin"),
+        },
+        {
+            "titulo": "Cadastro / ônibus",
+            "desc": "Escala e famílias do ônibus.",
+            "url": url_for("cadastro_onibus"),
+        },
+        {
+            "titulo": "Encontro de Casais",
+            "desc": "Inscrições e fotos.",
+            "url": url_for("casais_admin"),
+        },
+        {
+            "titulo": "Pastores / Obreiros",
+            "desc": "Escala, destaque e calendário.",
+            "url": url_for("pastores_admin"),
+        },
+        {
+            "titulo": "Arraiá / Cantina",
+            "desc": "Flyer e agenda do Arraiá.",
+            "url": url_for("arraial_admin"),
+        },
+        {
+            "titulo": "Filhos do Rei",
+            "desc": "Mocidade — posts e eventos.",
+            "url": url_for("mocidade_admin"),
+        },
+        {
+            "titulo": "Leoas da Fé",
+            "desc": "Campanha Leoas.",
+            "url": url_for("campanha_admin", slug="leoas"),
+        },
+        {
+            "titulo": "Leão de Judá",
+            "desc": "Campanha Leão de Judá.",
+            "url": url_for("campanha_admin", slug="leaodejuda"),
+        },
+        {
+            "titulo": "Dança Maranata",
+            "desc": "Campanha Maranata.",
+            "url": url_for("campanha_admin", slug="maranata"),
+        },
+        {
+            "titulo": "Soldadinhos de Cristo",
+            "desc": "Campanha infantil.",
+            "url": url_for("campanha_admin", slug="soldadinhos"),
+        },
+        {
+            "titulo": "Grupo de Louvor",
+            "desc": "Vídeos, integrantes e escala.",
+            "url": url_for("louvor_admin"),
+        },
+        {
+            "titulo": "Equipe de Som",
+            "desc": "Cabos, caixas e relatórios.",
+            "url": url_for("som_admin"),
+        },
+    ]
 
 
 def load_json(name: str) -> dict:
@@ -258,6 +386,10 @@ def inject_admin():
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
         "som_logado": bool(session.get("som_ok")),
+        "portal_logado": bool(session.get("portal_ok")),
+        "tema_site": tema_site.carregar(),
+        "tema_fonts_href": tema_site.google_fonts_href(),
+        "tema_css_vars": tema_site.css_vars(),
         "css_asset_version": _css_asset_version(),
         "carousel_js_version": _static_mtime("js/carousel.js"),
         "galeria_lightbox_js_version": _static_mtime("js/galeria-lightbox.js"),
@@ -2990,6 +3122,82 @@ def som_admin():
         status_opcoes=som.STATUS_OPCOES,
         tipos_culto=som.TIPOS_CULTO,
         severidade=som.SEVERIDADE,
+    )
+
+
+# ---------- Portal administrador CEASDREI ----------
+
+@app.route("/portal/login", methods=["GET", "POST"])
+def portal_login():
+    igreja = load_json("igreja.json")
+    erro = None
+    if request.method == "POST":
+        usuario = (request.form.get("usuario") or "").strip()
+        senha = request.form.get("senha") or ""
+        if usuario == PORTAL_USER and check_password_hash(PORTAL_PASSWORD_HASH, senha):
+            _portal_abrir_todos_paineis()
+            destino = request.args.get("next") or url_for("portal_home")
+            return redirect(destino)
+        erro = "Usuário ou senha incorretos."
+    if session.get("portal_ok"):
+        return redirect(url_for("portal_home"))
+    return render_template("portal_login.html", igreja=igreja, erro=erro)
+
+
+@app.route("/portal/logout")
+def portal_logout():
+    _portal_fechar_todos_paineis()
+    return redirect(url_for("portal_login"))
+
+
+@app.route("/portal")
+@portal_login_required
+def portal_home():
+    igreja = load_json("igreja.json")
+    return render_template(
+        "portal.html",
+        igreja=igreja,
+        modulos=_portal_modulos(),
+        aba="eventos",
+        tema=tema_site.carregar(),
+        fontes_titulo=tema_site.FONTES_TITULO,
+        fontes_texto=tema_site.FONTES_TEXTO,
+        estilos_fundo=tema_site.ESTILOS_FUNDO,
+    )
+
+
+@app.route("/portal/aparencia", methods=["GET", "POST"])
+@portal_login_required
+def portal_aparencia():
+    igreja = load_json("igreja.json")
+    if request.method == "POST":
+        acao = (request.form.get("acao") or "salvar").strip()
+        if acao == "restaurar":
+            tema_site.salvar(dict(tema_site.TEMA_DEFAULT))
+            flash("Aparência restaurada para o padrão da igreja.", "ok")
+        else:
+            tema_site.salvar(
+                {
+                    "cor_texto": request.form.get("cor_texto"),
+                    "cor_fundo": request.form.get("cor_fundo"),
+                    "cor_destaque": request.form.get("cor_destaque"),
+                    "cor_secundaria": request.form.get("cor_secundaria"),
+                    "fonte_titulo": request.form.get("fonte_titulo"),
+                    "fonte_texto": request.form.get("fonte_texto"),
+                    "estilo_fundo": request.form.get("estilo_fundo"),
+                }
+            )
+            flash("Aparência do site atualizada. Abra a página inicial para ver.", "ok")
+        return redirect(url_for("portal_aparencia"))
+    return render_template(
+        "portal.html",
+        igreja=igreja,
+        modulos=_portal_modulos(),
+        aba="aparencia",
+        tema=tema_site.carregar(),
+        fontes_titulo=tema_site.FONTES_TITULO,
+        fontes_texto=tema_site.FONTES_TEXTO,
+        estilos_fundo=tema_site.ESTILOS_FUNDO,
     )
 
 

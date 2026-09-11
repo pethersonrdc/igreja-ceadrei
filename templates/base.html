@@ -25,11 +25,12 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <link href="{{ tema_fonts_href }}" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ url_for('favicon') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ css_asset_version }}">
+  <style>{{ tema_css_vars|safe }}</style>
   {% block head %}{% endblock %}
 </head>
 <body class="pagina-animada {% block body_class %}{% endblock %}">
@@ -52,6 +53,9 @@
       <a href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
       <a href="{{ url_for('louvor_page') }}">Grupo de Louvor</a>
       <a href="{{ url_for('contato') }}">Contato</a>
+      {% if portal_logado %}
+      <a href="{{ url_for('portal_home') }}">Portal</a>
+      {% endif %}
       {% if admin_logado %}
       <a href="{{ url_for('admin_galeria') }}">Painel</a>
       <a href="{{ url_for('aniversario_admin') }}">Aniversário</a>

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Portal CEASDREI — {{ igreja.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+  <p class="eyebrow">Administração central</p>
+  <h1>Portal CEASDREI</h1>
+  <p>Gerencie todos os eventos e teste mudanças de layout do site.</p>
+  <div class="hero-actions" style="margin-top:1rem">
+    <a class="btn btn-ghost-dark" href="{{ url_for('portal_logout') }}">Sair do portal</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('home') }}" target="_blank" rel="noopener">Ver site</a>
+  </div>
+</section>
+
+<section class="section">
+  <nav class="portal-tabs" aria-label="Abas do portal">
+    <a class="portal-tab {% if aba == 'eventos' %}is-active{% endif %}" href="{{ url_for('portal_home') }}">Eventos e painéis</a>
+    <a class="portal-tab {% if aba == 'aparencia' %}is-active{% endif %}" href="{{ url_for('portal_aparencia') }}">Aparência do site</a>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="portal-flash">
+    {% for cat, msg in messages %}
+    <p class="admin-msg {% if cat == 'ok' %}admin-msg--ok{% else %}admin-msg--erro{% endif %}">{{ msg }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  {% if aba == 'eventos' %}
+  <p class="portal-lead">Com este login você já entra em todos os painéis abaixo — sem senha separada.</p>
+  <div class="portal-grid">
+    {% for m in modulos %}
+    <a class="portal-card" href="{{ m.url }}">
+      <h2>{{ m.titulo }}</h2>
+      <p>{{ m.desc }}</p>
+      <span>Abrir painel →</span>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="portal-lead">Altere cores, fontes e fundo. As mudanças valem para o site inteiro. Isto é o teste inicial — depois evoluímos para mais controles.</p>
+
+  <form class="admin-card portal-tema-form" method="post" action="{{ url_for('portal_aparencia') }}">
+    <div class="portal-tema-grid">
+      <label>
+        Cor do texto
+        <input type="color" name="cor_texto" value="{{ tema.cor_texto }}">
+      </label>
+      <label>
+        Cor de fundo
+        <input type="color" name="cor_fundo" value="{{ tema.cor_fundo }}">
+      </label>
+      <label>
+        Cor de destaque (dourado)
+        <input type="color" name="cor_destaque" value="{{ tema.cor_destaque }}">
+      </label>
+      <label>
+        Cor secundária (marinho)
+        <input type="color" name="cor_secundaria" value="{{ tema.cor_secundaria }}">
+      </label>
+      <label>
+        Fonte dos títulos
+        <select name="fonte_titulo">
+          {% for f in fontes_titulo %}
+          <option value="{{ f }}" {% if tema.fonte_titulo == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Fonte do texto
+        <select name="fonte_texto">
+          {% for f in fontes_texto %}
+          <option value="{{ f }}" {% if tema.fonte_texto == f %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="portal-tema-span">
+        Estilo do fundo
+        <select name="estilo_fundo">
+          {% for chave, rotulo in estilos_fundo.items() %}
+          <option value="{{ chave }}" {% if tema.estilo_fundo == chave %}selected{% endif %}>{{ rotulo }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+
+    <div class="portal-tema-actions">
+      <button class="btn btn-primary" type="submit" name="acao" value="salvar">Salvar aparência</button>
+      <button class="btn btn-ghost-dark" type="submit" name="acao" value="restaurar">Restaurar padrão</button>
+    </div>
+  </form>
+
+  <div class="portal-preview admin-card">
+    <p class="eyebrow">Prévia rápida</p>
+    <h2 style="font-family: '{{ tema.fonte_titulo }}', Georgia, serif; color: {{ tema.cor_texto }};">
+      {{ igreja.nome }}
+    </h2>
+    <p style="font-family: '{{ tema.fonte_texto }}', sans-serif; color: {{ tema.cor_texto }};">
+      {{ igreja.lema }}
+    </p>
+    <p>
+      <span class="portal-swatch" style="background:{{ tema.cor_destaque }}"></span>
+      <span class="portal-swatch" style="background:{{ tema.cor_secundaria }}"></span>
+      <span class="portal-swatch" style="background:{{ tema.cor_fundo }}; border:1px solid #ccc"></span>
+    </p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
