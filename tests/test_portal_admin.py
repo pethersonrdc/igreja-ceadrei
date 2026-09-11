@@ -83,6 +83,25 @@ class PortalAdminTest(unittest.TestCase):
                 img.parent.mkdir(parents=True, exist_ok=True)
                 img.write_bytes(img_bak)
 
+    def test_portal_hub_css_embutido(self) -> None:
+        css = self.client.get("/portal/assets/portal-hub.css")
+        self.assertEqual(css.status_code, 200)
+        body = css.get_data(as_text=True)
+        self.assertIn(".portal-grid", body)
+        self.assertIn(".portal-card", body)
+
+        login = self.client.post(
+            "/portal/login",
+            data={"usuario": "ceasdrei", "senha": "ceasdrei"},
+            follow_redirects=True,
+        )
+        self.assertEqual(login.status_code, 200)
+        html = login.get_data(as_text=True)
+        self.assertIn("portal-grid", html)
+        self.assertIn("portal-card", html)
+        self.assertIn(".portal-card", html)  # CSS inline no HTML
+        self.assertIn("/portal/assets/portal-hub.css", html)
+
     def test_portal_login_abre_hub_e_admins(self) -> None:
         negado = self.client.get("/portal", follow_redirects=False)
         self.assertIn(negado.status_code, (302, 301))

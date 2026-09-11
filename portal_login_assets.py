@@ -1570,18 +1570,220 @@ DCNF8zJ3iUMzuhRl2oqNowsMKnMyRUzBnwceAjMCsQ3DqJDLCWsoKjdz4LEziLPubTHmUMQY4Tb7
 PORTAL_LOGIN_FUNDO_JPG = base64.b64decode(_FUNDO_B64)
 
 
+PORTAL_HUB_CSS = r"""/* ---------- Portal CEASDREI ---------- */
+.portal-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line, #d9e0e8);
+  padding-bottom: 0.75rem;
+}
+
+.portal-tab {
+  display: inline-flex;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink, #122033);
+  background: transparent;
+  border: 1px solid var(--line, #d9e0e8);
+  font-weight: 600;
+}
+
+.portal-tab.is-active,
+.portal-tab.is-active {
+  background: var(--sea, #1a3a52);
+  color: #fff;
+  border-color: var(--sea, #1a3a52);
+}
+
+.portal-lead {
+  max-width: 42rem;
+  margin: 0 0 1.25rem;
+  color: var(--ink-soft, #5c6b7a);
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.portal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: 1rem;
+  text-decoration: none;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line, #d9e0e8);
+  box-shadow: 0 10px 30px rgba(13, 36, 54, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(13, 36, 54, 0.14);
+}
+
+.portal-card h2 {
+  margin: 0;
+  font-family: var(--font-display, "Cormorant Garamond", Georgia, serif);
+  font-size: 1.35rem;
+}
+
+.portal-card p {
+  margin: 0;
+  color: var(--ink-soft, #5c6b7a);
+  font-size: 0.95rem;
+}
+
+.portal-card span {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  color: var(--gold-deep, #b8893a);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.portal-login-card,
+.portal-tema-form,
+.portal-preview {
+  max-width: 720px;
+}
+
+.portal-tema-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.portal-tema-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.portal-tema-grid input[type="color"] {
+  width: 100%;
+  height: 2.6rem;
+  padding: 0.2rem;
+  border: 1px solid var(--line, #d9e0e8);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.portal-tema-span {
+  grid-column: 1 / -1;
+}
+
+.portal-tema-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.portal-swatch {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  margin-right: 0.4rem;
+  vertical-align: middle;
+}
+
+.portal-flash {
+  margin-bottom: 1rem;
+}
+
+/* Reforço: painel do portal (não depende de styles.css antigo na VPS) */
+.portal-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  gap: 1rem !important;
+}
+.portal-card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.35rem !important;
+  padding: 1.15rem 1.2rem !important;
+  border-radius: 1rem !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  background: #fff !important;
+  border: 1px solid #d9e0e8 !important;
+  outline: none !important;
+  box-shadow: 0 10px 30px rgba(13, 36, 54, 0.08) !important;
+}
+.portal-card h2,
+.portal-card p,
+.portal-card span {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+.portal-card h2 {
+  margin: 0 !important;
+  color: #122033 !important;
+  font-family: "Cormorant Garamond", Georgia, serif !important;
+  font-size: 1.35rem !important;
+}
+.portal-card p {
+  margin: 0 !important;
+  color: #5c6b7a !important;
+}
+.portal-card span {
+  margin-top: auto !important;
+  padding-top: 0.6rem !important;
+  color: #b8893a !important;
+  font-weight: 600 !important;
+}
+.portal-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+.portal-tab {
+  display: inline-flex !important;
+  padding: 0.55rem 1rem !important;
+  border-radius: 999px !important;
+  text-decoration: none !important;
+  color: #122033 !important;
+  background: #fff !important;
+  border: 1px solid #d9e0e8 !important;
+  font-weight: 600 !important;
+  outline: none !important;
+}
+.portal-tab.is-active,
+.portal-tab.is-active {
+  background: #1a3a52 !important;
+  color: #fff !important;
+  border-color: #1a3a52 !important;
+}
+"""
+
+
 def ensure_portal_login_files(static_folder: str | Path) -> None:
     """Grava CSS/fundo em static/ se faltarem (ajuda Nginx e deploys incompletos)."""
     root = Path(static_folder)
     css_path = root / "css" / "portal-login.css"
     img_path = root / "images" / "fundo-portal-login.jpg"
     img_alt = root / "images" / "portal" / "fundo-login.jpg"
+    hub_path = root / "css" / "portal-hub.css"
     try:
         css_path.parent.mkdir(parents=True, exist_ok=True)
         img_path.parent.mkdir(parents=True, exist_ok=True)
         img_alt.parent.mkdir(parents=True, exist_ok=True)
         if not css_path.is_file() or css_path.stat().st_size < 100:
             css_path.write_text(PORTAL_LOGIN_CSS, encoding="utf-8")
+        # Sempre regrava o hub: styles.css antigo na VPS quebra o painel.
+        hub_path.write_text(PORTAL_HUB_CSS, encoding="utf-8")
         if not img_path.is_file() or img_path.stat().st_size < 1000:
             img_path.write_bytes(PORTAL_LOGIN_FUNDO_JPG)
         if not img_alt.is_file() or img_alt.stat().st_size < 1000:

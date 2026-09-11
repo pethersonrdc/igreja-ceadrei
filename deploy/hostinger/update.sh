@@ -23,26 +23,41 @@ sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
-echo "---- assets do login (www-data + módulo embutido) ----"
+echo "---- assets do portal (www-data + módulo embutido) ----"
 mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css" "$APP_DIR/static/images/portal"
+# styles.css antigo na VPS (sem .portal-card) quebrava o painel — força do git
+sudo -u www-data git update-index --no-skip-worktree static/css/styles.css 2>/dev/null || true
+sudo -u www-data git update-index --no-assume-unchanged static/css/styles.css 2>/dev/null || true
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/styles.css > static/css/styles.css" \
+  || echo "AVISO: git show styles.css falhou"
 # Nunca correr git como root neste repo: usa www-data (evita dubious ownership).
 sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/images/fundo-portal-login.jpg > static/images/fundo-portal-login.jpg" \
   || echo "AVISO: git show fundo falhou (ok se embed existir)"
 sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/portal-login.css > static/css/portal-login.css" \
   || echo "AVISO: git show css falhou (ok se embed existir)"
-# Fonte da verdade: bytes embutidos no Python
+# Fonte da verdade: bytes embutidos no Python (login + hub)
 sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"embed OK\")'" \
   || echo "AVISO: portal_login_assets ainda não disponível neste checkout"
 chown www-data:www-data \
+  "$APP_DIR/static/css/styles.css" \
   "$APP_DIR/static/images/fundo-portal-login.jpg" \
   "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
   "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
 chmod 644 \
+  "$APP_DIR/static/css/styles.css" \
   "$APP_DIR/static/images/fundo-portal-login.jpg" \
   "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
   "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
+# Confirma que o CSS do painel está no styles.css OU no hub embutido
+if ! grep -q 'portal-grid' "$APP_DIR/static/css/styles.css" 2>/dev/null; then
+  echo "AVISO: styles.css ainda sem portal-grid — o hub embutido cobre isso."
+fi
 ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
-  "$APP_DIR/static/css/portal-login.css" || true
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
+  "$APP_DIR/static/css/styles.css" || true
 echo "Assets do portal OK."
 
 # Desliga o serviço ANTIGO (/opt/...) se ainda existir — causa clássica do 502

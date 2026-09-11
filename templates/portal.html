@@ -2,6 +2,13 @@
 
 {% block title %}Portal CEASDREI — {{ igreja.nome }}{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('portal_hub_css_asset') }}?v={{ build_id }}">
+<style>
+{{ portal_hub_css|safe }}
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="page-hero">
   <p class="eyebrow">Administração central</p>

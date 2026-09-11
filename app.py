@@ -60,7 +60,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-login-embed-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-hub-css-20260911")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 portal_login_assets.ensure_portal_login_files(app.static_folder)
@@ -3179,32 +3179,48 @@ def portal_css_asset():
     return resp
 
 
+@app.route("/portal/assets/portal-hub.css")
+def portal_hub_css_asset():
+    """CSS do painel /portal embutido (styles.css antigo na VPS quebrava os cards)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_HUB_CSS.encode("utf-8"),
+        mimetype="text/css",
+    )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
 @app.route("/portal/logout")
 def portal_logout():
     _portal_fechar_todos_paineis()
     return redirect(url_for("portal_login"))
 
 
+def _portal_template_ctx(**extra):
+    igreja = load_json("igreja.json")
+    ctx = {
+        "igreja": igreja,
+        "modulos": _portal_modulos(),
+        "tema": tema_site.carregar(),
+        "fontes_titulo": tema_site.FONTES_TITULO,
+        "fontes_texto": tema_site.FONTES_TEXTO,
+        "estilos_fundo": tema_site.ESTILOS_FUNDO,
+        "portal_hub_css": portal_login_assets.PORTAL_HUB_CSS,
+    }
+    ctx.update(extra)
+    return ctx
+
+
 @app.route("/portal")
 @portal_login_required
 def portal_home():
-    igreja = load_json("igreja.json")
-    return render_template(
-        "portal.html",
-        igreja=igreja,
-        modulos=_portal_modulos(),
-        aba="eventos",
-        tema=tema_site.carregar(),
-        fontes_titulo=tema_site.FONTES_TITULO,
-        fontes_texto=tema_site.FONTES_TEXTO,
-        estilos_fundo=tema_site.ESTILOS_FUNDO,
-    )
+    return render_template("portal.html", **_portal_template_ctx(aba="eventos"))
 
 
 @app.route("/portal/aparencia", methods=["GET", "POST"])
 @portal_login_required
 def portal_aparencia():
-    igreja = load_json("igreja.json")
     if request.method == "POST":
         acao = (request.form.get("acao") or "salvar").strip()
         if acao == "restaurar":
@@ -3224,16 +3240,7 @@ def portal_aparencia():
             )
             flash("Aparência do site atualizada. Abra a página inicial para ver.", "ok")
         return redirect(url_for("portal_aparencia"))
-    return render_template(
-        "portal.html",
-        igreja=igreja,
-        modulos=_portal_modulos(),
-        aba="aparencia",
-        tema=tema_site.carregar(),
-        fontes_titulo=tema_site.FONTES_TITULO,
-        fontes_texto=tema_site.FONTES_TEXTO,
-        estilos_fundo=tema_site.ESTILOS_FUNDO,
-    )
+    return render_template("portal.html", **_portal_template_ctx(aba="aparencia"))
 
 
 # ---------- API ----------
