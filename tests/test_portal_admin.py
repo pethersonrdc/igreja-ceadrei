@@ -38,10 +38,16 @@ class PortalAdminTest(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         html = resp.get_data(as_text=True)
         self.assertIn("tema-portal-login", html)
-        self.assertIn("images/portal/fundo-login.jpg", html)
+        self.assertIn("images/fundo-portal-login.jpg", html)
+        self.assertIn("css/portal-login.css", html)
         self.assertIn("images/emblema.png", html)
         self.assertIn("portal-login-card", html)
         self.assertIn("portal-login-ember", html)
+        fundo = self.client.get("/static/images/fundo-portal-login.jpg")
+        self.assertEqual(fundo.status_code, 200)
+        css = self.client.get("/static/css/portal-login.css")
+        self.assertEqual(css.status_code, 200)
+        self.assertIn("tema-portal-login", css.get_data(as_text=True))
 
     def test_portal_login_abre_hub_e_admins(self) -> None:
         negado = self.client.get("/portal", follow_redirects=False)

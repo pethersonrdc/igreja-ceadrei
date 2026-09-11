@@ -4,11 +4,18 @@
 
 {% block title %}Portal CEASDREI — Entrar{% endblock %}
 
+{% block head %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/portal-login.css') }}?v={{ css_asset_version }}-{{ build_id }}"
+>
+{% endblock %}
+
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--portal" aria-hidden="true">
   <img
     class="fundo-pagina-img"
-    src="{{ url_for('static', filename='images/portal/fundo-login.jpg') }}"
+    src="{{ url_for('static', filename='images/fundo-portal-login.jpg') }}"
     alt=""
     decoding="async"
     fetchpriority="high"

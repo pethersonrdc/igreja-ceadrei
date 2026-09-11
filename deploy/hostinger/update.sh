@@ -180,6 +180,14 @@ PY
   nginx -t && systemctl reload nginx
 fi
 
+echo "---- arquivos do login ----"
+ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/templates/portal_login.html" || {
+  echo "ERRO: arquivos do login do portal faltando após o git pull"
+  exit 1
+}
+
 echo "OK — site atualizado na branch $BRANCH"
 echo "Confira: https://igrejaceasdrei.com.br/_versao"
 echo "Headers: curl -sI https://igrejaceasdrei.com.br/ | grep -Ei 'strict-transport|content-security|x-frame|x-content|referrer-policy|permissions-policy'"
