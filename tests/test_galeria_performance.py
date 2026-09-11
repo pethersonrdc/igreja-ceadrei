@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import tempfile
 import unittest
 import uuid
@@ -96,7 +97,15 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         self._post_ids.append(post_id)
 
         html = self.client.get("/galeria").get_data(as_text=True)
-        self.assertNotIn('loading="lazy"', html)
+        # Imagens do grid sem lazy (abre no lightbox); footer/responsável podem ter
+        grids = re.findall(
+            r'<div class="gallery-grid"[^>]*>.*?</div>',
+            html,
+            flags=re.DOTALL,
+        )
+        self.assertTrue(grids, "grid da galeria não encontrado")
+        for grid in grids:
+            self.assertNotIn('loading="lazy"', grid)
         self.assertIn("srcset=", html)
         self.assertIn(f"{Path(nome).stem}_480.jpg", html)
         self.assertIn(f"{Path(nome).stem}_960.jpg", html)

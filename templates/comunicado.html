@@ -23,7 +23,7 @@
     {% if destaque.tem_pregador %}
     <div class="pregador-destaque">
       {% if destaque.pregador_foto %}
-      <img src="{{ url_for('static', filename='uploads/pastores/' + destaque.pregador_foto) }}" alt="{{ destaque.pregador_nome }}">
+      <img src="{{ url_for('static', filename='uploads/pastores/' + destaque.pregador_foto) }}" alt="{{ destaque.pregador_nome }}" loading="lazy" decoding="async">
       {% endif %}
       <div>
         <p class="eyebrow">Ministra a palavra</p>

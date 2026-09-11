@@ -23,6 +23,7 @@ from flask import (
     session,
     url_for,
 )
+from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -51,10 +52,28 @@ app = Flask(
     template_folder=str(BASE_DIR / "templates"),
     static_folder=str(BASE_DIR / "static"),
 )
+# Nginx → Gunicorn: respeita X-Forwarded-Proto (HTTPS / HSTS)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "onibus-familias-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "security-headers-og-20260911")
+
+# CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
+_CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "base-uri 'self'; "
+    "object-src 'none'; "
+    "frame-ancestors 'self'; "
+    "form-action 'self'; "
+    "img-src 'self' data: blob: https://images.unsplash.com; "
+    "media-src 'self' blob:; "
+    "font-src 'self' https://fonts.gstatic.com data:; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "connect-src 'self' https://cdn.jsdelivr.net; "
+    "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com"
+)
 
 # Senha do painel da mídia (troque em produção via variável de ambiente)
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "ceasdrei")
@@ -247,7 +266,43 @@ def inject_admin():
         "galeria_dimensao": gallery.dimensao_imagem,
         "galeria_url": gallery.url_static_galeria,
         "galeria_src_grid": gallery.src_galeria_grid,
+        "og_image_default": url_for(
+            "static", filename="images/emblema.png", _external=True
+        ),
     }
+
+
+@app.after_request
+def aplicar_headers_seguranca(response):
+    """Headers básicos de segurança (nota F → A nos scanners)."""
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault(
+        "Referrer-Policy", "strict-origin-when-cross-origin"
+    )
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+    )
+    response.headers.setdefault("Content-Security-Policy", _CONTENT_SECURITY_POLICY)
+    # HSTS só em HTTPS (ProxyFix + X-Forwarded-Proto no Nginx)
+    if request.is_secure:
+        response.headers.setdefault(
+            "Strict-Transport-Security",
+            "max-age=31536000; includeSubDomains",
+        )
+    return response
+
+
+@app.route("/favicon.ico")
+def favicon():
+    """Crawlers pedem /favicon.ico; usamos o emblema da igreja."""
+    return send_file(
+        Path(app.static_folder) / "images" / "emblema.png",
+        mimetype="image/png",
+        max_age=60 * 60 * 24 * 30,
+        conditional=True,
+    )
 
 
 def mensagem_do_dia() -> dict:
