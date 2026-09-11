@@ -140,6 +140,11 @@ def listar_perfis() -> list[dict]:
         reg = rows.get(pid) or {}
         upload = (reg.get("arquivo") or "").strip()
         if upload and (UPLOAD_DIR / upload).exists():
+            # Auto-repara espelho static (symlink quebrado após deploy)
+            try:
+                persistencia.espelhar_arquivo_upload("lideres", upload)
+            except OSError:
+                pass
             caminho = f"uploads/lideres/{upload}"
             custom = True
             versao = (reg.get("atualizado_em") or "").strip()

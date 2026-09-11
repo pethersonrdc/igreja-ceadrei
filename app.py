@@ -13,6 +13,7 @@ from pathlib import Path
 
 from flask import (
     Flask,
+    Response,
     flash,
     jsonify,
     redirect,
@@ -40,7 +41,9 @@ import pastores
 import persistencia
 import lideres_midia
 import porta_altar
+import portal_login_assets
 import som
+import tema_site
 
 BASE_DIR = Path(__file__).resolve().parent
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
@@ -57,7 +60,14 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "security-headers-og-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-fix-midia-20260911")
+
+# Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
+# Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
+try:
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+except Exception:
+    pass
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
@@ -129,6 +139,133 @@ CAMPANHA_SESSION_KEY = {
     "maranata": "maranata_ok",
     "soldadinhos": "soldadinhos_ok",
 }
+
+# Portal único CEASDREI — um usuário/senha abre todos os painéis
+PORTAL_USER = os.environ.get("PORTAL_USER", "ceasdrei")
+PORTAL_PASSWORD = os.environ.get("PORTAL_PASSWORD", "ceasdrei")
+PORTAL_PASSWORD_HASH = generate_password_hash(PORTAL_PASSWORD)
+PORTAL_SESSION_KEYS = (
+    "portal_ok",
+    "admin_ok",
+    "batismo_ok",
+    "casais_ok",
+    "pastores_ok",
+    "arraial_ok",
+    "mocidade_ok",
+    "leoas_ok",
+    "leaodejuda_ok",
+    "maranata_ok",
+    "soldadinhos_ok",
+    "louvor_ok",
+    "som_ok",
+)
+
+
+def portal_login_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("portal_ok"):
+            return redirect(url_for("portal_login", next=request.path))
+        return view(*args, **kwargs)
+
+    return wrapped
+
+
+def _portal_abrir_todos_paineis() -> None:
+    """Com o portal logado, libera acesso a todos os admins de eventos."""
+    for chave in PORTAL_SESSION_KEYS:
+        session[chave] = True
+
+
+def _portal_fechar_todos_paineis() -> None:
+    for chave in PORTAL_SESSION_KEYS:
+        session.pop(chave, None)
+
+
+def _portal_modulos() -> list[dict]:
+    """Cards do hub: todos os eventos/áreas administrativas."""
+    return [
+        {
+            "titulo": "Mídia / Galeria",
+            "desc": "Fotos, post da home e aviso.",
+            "url": url_for("admin_galeria"),
+        },
+        {
+            "titulo": "Aniversário",
+            "desc": "Publicações de aniversário.",
+            "url": url_for("aniversario_admin"),
+        },
+        {
+            "titulo": "História",
+            "desc": "Linha do tempo da igreja.",
+            "url": url_for("historia_admin"),
+        },
+        {
+            "titulo": "Papo de Altar",
+            "desc": "Vídeos e perguntas.",
+            "url": url_for("porta_altar_admin"),
+        },
+        {
+            "titulo": "Batismo",
+            "desc": "Inscrições, fotos e ônibus.",
+            "url": url_for("batismo_admin"),
+        },
+        {
+            "titulo": "Cadastro / ônibus",
+            "desc": "Escala e famílias do ônibus.",
+            "url": url_for("cadastro_onibus"),
+        },
+        {
+            "titulo": "Encontro de Casais",
+            "desc": "Inscrições e fotos.",
+            "url": url_for("casais_admin"),
+        },
+        {
+            "titulo": "Pastores / Obreiros",
+            "desc": "Escala, destaque e calendário.",
+            "url": url_for("pastores_admin"),
+        },
+        {
+            "titulo": "Arraiá / Cantina",
+            "desc": "Flyer e agenda do Arraiá.",
+            "url": url_for("arraial_admin"),
+        },
+        {
+            "titulo": "Filhos do Rei",
+            "desc": "Mocidade — posts e eventos.",
+            "url": url_for("mocidade_admin"),
+        },
+        {
+            "titulo": "Leoas da Fé",
+            "desc": "Campanha Leoas.",
+            "url": url_for("campanha_admin", slug="leoas"),
+        },
+        {
+            "titulo": "Leão de Judá",
+            "desc": "Campanha Leão de Judá.",
+            "url": url_for("campanha_admin", slug="leaodejuda"),
+        },
+        {
+            "titulo": "Dança Maranata",
+            "desc": "Campanha Maranata.",
+            "url": url_for("campanha_admin", slug="maranata"),
+        },
+        {
+            "titulo": "Soldadinhos de Cristo",
+            "desc": "Campanha infantil.",
+            "url": url_for("campanha_admin", slug="soldadinhos"),
+        },
+        {
+            "titulo": "Grupo de Louvor",
+            "desc": "Vídeos, integrantes e escala.",
+            "url": url_for("louvor_admin"),
+        },
+        {
+            "titulo": "Equipe de Som",
+            "desc": "Cabos, caixas e relatórios.",
+            "url": url_for("som_admin"),
+        },
+    ]
 
 
 def load_json(name: str) -> dict:
@@ -258,7 +395,12 @@ def inject_admin():
         "soldadinhos_logado": bool(session.get("soldadinhos_ok")),
         "louvor_logado": bool(session.get("louvor_ok")),
         "som_logado": bool(session.get("som_ok")),
+        "portal_logado": bool(session.get("portal_ok")),
+        "tema_site": tema_site.carregar(),
+        "tema_fonts_href": tema_site.google_fonts_href(),
+        "tema_css_vars": tema_site.css_vars(),
         "css_asset_version": _css_asset_version(),
+        "build_id": APP_BUILD,
         "carousel_js_version": _static_mtime("js/carousel.js"),
         "galeria_lightbox_js_version": _static_mtime("js/galeria-lightbox.js"),
         "galeria_srcset": gallery.srcset_galeria,
@@ -899,6 +1041,7 @@ def admin_galeria():
             extensao = Path(nome_seguro).suffix.lower()
             nome_final = f"{perfil_id}_{uuid.uuid4().hex}{extensao}"
             arquivo.save(lideres_midia.UPLOAD_DIR / nome_final)
+            persistencia.espelhar_arquivo_upload("lideres", nome_final)
             if lideres_midia.atualizar_foto(perfil_id, nome_final):
                 flash("Foto do líder atualizada.", "ok")
             else:
@@ -978,6 +1121,7 @@ def admin_galeria():
             nome_final = f"{uuid.uuid4().hex}{extensao}"
             destino = gallery.UPLOAD_DIR / nome_final
             arquivo.save(destino)
+            persistencia.espelhar_arquivo_upload("galeria", nome_final)
             # Original permanece; gera 480/960/1600 para celular nítido e leve
             gallery.gerar_variantes(nome_final)
             salvos.append(nome_final)
@@ -2991,6 +3135,128 @@ def som_admin():
         tipos_culto=som.TIPOS_CULTO,
         severidade=som.SEVERIDADE,
     )
+
+
+# ---------- Portal administrador CEASDREI ----------
+
+@app.route("/portal/login", methods=["GET", "POST"])
+def portal_login():
+    igreja = load_json("igreja.json")
+    erro = None
+    if request.method == "POST":
+        usuario = (request.form.get("usuario") or "").strip()
+        senha = request.form.get("senha") or ""
+        if usuario == PORTAL_USER and check_password_hash(PORTAL_PASSWORD_HASH, senha):
+            _portal_abrir_todos_paineis()
+            destino = request.args.get("next") or url_for("portal_home")
+            return redirect(destino)
+        erro = "Usuário ou senha incorretos."
+    if session.get("portal_ok"):
+        return redirect(url_for("portal_home"))
+    return render_template(
+        "portal_login.html",
+        igreja=igreja,
+        erro=erro,
+        portal_login_css=portal_login_assets.PORTAL_LOGIN_CSS,
+    )
+
+
+@app.route("/portal/assets/fundo.jpg")
+def portal_fundo_asset():
+    """Fundo do login embutido no app (não depende de arquivo no disco)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_LOGIN_FUNDO_JPG,
+        mimetype="image/jpeg",
+    )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
+@app.route("/portal/assets/fundo.mp4")
+def portal_fundo_video_asset():
+    """Vídeo de fundo (espada de fogo + Bíblia)."""
+    path = Path(app.static_folder) / "images" / "portal" / "fundo-espada-biblia.mp4"
+    if not path.is_file():
+        # fallback silencioso: 404 curto
+        return Response(b"", status=404, mimetype="video/mp4")
+    return send_file(path, mimetype="video/mp4", conditional=True, max_age=86400)
+
+
+@app.route("/portal/assets/portal-login.css")
+def portal_css_asset():
+    """CSS do login embutido no app (não depende de arquivo no disco)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_LOGIN_CSS.encode("utf-8"),
+        mimetype="text/css",
+    )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
+@app.route("/portal/assets/portal-hub.css")
+def portal_hub_css_asset():
+    """CSS do painel /portal embutido (styles.css antigo na VPS quebrava os cards)."""
+    portal_login_assets.ensure_portal_login_files(app.static_folder)
+    resp = Response(
+        portal_login_assets.PORTAL_HUB_CSS.encode("utf-8"),
+        mimetype="text/css",
+    )
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    return resp
+
+
+@app.route("/portal/logout")
+def portal_logout():
+    _portal_fechar_todos_paineis()
+    return redirect(url_for("portal_login"))
+
+
+def _portal_template_ctx(**extra):
+    igreja = load_json("igreja.json")
+    ctx = {
+        "igreja": igreja,
+        "modulos": _portal_modulos(),
+        "tema": tema_site.carregar(),
+        "fontes_titulo": tema_site.FONTES_TITULO,
+        "fontes_texto": tema_site.FONTES_TEXTO,
+        "estilos_fundo": tema_site.ESTILOS_FUNDO,
+        "portal_hub_css": portal_login_assets.PORTAL_HUB_CSS,
+    }
+    ctx.update(extra)
+    return ctx
+
+
+@app.route("/portal")
+@portal_login_required
+def portal_home():
+    return render_template("portal.html", **_portal_template_ctx(aba="eventos"))
+
+
+@app.route("/portal/aparencia", methods=["GET", "POST"])
+@portal_login_required
+def portal_aparencia():
+    if request.method == "POST":
+        acao = (request.form.get("acao") or "salvar").strip()
+        if acao == "restaurar":
+            tema_site.salvar(dict(tema_site.TEMA_DEFAULT))
+            flash("Aparência restaurada para o padrão da igreja.", "ok")
+        else:
+            tema_site.salvar(
+                {
+                    "cor_texto": request.form.get("cor_texto"),
+                    "cor_fundo": request.form.get("cor_fundo"),
+                    "cor_destaque": request.form.get("cor_destaque"),
+                    "cor_secundaria": request.form.get("cor_secundaria"),
+                    "fonte_titulo": request.form.get("fonte_titulo"),
+                    "fonte_texto": request.form.get("fonte_texto"),
+                    "estilo_fundo": request.form.get("estilo_fundo"),
+                }
+            )
+            flash("Aparência do site atualizada. Abra a página inicial para ver.", "ok")
+        return redirect(url_for("portal_aparencia"))
+    return render_template("portal.html", **_portal_template_ctx(aba="aparencia"))
 
 
 # ---------- API ----------

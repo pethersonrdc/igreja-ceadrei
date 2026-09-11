@@ -3,38 +3,133 @@
 # Por padrão usa a branch com headers de segurança + Open Graph.
 set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/igreja-ceadrei}"
-BRANCH="${BRANCH:-cursor/security-headers-og-d63c}"
+BRANCH="${BRANCH:-cursor/portal-admin-tema-d63c}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/igreja}"
 
 cd "$APP_DIR"
+
+# Root a correr git num repo de www-data → "dubious ownership". Corrige já.
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+sudo -u www-data git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+
+if [[ ! -x "$APP_DIR/.venv/bin/gunicorn" ]]; then
+  echo "ERRO: .venv/gunicorn não encontrado em $APP_DIR"
+  echo "Rode antes: sudo bash deploy/hostinger/setup.sh"
+  exit 1
+fi
+
 sudo -u www-data git fetch origin
 sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
+echo "---- assets do portal (www-data + módulo embutido) ----"
+mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css" "$APP_DIR/static/images/portal"
+# styles.css antigo na VPS (sem .portal-card) quebrava o painel — força do git
+sudo -u www-data git update-index --no-skip-worktree static/css/styles.css 2>/dev/null || true
+sudo -u www-data git update-index --no-assume-unchanged static/css/styles.css 2>/dev/null || true
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/styles.css > static/css/styles.css" \
+  || echo "AVISO: git show styles.css falhou"
+# Nunca correr git como root neste repo: usa www-data (evita dubious ownership).
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/images/fundo-portal-login.jpg > static/images/fundo-portal-login.jpg" \
+  || echo "AVISO: git show fundo falhou (ok se embed existir)"
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/portal-login.css > static/css/portal-login.css" \
+  || echo "AVISO: git show css falhou (ok se embed existir)"
+# Fonte da verdade: bytes embutidos no Python (login + hub)
+sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"embed OK\")'" \
+  || echo "AVISO: portal_login_assets ainda não disponível neste checkout"
+chown www-data:www-data \
+  "$APP_DIR/static/css/styles.css" \
+  "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
+  "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
+chmod 644 \
+  "$APP_DIR/static/css/styles.css" \
+  "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
+  "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
+# Confirma que o CSS do painel está no styles.css OU no hub embutido
+if ! grep -q 'portal-grid' "$APP_DIR/static/css/styles.css" 2>/dev/null; then
+  echo "AVISO: styles.css ainda sem portal-grid — o hub embutido cobre isso."
+fi
+ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/static/css/portal-hub.css" \
+  "$APP_DIR/static/css/styles.css" || true
+echo "Assets do portal OK."
+
+# Desliga o serviço ANTIGO (/opt/...) se ainda existir — causa clássica do 502
+systemctl stop igreja 2>/dev/null || true
+systemctl disable igreja 2>/dev/null || true
+if [[ -f /etc/systemd/system/igreja.service ]]; then
+  mv /etc/systemd/system/igreja.service /etc/systemd/system/igreja.service.bak 2>/dev/null || true
+  systemctl daemon-reload || true
+  echo "Serviço antigo 'igreja' desativado (conflito de porta)."
+fi
+
+# Garante unit atualizada do repositório (ainda sem derrubar o app)
+if [[ -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" ]]; then
+  cp -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" /etc/systemd/system/igreja-ceadrei.service
+  systemctl daemon-reload || true
+  systemctl enable igreja-ceadrei >/dev/null 2>&1 || true
+fi
+
+# Testa import ANTES de matar o Gunicorn (se falhar, não deixa 502)
+if ! sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from app import app'"; then
+  echo "ERRO: o app não importa após o git pull. Abortando reinício para não deixar 502."
+  exit 1
+fi
+
 # Reinício limpo (evita "Address already in use" na porta 8000)
+# IMPORTANTE: com set -e/pipefail, grep sem match NÃO pode abortar aqui
+# (senão o Gunicorn fica morto e o site fica em 502).
 systemctl stop igreja-ceadrei || true
+systemctl reset-failed igreja-ceadrei 2>/dev/null || true
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
-# Mata qualquer processo que ainda esteja na 8000
 if command -v ss >/dev/null 2>&1; then
   ss -lntp 2>/dev/null | awk '/:8000/ {print}' | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u | while read -r pid; do
     kill -9 "$pid" 2>/dev/null || true
-  done
+  done || true
 fi
 sleep 2
-systemctl start igreja-ceadrei
-sleep 2
+systemctl start igreja-ceadrei || true
+sleep 3
 # Se ainda falhar por porta ocupada, tenta mais uma vez
 if ! ss -lntp 2>/dev/null | grep -q ':8000'; then
+  echo "Porta 8000 ainda fechada — nova tentativa..."
   fuser -k 8000/tcp 2>/dev/null || true
   sleep 1
-  systemctl restart igreja-ceadrei
-  sleep 2
+  systemctl restart igreja-ceadrei || true
+  sleep 3
 fi
-systemctl --no-pager --full status igreja-ceadrei | head -25
-ss -lntp | grep 8000 || true
+
+echo "---- status igreja-ceadrei ----"
+systemctl --no-pager --full status igreja-ceadrei | head -30 || true
+echo "---- porta 8000 ----"
+ss -lntp 2>/dev/null | grep 8000 || echo "NADA na porta 8000"
+echo "---- teste local ----"
+if curl -fsS --max-time 5 http://127.0.0.1:8000/_versao; then
+  echo
+  echo "App OK em 127.0.0.1:8000"
+else
+  echo
+  echo "FALHA: app não respondeu — tentativa extra de start..."
+  journalctl -u igreja-ceadrei -n 40 --no-pager || true
+  systemctl restart igreja-ceadrei || true
+  sleep 3
+  if curl -fsS --max-time 5 http://127.0.0.1:8000/_versao; then
+    echo
+    echo "App OK após tentativa extra."
+  else
+    echo "AINDA FALHOU. Rode: sudo bash deploy/hostinger/fix-502.sh"
+    journalctl -u igreja-ceadrei -n 60 --no-pager || true
+    exit 1
+  fi
+fi
 
 # Garante sitemap/robots/favicon + headers de segurança no Nginx ativo
 if [[ -f "$NGINX_CONF" ]]; then
@@ -150,6 +245,15 @@ PY
   nginx -t && systemctl reload nginx
 fi
 
+echo "---- arquivos do login ----"
+ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css" \
+  "$APP_DIR/templates/portal_login.html"
+sudo -u www-data test -r "$APP_DIR/static/images/fundo-portal-login.jpg"
+sudo -u www-data test -r "$APP_DIR/static/css/portal-login.css"
+
 echo "OK — site atualizado na branch $BRANCH"
 echo "Confira: https://igrejaceasdrei.com.br/_versao"
+echo "Login: https://igrejaceasdrei.com.br/portal/login"
+echo "Fundo: curl -sI https://igrejaceasdrei.com.br/portal/assets/fundo.jpg | head -1"
 echo "Headers: curl -sI https://igrejaceasdrei.com.br/ | grep -Ei 'strict-transport|content-security|x-frame|x-content|referrer-policy|permissions-policy'"

@@ -13,14 +13,11 @@
   <p class="eyebrow">Memórias do culto</p>
   <h1>Galeria da semana</h1>
   <p>Fotos dos nossos encontros publicadas pela equipe de mídia.</p>
+  {% if admin_logado or portal_logado %}
   <div class="hero-actions" style="margin-top: 1.25rem;">
-    {% if admin_logado %}
     <a class="btn btn-primary" href="{{ url_for('admin_galeria') }}">Abrir painel da mídia</a>
-    <a class="btn btn-ghost-dark" href="{{ url_for('admin_logout') }}">Sair</a>
-    {% else %}
-    <a class="btn btn-primary" href="{{ url_for('admin_login') }}">Área da mídia</a>
-    {% endif %}
   </div>
+  {% endif %}
   <figure class="arraial-card-foto midia-login-foto">
     <img src="{{ url_for('static', filename='images/midia/responsavel.png') }}" alt="Responsável da mídia" loading="lazy" decoding="async">
   </figure>

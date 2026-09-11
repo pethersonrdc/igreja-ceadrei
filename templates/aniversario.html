@@ -19,13 +19,11 @@
   <p class="eyebrow">Celebração</p>
   <h1>Aniversário CEASDREI</h1>
   <p>Fotos em destaque e álbuns dos momentos especiais publicados pela equipe de mídia.</p>
+  {% if admin_logado or portal_logado %}
   <div class="hero-actions" style="margin-top: 1.25rem;">
-    {% if admin_logado %}
     <a class="btn btn-primary" href="{{ url_for('aniversario_admin') }}">Publicar aniversário</a>
-    {% else %}
-    <a class="btn btn-ghost-dark" href="{{ url_for('admin_login', next=url_for('aniversario_admin')) }}">Área da mídia</a>
-    {% endif %}
   </div>
+  {% endif %}
 </section>
 
 {% if destaque_itens %}

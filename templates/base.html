@@ -25,11 +25,12 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@400;600&display=swap" rel="stylesheet">
+  <link href="{{ tema_fonts_href }}" rel="stylesheet">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="shortcut icon" type="image/png" href="{{ url_for('favicon') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/emblema.png') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}?v={{ css_asset_version }}">
+  <style>{{ tema_css_vars|safe }}</style>
   {% block head %}{% endblock %}
 </head>
 <body class="pagina-animada {% block body_class %}{% endblock %}">
@@ -52,45 +53,49 @@
       <a href="{{ url_for('porta_altar_page') }}">Papo de Altar</a>
       <a href="{{ url_for('louvor_page') }}">Grupo de Louvor</a>
       <a href="{{ url_for('contato') }}">Contato</a>
-      {% if admin_logado %}
+      <a href="{{ url_for('portal_home') }}">Portal</a>
+      {% if portal_logado %}
+      <a class="nav-sair" href="{{ url_for('portal_logout') }}">Sair do portal</a>
+      {% endif %}
+      {% if admin_logado and not portal_logado %}
       <a href="{{ url_for('admin_galeria') }}">Painel</a>
       <a href="{{ url_for('aniversario_admin') }}">Aniversário</a>
       <a href="{{ url_for('historia_admin') }}">História</a>
       <a href="{{ url_for('porta_altar_admin') }}">Papo</a>
       <a class="nav-sair" href="{{ url_for('admin_logout') }}">Sair</a>
       {% endif %}
-      {% if batismo_logado %}
+      {% if batismo_logado and not portal_logado %}
       <a href="{{ url_for('batismo_admin') }}">Batismo</a>
       <a href="{{ url_for('cadastro_onibus') }}">Ônibus</a>
       {% endif %}
-      {% if casais_logado %}
+      {% if casais_logado and not portal_logado %}
       <a href="{{ url_for('casais_admin') }}">Casais</a>
       {% endif %}
-      {% if pastores_logado %}
+      {% if pastores_logado and not portal_logado %}
       <a href="{{ url_for('pastores_admin') }}">Pastores</a>
       {% endif %}
-      {% if arraial_logado %}
+      {% if arraial_logado and not portal_logado %}
       <a href="{{ url_for('arraial_admin') }}">Arraiá</a>
       {% endif %}
-      {% if mocidade_logado %}
+      {% if mocidade_logado and not portal_logado %}
       <a href="{{ url_for('mocidade_admin') }}">Filhos do Rei</a>
       {% endif %}
-      {% if leoas_logado %}
+      {% if leoas_logado and not portal_logado %}
       <a href="{{ url_for('campanha_admin', slug='leoas') }}">Leoas</a>
       {% endif %}
-      {% if leaodejuda_logado %}
+      {% if leaodejuda_logado and not portal_logado %}
       <a href="{{ url_for('campanha_admin', slug='leaodejuda') }}">Leão</a>
       {% endif %}
-      {% if maranata_logado %}
+      {% if maranata_logado and not portal_logado %}
       <a href="{{ url_for('campanha_admin', slug='maranata') }}">Maranata</a>
       {% endif %}
-      {% if soldadinhos_logado %}
+      {% if soldadinhos_logado and not portal_logado %}
       <a href="{{ url_for('campanha_admin', slug='soldadinhos') }}">Soldadinhos de Cristo</a>
       {% endif %}
-      {% if louvor_logado %}
+      {% if louvor_logado and not portal_logado %}
       <a href="{{ url_for('louvor_admin') }}">Louvor</a>
       {% endif %}
-      {% if som_logado %}
+      {% if som_logado and not portal_logado %}
       <a href="{{ url_for('som_admin') }}">Som</a>
       {% endif %}
     </nav>

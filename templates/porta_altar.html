@@ -19,13 +19,9 @@
   <p class="eyebrow">Papo de Altar</p>
   <h1>Papo de Altar e momentos do culto</h1>
   <p>Vídeos liberados após o culto, conversas do Papo de Altar e respostas às perguntas da comunidade.</p>
-  {% if admin_logado %}
+  {% if admin_logado or portal_logado %}
   <p class="section-link">
     <a href="{{ url_for('porta_altar_admin') }}">Abrir painel do Papo de Altar</a>
-  </p>
-  {% else %}
-  <p class="section-link">
-    <a href="{{ url_for('admin_login', next=url_for('porta_altar_admin')) }}">Acesso da mídia</a>
   </p>
   {% endif %}
 </section>
