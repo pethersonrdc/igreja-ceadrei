@@ -8,6 +8,10 @@ NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/igreja}"
 
 cd "$APP_DIR"
 
+# Root a correr git num repo de www-data → "dubious ownership". Corrige já.
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+sudo -u www-data git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+
 if [[ ! -x "$APP_DIR/.venv/bin/gunicorn" ]]; then
   echo "ERRO: .venv/gunicorn não encontrado em $APP_DIR"
   echo "Rode antes: sudo bash deploy/hostinger/setup.sh"
@@ -19,16 +23,16 @@ sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
-echo "---- extrai assets do login (direto do git + módulo embutido) ----"
+echo "---- assets do login (www-data + módulo embutido) ----"
 mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css" "$APP_DIR/static/images/portal"
-# Força gravar do objeto git (mesmo se o working tree estiver estranho)
-# O redirect roda como root; depois ajustamos dono.
-git show "HEAD:static/images/fundo-portal-login.jpg" \
-  > "$APP_DIR/static/images/fundo-portal-login.jpg" || true
-git show "HEAD:static/css/portal-login.css" \
-  > "$APP_DIR/static/css/portal-login.css" || true
-# Fonte da verdade: bytes embutidos no Python (não depende de LFS/checkout incompleto)
-sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"embed OK\")'"
+# Nunca correr git como root neste repo: usa www-data (evita dubious ownership).
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/images/fundo-portal-login.jpg > static/images/fundo-portal-login.jpg" \
+  || echo "AVISO: git show fundo falhou (ok se embed existir)"
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/portal-login.css > static/css/portal-login.css" \
+  || echo "AVISO: git show css falhou (ok se embed existir)"
+# Fonte da verdade: bytes embutidos no Python
+sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"embed OK\")'" \
+  || echo "AVISO: portal_login_assets ainda não disponível neste checkout"
 chown www-data:www-data \
   "$APP_DIR/static/images/fundo-portal-login.jpg" \
   "$APP_DIR/static/css/portal-login.css" \
@@ -38,7 +42,7 @@ chmod 644 \
   "$APP_DIR/static/css/portal-login.css" \
   "$APP_DIR/static/images/portal/fundo-login.jpg" 2>/dev/null || true
 ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
-  "$APP_DIR/static/css/portal-login.css"
+  "$APP_DIR/static/css/portal-login.css" || true
 echo "Assets do portal OK."
 
 # Desliga o serviço ANTIGO (/opt/...) se ainda existir — causa clássica do 502

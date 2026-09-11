@@ -39,10 +39,11 @@ fi
 echo
 echo "==== 3b) Garante assets do login (embutidos + disco) ===="
 cd "$APP_DIR"
+git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 mkdir -p static/images static/css static/images/portal
-git fetch origin 2>/dev/null || true
-git show "HEAD:static/images/fundo-portal-login.jpg" > static/images/fundo-portal-login.jpg 2>/dev/null || true
-git show "HEAD:static/css/portal-login.css" > static/css/portal-login.css 2>/dev/null || true
+sudo -u www-data git fetch origin 2>/dev/null || true
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/images/fundo-portal-login.jpg > static/images/fundo-portal-login.jpg" 2>/dev/null || true
+sudo -u www-data bash -lc "cd '$APP_DIR' && git show HEAD:static/css/portal-login.css > static/css/portal-login.css" 2>/dev/null || true
 # Se o código novo já estiver no disco, grava a partir do módulo embutido
 sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"assets OK\")'" \
   || echo "AVISO: ensure_portal_login_files ainda não disponível (faça update.sh depois)"
