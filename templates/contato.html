@@ -40,18 +40,11 @@
 
     <section class="section midia-access">
       <article class="contact-card midia-card">
-        <h2>Área da mídia</h2>
-        <p>Acesso da equipe para publicar fotos dos cultos na galeria.</p>
-        {% if admin_logado %}
+        <h2>Administração</h2>
+        <p>O acesso dos líderes e da equipe fica no Portal CEASDREI.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="{{ url_for('admin_galeria') }}">Abrir painel</a>
-          <a class="btn btn-ghost" href="{{ url_for('admin_logout') }}">Sair</a>
+          <a class="btn btn-primary" href="{{ url_for('portal_home') }}">Abrir Portal</a>
         </div>
-        {% else %}
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="{{ url_for('admin_login') }}">Entrar no painel</a>
-        </div>
-        {% endif %}
       </article>
     </section>
   </div>

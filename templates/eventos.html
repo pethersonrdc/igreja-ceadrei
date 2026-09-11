@@ -15,7 +15,6 @@
       <h2>Evento Batismo</h2>
       <p>Departamento da Evangelista Sueli — inscrição das famílias e fotos do batismo.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary" href="{{ url_for('batismo_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo</a>
       </div>
       <figure class="arraial-card-foto">
@@ -28,7 +27,6 @@
       <h2>Encontro de Casais</h2>
       <p>Departamento do Diac. Robson e Diac. Luana — inscrição e página do encontro.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-casais" href="{{ url_for('casais_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('casais_page') }}">Página do encontro</a>
       </div>
       <figure class="arraial-card-foto casais-card-foto">
@@ -41,7 +39,6 @@
       <h2>Pastores / Obreiros</h2>
       <p>Escala da porta, destaque do culto, campanha e calendário dos líderes.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-pastores" href="{{ url_for('pastores_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('comunicado_obreiros') }}">Comunicado dos obreiros</a>
       </div>
       <figure class="arraial-card-foto">
@@ -54,7 +51,6 @@
       <h2>Arraiá Gospel / Cantina</h2>
       <p>Departamento da Diac. Cássia — cantina e página do Arraiá.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('arraial_page') }}">Página do Arraiá</a>
       </div>
       <figure class="arraial-card-foto">
@@ -67,7 +63,6 @@
       <h2>Líderes dos Filhos do Rei</h2>
       <p>Departamento do Diác. Natan e Diác. Ana Beatriz — Filhos do Rei.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-mocidade" href="{{ url_for('mocidade_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('mocidade_page') }}">Página dos Filhos do Rei</a>
       </div>
       <figure class="arraial-card-foto">
@@ -80,7 +75,6 @@
       <h2>Evento Leoas da Fé</h2>
       <p>Campanha do culto — aniversário ou culto normal — e calendário.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-leoas" href="{{ url_for('campanha_login', slug='leoas') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leoas') }}">Página Leoas da Fé</a>
       </div>
       <figure class="arraial-card-foto">
@@ -93,7 +87,6 @@
       <h2>Evento Leão de Judá</h2>
       <p>Campanha do culto — aniversário ou culto normal — e calendário.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-leaodejuda" href="{{ url_for('campanha_login', slug='leaodejuda') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='leaodejuda') }}">Página Leão de Judá</a>
       </div>
       <figure class="arraial-card-foto">
@@ -106,7 +99,6 @@
       <h2>Dança Maranata</h2>
       <p>Ministério de dança — campanha e calendário dos líderes.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-maranata" href="{{ url_for('campanha_login', slug='maranata') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='maranata') }}">Página Dança Maranata</a>
       </div>
       <figure class="arraial-card-foto">
@@ -119,7 +111,6 @@
       <h2>Soldadinhos de Cristo</h2>
       <p>Ministério infantil — campanha e calendário das crianças.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-soldadinhos" href="{{ url_for('campanha_login', slug='soldadinhos') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('campanha_page', slug='soldadinhos') }}">Página Soldadinhos de Cristo</a>
       </div>
       <figure class="arraial-card-foto">
@@ -132,7 +123,6 @@
       <h2>Grupo de Louvor</h2>
       <p>Vídeos de adoração e fotos dos integrantes do ministério.</p>
       <div class="hero-actions">
-        <a class="btn btn-primary btn-louvor" href="{{ url_for('louvor_login') }}">Acesso dos Lideres</a>
         <a class="btn btn-ghost-dark" href="{{ url_for('louvor_page') }}">Página do Louvor</a>
       </div>
       <figure class="arraial-card-foto">
@@ -144,10 +134,6 @@
     <article class="admin-card batismo-access-card som-access-card">
       <h2>Equipe de Som</h2>
       <p>Console técnico — cabos, caixas, Ui24R, palco e relatórios por culto.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary btn-som" href="{{ url_for('som_login') }}">Acesso da equipe</a>
-        <a class="btn btn-ghost-dark" href="{{ url_for('som_login') }}">Mesa de Som</a>
-      </div>
       <figure class="arraial-card-foto">
         <img src="{{ url_for('static', filename=fotos_lideres.som) }}" alt="Equipe de Som / Mesa de Som" loading="lazy" decoding="async">
         <figcaption>Mesa de Som</figcaption>
