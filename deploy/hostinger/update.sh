@@ -12,14 +12,29 @@ sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
-# Reinício limpo (evita Gunicorn antigo na porta 8000)
+# Reinício limpo (evita "Address already in use" na porta 8000)
 systemctl stop igreja-ceadrei || true
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
-sleep 1
+fuser -k 8000/tcp 2>/dev/null || true
+# Mata qualquer processo que ainda esteja na 8000
+if command -v ss >/dev/null 2>&1; then
+  ss -lntp 2>/dev/null | awk '/:8000/ {print}' | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u | while read -r pid; do
+    kill -9 "$pid" 2>/dev/null || true
+  done
+fi
+sleep 2
 systemctl start igreja-ceadrei
 sleep 2
-systemctl --no-pager --full status igreja-ceadrei | head -20
+# Se ainda falhar por porta ocupada, tenta mais uma vez
+if ! ss -lntp 2>/dev/null | grep -q ':8000'; then
+  fuser -k 8000/tcp 2>/dev/null || true
+  sleep 1
+  systemctl restart igreja-ceadrei
+  sleep 2
+fi
+systemctl --no-pager --full status igreja-ceadrei | head -25
+ss -lntp | grep 8000 || true
 
 # Garante sitemap/robots/favicon + headers de segurança no Nginx ativo
 if [[ -f "$NGINX_CONF" ]]; then
