@@ -3172,8 +3172,8 @@ def portal_css_asset():
     """CSS do login embutido no app (não depende de arquivo no disco)."""
     portal_login_assets.ensure_portal_login_files(app.static_folder)
     resp = Response(
-        portal_login_assets.PORTAL_LOGIN_CSS,
-        mimetype="text/css; charset=utf-8",
+        portal_login_assets.PORTAL_LOGIN_CSS.encode("utf-8"),
+        mimetype="text/css",
     )
     resp.headers["Cache-Control"] = "public, max-age=86400"
     return resp
