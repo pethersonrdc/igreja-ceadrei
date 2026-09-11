@@ -37,6 +37,16 @@ else
 fi
 
 echo
+echo "==== 3b) Garante assets do login ===="
+cd "$APP_DIR"
+mkdir -p static/images static/css
+git fetch origin 2>/dev/null || true
+git show "HEAD:static/images/fundo-portal-login.jpg" > static/images/fundo-portal-login.jpg || true
+git show "HEAD:static/css/portal-login.css" > static/css/portal-login.css || true
+chown www-data:www-data static/images/fundo-portal-login.jpg static/css/portal-login.css 2>/dev/null || true
+ls -lh static/images/fundo-portal-login.jpg static/css/portal-login.css || true
+
+echo
 echo "==== 4) Limpa porta e sobe Gunicorn ===="
 systemctl stop igreja-ceadrei 2>/dev/null || true
 systemctl reset-failed igreja-ceadrei 2>/dev/null || true

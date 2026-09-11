@@ -19,6 +19,24 @@ sudo -u www-data git checkout "$BRANCH"
 sudo -u www-data git reset --hard "origin/$BRANCH"
 sudo -u www-data .venv/bin/pip install -r requirements.txt
 
+echo "---- extrai assets do login (direto do git) ----"
+mkdir -p "$APP_DIR/static/images" "$APP_DIR/static/css"
+# Força gravar do objeto git (mesmo se o working tree estiver estranho)
+# O redirect roda como root; depois ajustamos dono.
+git show "HEAD:static/images/fundo-portal-login.jpg" \
+  > "$APP_DIR/static/images/fundo-portal-login.jpg"
+git show "HEAD:static/css/portal-login.css" \
+  > "$APP_DIR/static/css/portal-login.css"
+chown www-data:www-data \
+  "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css"
+chmod 644 \
+  "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css"
+ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
+  "$APP_DIR/static/css/portal-login.css"
+echo "Assets do portal OK."
+
 # Desliga o serviço ANTIGO (/opt/...) se ainda existir — causa clássica do 502
 systemctl stop igreja 2>/dev/null || true
 systemctl disable igreja 2>/dev/null || true
@@ -28,21 +46,22 @@ if [[ -f /etc/systemd/system/igreja.service ]]; then
   echo "Serviço antigo 'igreja' desativado (conflito de porta)."
 fi
 
-# Reinício limpo (evita "Address already in use" na porta 8000)
-systemctl stop igreja-ceadrei || true
-systemctl reset-failed igreja-ceadrei 2>/dev/null || true
-# Garante unit atualizada do repositório
+# Garante unit atualizada do repositório (ainda sem derrubar o app)
 if [[ -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" ]]; then
   cp -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" /etc/systemd/system/igreja-ceadrei.service
   systemctl daemon-reload || true
   systemctl enable igreja-ceadrei >/dev/null 2>&1 || true
 fi
-# Testa import antes de matar o processo antigo (se falhar, não derruba o site)
+
+# Testa import ANTES de matar o Gunicorn (se falhar, não deixa 502)
 if ! sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from app import app'"; then
   echo "ERRO: o app não importa após o git pull. Abortando reinício para não deixar 502."
-  echo "Logs de import acima. Corrija e rode de novo."
   exit 1
 fi
+
+# Reinício limpo (evita "Address already in use" na porta 8000)
+systemctl stop igreja-ceadrei || true
+systemctl reset-failed igreja-ceadrei 2>/dev/null || true
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
@@ -196,11 +215,12 @@ fi
 echo "---- arquivos do login ----"
 ls -lh "$APP_DIR/static/images/fundo-portal-login.jpg" \
   "$APP_DIR/static/css/portal-login.css" \
-  "$APP_DIR/templates/portal_login.html" || {
-  echo "ERRO: arquivos do login do portal faltando após o git pull"
-  exit 1
-}
+  "$APP_DIR/templates/portal_login.html"
+sudo -u www-data test -r "$APP_DIR/static/images/fundo-portal-login.jpg"
+sudo -u www-data test -r "$APP_DIR/static/css/portal-login.css"
 
 echo "OK — site atualizado na branch $BRANCH"
 echo "Confira: https://igrejaceasdrei.com.br/_versao"
+echo "Login: https://igrejaceasdrei.com.br/portal/login"
+echo "Fundo: curl -sI https://igrejaceasdrei.com.br/portal/assets/fundo.jpg | head -1"
 echo "Headers: curl -sI https://igrejaceasdrei.com.br/ | grep -Ei 'strict-transport|content-security|x-frame|x-content|referrer-policy|permissions-policy'"

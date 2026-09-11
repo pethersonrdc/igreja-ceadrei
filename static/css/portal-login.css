@@ -36,7 +36,7 @@ body.tema-portal-login .footer-copy {
 
 body.tema-portal-login .fundo-pagina.fundo-pagina--portal {
   background-color: #0a0604;
-  background-image: url("../images/fundo-portal-login.jpg");
+  background-image: url("/portal/assets/fundo.jpg");
   background-size: cover;
   background-position: center 28%;
   background-repeat: no-repeat;

@@ -58,7 +58,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-login-fix-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "portal-login-assets-20260911")
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
@@ -3143,6 +3143,26 @@ def portal_login():
     if session.get("portal_ok"):
         return redirect(url_for("portal_home"))
     return render_template("portal_login.html", igreja=igreja, erro=erro)
+
+
+@app.route("/portal/assets/fundo.jpg")
+def portal_fundo_asset():
+    """Serve o fundo do login via Flask (evita 404 do Nginx/static incompleto)."""
+    return send_from_directory(
+        Path(app.static_folder) / "images",
+        "fundo-portal-login.jpg",
+        max_age=86400,
+    )
+
+
+@app.route("/portal/assets/portal-login.css")
+def portal_css_asset():
+    """Serve o CSS do login via Flask (fallback se /static/css falhar)."""
+    return send_from_directory(
+        Path(app.static_folder) / "css",
+        "portal-login.css",
+        max_age=86400,
+    )
 
 
 @app.route("/portal/logout")
