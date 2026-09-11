@@ -285,14 +285,14 @@ body.tema-portal-login.no-video-bg .fundo-pagina--portal .fundo-pagina-video {
   width: min(100%, 400px);
   padding: 1.75rem 1.5rem 1.6rem;
   border-radius: 22px;
-  background: rgba(10, 6, 4, 0.38);
+  background: rgba(10, 6, 4, 0.18);
   border: 1px solid rgba(232, 197, 106, 0.42);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 24px 60px rgba(0, 0, 0, 0.45),
     0 0 40px rgba(255, 120, 20, 0.12);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: #f0d78c;
   animation: portal-card-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
