@@ -3,7 +3,7 @@
 # Por padrão usa a branch com headers de segurança + Open Graph.
 set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/igreja-ceadrei}"
-BRANCH="${BRANCH:-cursor/security-headers-og-d63c}"
+BRANCH="${BRANCH:-cursor/portal-admin-tema-d63c}"
 NGINX_CONF="${NGINX_CONF:-/etc/nginx/sites-available/igreja}"
 
 cd "$APP_DIR"
@@ -95,7 +95,7 @@ security_lines = [
     (
         'add_header Content-Security-Policy "default-src \'self\'; base-uri \'self\'; '
         "object-src 'none'; frame-ancestors 'self'; form-action 'self'; "
-        "img-src 'self' data: blob: https://images.unsplash.com; media-src 'self' blob:; "
+        "img-src 'self' data: blob:; media-src 'self' blob:; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
         "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
