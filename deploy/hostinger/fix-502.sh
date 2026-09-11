@@ -66,15 +66,21 @@ systemctl reset-failed igreja-ceadrei 2>/dev/null || true
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
+# Nunca deixar grep/pipefail abortar com a porta já livre
+if command -v ss >/dev/null 2>&1; then
+  ss -lntp 2>/dev/null | awk '/:8000/ {print}' | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u | while read -r pid; do
+    kill -9 "$pid" 2>/dev/null || true
+  done || true
+fi
 sleep 2
-systemctl start igreja-ceadrei
+systemctl start igreja-ceadrei || true
 sleep 3
 
-if ! ss -lntp | grep -q ':8000'; then
+if ! ss -lntp 2>/dev/null | grep -q ':8000'; then
   echo "Porta 8000 ainda fechada — restart..."
   fuser -k 8000/tcp 2>/dev/null || true
   sleep 1
-  systemctl restart igreja-ceadrei
+  systemctl restart igreja-ceadrei || true
   sleep 3
 fi
 

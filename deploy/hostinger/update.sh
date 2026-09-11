@@ -83,6 +83,8 @@ if ! sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from app i
 fi
 
 # Reinício limpo (evita "Address already in use" na porta 8000)
+# IMPORTANTE: com set -e/pipefail, grep sem match NÃO pode abortar aqui
+# (senão o Gunicorn fica morto e o site fica em 502).
 systemctl stop igreja-ceadrei || true
 systemctl reset-failed igreja-ceadrei 2>/dev/null || true
 killall -9 gunicorn 2>/dev/null || true
@@ -91,34 +93,42 @@ fuser -k 8000/tcp 2>/dev/null || true
 if command -v ss >/dev/null 2>&1; then
   ss -lntp 2>/dev/null | awk '/:8000/ {print}' | grep -oE 'pid=[0-9]+' | cut -d= -f2 | sort -u | while read -r pid; do
     kill -9 "$pid" 2>/dev/null || true
-  done
+  done || true
 fi
 sleep 2
-systemctl start igreja-ceadrei
+systemctl start igreja-ceadrei || true
 sleep 3
 # Se ainda falhar por porta ocupada, tenta mais uma vez
 if ! ss -lntp 2>/dev/null | grep -q ':8000'; then
   echo "Porta 8000 ainda fechada — nova tentativa..."
   fuser -k 8000/tcp 2>/dev/null || true
   sleep 1
-  systemctl restart igreja-ceadrei
+  systemctl restart igreja-ceadrei || true
   sleep 3
 fi
 
 echo "---- status igreja-ceadrei ----"
 systemctl --no-pager --full status igreja-ceadrei | head -30 || true
 echo "---- porta 8000 ----"
-ss -lntp | grep 8000 || echo "NADA na porta 8000"
+ss -lntp 2>/dev/null | grep 8000 || echo "NADA na porta 8000"
 echo "---- teste local ----"
 if curl -fsS --max-time 5 http://127.0.0.1:8000/_versao; then
   echo
   echo "App OK em 127.0.0.1:8000"
 else
   echo
-  echo "FALHA: app não respondeu em 127.0.0.1:8000"
-  echo "---- últimos logs ----"
+  echo "FALHA: app não respondeu — tentativa extra de start..."
   journalctl -u igreja-ceadrei -n 40 --no-pager || true
-  exit 1
+  systemctl restart igreja-ceadrei || true
+  sleep 3
+  if curl -fsS --max-time 5 http://127.0.0.1:8000/_versao; then
+    echo
+    echo "App OK após tentativa extra."
+  else
+    echo "AINDA FALHOU. Rode: sudo bash deploy/hostinger/fix-502.sh"
+    journalctl -u igreja-ceadrei -n 60 --no-pager || true
+    exit 1
+  fi
 fi
 
 # Garante sitemap/robots/favicon + headers de segurança no Nginx ativo
