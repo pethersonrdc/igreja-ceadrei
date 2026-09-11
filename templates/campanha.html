@@ -10,7 +10,7 @@
     class="fundo-pagina-img"
     src="{{ url_for('static', filename=info.fundo) }}"
     alt=""
-  >
+   loading="lazy" decoding="async">
 </div>
 {% endblock %}
 
@@ -36,7 +36,7 @@
     {% include 'includes/video_lazy.html' %}
     {% endwith %}
     {% else %}
-    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}" alt="{{ info.titulo }}">
+    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.imagem) }}" alt="{{ info.titulo }}" loading="lazy" decoding="async">
     {% endif %}
     {% endif %}
     {% if destaque_publico.mensagem %}
@@ -45,7 +45,7 @@
     {% if destaque_publico.tem_preleitor %}
     <div class="preleitor-destaque">
       {% if destaque_publico.preleitor_foto %}
-      <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.preleitor_foto) }}" alt="{{ destaque_publico.preleitor_nome or 'Preleitor' }}">
+      <img src="{{ url_for('static', filename='uploads/' + slug + '/' + destaque_publico.preleitor_foto) }}" alt="{{ destaque_publico.preleitor_nome or 'Preleitor' }}" loading="lazy" decoding="async">
       {% endif %}
       <div>
         <span class="preleitor-label">Preleitor</span>
@@ -66,7 +66,7 @@
     <h2>{{ post_ativo.titulo }}</h2>
     <p>{{ post_ativo.texto }}</p>
     {% if post_ativo.foto %}
-    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}">
+    <img src="{{ url_for('static', filename='uploads/' + slug + '/' + post_ativo.foto) }}" alt="{{ post_ativo.titulo }}" loading="lazy" decoding="async">
     {% endif %}
   </article>
 </section>

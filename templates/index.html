@@ -69,7 +69,7 @@
       {% include 'includes/video_lazy.html' %}
       {% endwith %}
       {% else %}
-      <img src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="{{ post_home.titulo or 'Post da igreja' }}">
+      <img src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="{{ post_home.titulo or 'Post da igreja' }}" loading="lazy" decoding="async">
       {% endif %}
     </div>
     {% endif %}
@@ -107,7 +107,7 @@
     {% for video in videos_pos_culto %}
     <article class="porta-altar-card home-pos-culto-card">
       {% if video.capa %}
-      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}">
+      <img class="porta-altar-capa" src="{{ url_for('static', filename='uploads/porta_altar/' + video.capa) }}" alt="{{ video.titulo }}" loading="lazy" decoding="async">
       {% endif %}
       <div class="porta-altar-card-body">
         <p class="eyebrow">{{ video.culto_titulo or 'Culto' }}</p>
@@ -159,6 +159,8 @@
       <img
         src="{{ url_for('static', filename='uploads/' + item.slug + '/' + item.imagem) }}"
         alt="{{ item.titulo }}"
+        loading="lazy"
+        decoding="async"
       >
       {% endif %}
       {% endif %}
@@ -168,7 +170,7 @@
       {% if item.tem_preleitor %}
       <div class="preleitor-destaque">
         {% if item.preleitor_foto %}
-        <img src="{{ url_for('static', filename='uploads/' + item.slug + '/' + item.preleitor_foto) }}" alt="{{ item.preleitor_nome or 'Preleitor' }}">
+        <img src="{{ url_for('static', filename='uploads/' + item.slug + '/' + item.preleitor_foto) }}" alt="{{ item.preleitor_nome or 'Preleitor' }}" loading="lazy" decoding="async">
         {% endif %}
         <div>
           <span class="preleitor-label">Preleitor</span>
@@ -277,7 +279,7 @@
   {% if destaque_culto and destaque_culto.tem_pregador %}
   <article class="pregador-destaque pregador-destaque--home">
     {% if destaque_culto.pregador_foto %}
-    <img src="{{ url_for('static', filename='uploads/pastores/' + destaque_culto.pregador_foto) }}" alt="{{ destaque_culto.pregador_nome }}">
+    <img src="{{ url_for('static', filename='uploads/pastores/' + destaque_culto.pregador_foto) }}" alt="{{ destaque_culto.pregador_nome }}" loading="lazy" decoding="async">
     {% endif %}
     <div>
       <p class="eyebrow">Ministra a palavra</p>
@@ -335,7 +337,7 @@
 
 <section class="section home-casal">
   <figure class="home-casal-foto">
-    <img src="{{ url_for('static', filename='images/pastores-casal.png') }}" alt="Casal da liderança CEASDREI">
+    <img src="{{ url_for('static', filename='images/pastores-casal.png') }}" alt="Casal da liderança CEASDREI" loading="lazy" decoding="async">
   </figure>
   <div>
     <p class="eyebrow">Nossa liderança</p>
@@ -402,7 +404,7 @@
       <a class="btn btn-primary btn-arraial" href="{{ url_for('arraial_page') }}">Ver página do Arraiá</a>
     </div>
     <figure class="arraial-home-flyer">
-      <img src="{{ url_for('static', filename=arraial.flyer) }}" alt="Convite Arraiá Gospel">
+      <img src="{{ url_for('static', filename=arraial.flyer) }}" alt="Convite Arraiá Gospel" loading="lazy" decoding="async">
     </figure>
   </article>
 </section>

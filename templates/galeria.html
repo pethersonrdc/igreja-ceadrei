@@ -22,7 +22,7 @@
     {% endif %}
   </div>
   <figure class="arraial-card-foto midia-login-foto">
-    <img src="{{ url_for('static', filename='images/midia/responsavel.png') }}" alt="Responsável da mídia">
+    <img src="{{ url_for('static', filename='images/midia/responsavel.png') }}" alt="Responsável da mídia" loading="lazy" decoding="async">
   </figure>
 </section>
 
@@ -52,6 +52,7 @@
               alt="{{ post.titulo }}"
               width="{{ dim[0] }}"
               height="{{ dim[1] }}"
+              decoding="async"
             >
           </a>
         </figure>
