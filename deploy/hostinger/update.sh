@@ -30,6 +30,19 @@ fi
 
 # Reinício limpo (evita "Address already in use" na porta 8000)
 systemctl stop igreja-ceadrei || true
+systemctl reset-failed igreja-ceadrei 2>/dev/null || true
+# Garante unit atualizada do repositório
+if [[ -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" ]]; then
+  cp -f "$APP_DIR/deploy/hostinger/igreja-ceadrei.service" /etc/systemd/system/igreja-ceadrei.service
+  systemctl daemon-reload || true
+  systemctl enable igreja-ceadrei >/dev/null 2>&1 || true
+fi
+# Testa import antes de matar o processo antigo (se falhar, não derruba o site)
+if ! sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from app import app'"; then
+  echo "ERRO: o app não importa após o git pull. Abortando reinício para não deixar 502."
+  echo "Logs de import acima. Corrija e rode de novo."
+  exit 1
+fi
 killall -9 gunicorn 2>/dev/null || true
 pkill -9 -f 'gunicorn.*app:app' 2>/dev/null || true
 fuser -k 8000/tcp 2>/dev/null || true
