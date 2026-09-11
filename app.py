@@ -58,7 +58,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "portal-admin-tema-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "fix-imagens-20260911")
 
 # CSP alinhada ao Nginx (fonts, Unsplash, PhotoSwipe/Chart.js, YouTube/Vimeo)
 _CONTENT_SECURITY_POLICY = (
@@ -67,7 +67,7 @@ _CONTENT_SECURITY_POLICY = (
     "object-src 'none'; "
     "frame-ancestors 'self'; "
     "form-action 'self'; "
-    "img-src 'self' data: blob: https://images.unsplash.com; "
+    "img-src 'self' data: blob:; "
     "media-src 'self' blob:; "
     "font-src 'self' https://fonts.gstatic.com data:; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "

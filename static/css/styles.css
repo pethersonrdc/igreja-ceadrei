@@ -3821,15 +3821,20 @@ body.pagina-fundo {
   display: none;
 }
 
-/* Leoas / Leão / Cultos — imagem inteira (menos zoom) */
-.fundo-pagina.fundo-pagina--arte[style*="--fundo-img"],
-.fundo-pagina--arte {
+/* Leoas / Leão / Cultos — imagem inteira (menos zoom) via CSS var */
+.fundo-pagina.fundo-pagina--arte[style*="--fundo-img"] {
   background-image:
     linear-gradient(180deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.08) 42%, rgba(0, 0, 0, 0.35) 100%),
     var(--fundo-img);
   background-size: auto, contain;
   background-position: center, center;
   background-repeat: no-repeat;
+  background-color: #050505;
+}
+
+/* Páginas com <img class="fundo-pagina-img">: não usar var(--fundo-img) inválida */
+.fundo-pagina--arte:not([style*="--fundo-img"]) {
+  background-image: none;
   background-color: #050505;
 }
 
