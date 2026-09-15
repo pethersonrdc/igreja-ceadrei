@@ -31,6 +31,16 @@
     ·
     <a href="{{ url_for('admin_logout') }}">Sair</a>
   </p>
+
+  <nav class="admin-galeria-nav-wrap" aria-label="Atalhos do painel">
+    <ul class="admin-galeria-nav">
+      <li><a href="#nova-postagem">Publicar</a></li>
+      <li><a href="#postagens">Postagens</a></li>
+      <li><a href="#aviso-home">Aviso</a></li>
+      <li><a href="#post-home">Post início</a></li>
+      <li><a href="#lideres">Fotos líderes</a></li>
+    </ul>
+  </nav>
 </section>
 
 <section class="section" id="nova-postagem">
@@ -80,7 +90,11 @@
     <input id="titulo" name="titulo" type="text" placeholder="Ex.: Fotos do culto · Café da Manhã — Escola Dominical">
 
     <label for="fotos">Fotos</label>
-    <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+    <div class="file-pick">
+      <input id="fotos" class="file-pick-input" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+      <label class="file-pick-btn" for="fotos">Escolher fotos</label>
+      <span class="file-pick-name" data-file-pick-for="fotos">Nenhuma foto escolhida</span>
+    </div>
     <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP).</p>
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
@@ -174,7 +188,11 @@
     <input id="post_link" name="post_link" type="text" placeholder="https://... ou deixe em branco" value="{{ post_home.link if post_home else '' }}">
 
     <label for="post_arquivo">Imagem ou vídeo (opcional)</label>
-    <input id="post_arquivo" name="post_arquivo" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <div class="file-pick">
+      <input id="post_arquivo" class="file-pick-input" name="post_arquivo" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+      <label class="file-pick-btn" for="post_arquivo">Escolher imagem ou vídeo</label>
+      <span class="file-pick-name" data-file-pick-for="post_arquivo">Nenhum arquivo escolhido</span>
+    </div>
     <p class="admin-help">JPG/PNG ou vídeo MP4/WEBM/MOV.</p>
     {% if post_home and post_home.tem_arquivo %}
     <p class="admin-help">Arquivo atual:
@@ -244,13 +262,18 @@
         <input type="hidden" name="acao" value="lider_foto">
         <input type="hidden" name="perfil_id" value="{{ perfil.id }}">
         <label for="foto-{{ perfil.id }}">Atualizar imagem do perfil</label>
-        <input
-          id="foto-{{ perfil.id }}"
-          name="foto"
-          type="file"
-          accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
-          required
-        >
+        <div class="file-pick">
+          <input
+            id="foto-{{ perfil.id }}"
+            class="file-pick-input"
+            name="foto"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+            required
+          >
+          <label class="file-pick-btn" for="foto-{{ perfil.id }}">Escolher nova foto</label>
+          <span class="file-pick-name" data-file-pick-for="foto-{{ perfil.id }}">Nenhuma foto escolhida</span>
+        </div>
         <button class="btn btn-primary" type="submit">Salvar nova foto</button>
       </form>
 
@@ -269,15 +292,74 @@
 
 {% block scripts %}
 <script>
-  const select = document.getElementById('culto_titulo');
-  const dia = document.getElementById('culto_dia');
-  if (select && dia) {
-    select.addEventListener('change', () => {
-      const opt = select.selectedOptions[0];
-      if (opt && opt.dataset.dia) {
-        dia.value = opt.dataset.dia;
+  (function () {
+    const select = document.getElementById('culto_titulo');
+    const dia = document.getElementById('culto_dia');
+    if (select && dia) {
+      select.addEventListener('change', () => {
+        const opt = select.selectedOptions[0];
+        if (opt && opt.dataset.dia) {
+          dia.value = opt.dataset.dia;
+        }
+      });
+    }
+
+    function labelArquivos(input) {
+      const hint = document.querySelector('[data-file-pick-for="' + input.id + '"]');
+      if (!hint) return;
+      const files = input.files;
+      if (!files || !files.length) {
+        hint.textContent = input.multiple ? 'Nenhuma foto escolhida' : 'Nenhuma foto escolhida';
+        return;
       }
+      if (files.length === 1) {
+        hint.textContent = files[0].name;
+        return;
+      }
+      hint.textContent = files.length + ' arquivos escolhidos';
+    }
+
+    document.querySelectorAll('.file-pick-input').forEach((input) => {
+      input.addEventListener('change', () => labelArquivos(input));
     });
-  }
+
+    function revelarSecao(el) {
+      if (!el) return;
+      el.classList.add('is-visible');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    }
+
+    function irParaHash() {
+      const id = (window.location.hash || '').replace('#', '');
+      if (!id) return;
+      const alvo = document.getElementById(id);
+      if (!alvo) return;
+      revelarSecao(alvo);
+      document.querySelectorAll('.admin-galeria-nav a').forEach((a) => {
+        a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+      });
+      requestAnimationFrame(() => {
+        alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    document.querySelectorAll('.admin-galeria-nav a, .section-link a[href^="#"]').forEach((link) => {
+      link.addEventListener('click', (ev) => {
+        const href = link.getAttribute('href') || '';
+        if (!href.startsWith('#') || href.length < 2) return;
+        ev.preventDefault();
+        window.location.hash = href;
+        irParaHash();
+      });
+    });
+
+    document.querySelectorAll('main > .section, .page-hero').forEach(revelarSecao);
+    if (window.location.hash) {
+      irParaHash();
+    } else {
+      window.addEventListener('load', irParaHash);
+    }
+  })();
 </script>
 {% endblock %}
