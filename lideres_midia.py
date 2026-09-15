@@ -59,13 +59,13 @@ PERFIS = [
         "id": "leaodejuda",
         "nome": "Leão de Judá",
         "departamento": "Evento Leão de Judá",
-        "padrao": "images/emblema.png",
+        "padrao": "images/leaodejuda/lideres.jpg",
     },
     {
         "id": "maranata",
         "nome": "Dança Maranata",
         "departamento": "Evento Dança Maranata",
-        "padrao": "images/maranata/lideres.png",
+        "padrao": "images/maranata/lideres.jpg",
     },
     {
         "id": "soldadinhos",
@@ -140,8 +140,9 @@ def listar_perfis() -> list[dict]:
         reg = rows.get(pid) or {}
         upload = (reg.get("arquivo") or "").strip()
         if upload and (UPLOAD_DIR / upload).exists():
-            # Auto-repara espelho static (symlink quebrado após deploy)
+            # Sempre força cópia real em static/ (Nginx não serve symlink do DATA_DIR)
             try:
+                persistencia.garantir_espelho_real("lideres")
                 persistencia.espelhar_arquivo_upload("lideres", upload)
             except OSError:
                 pass
@@ -157,20 +158,26 @@ def listar_perfis() -> list[dict]:
         item["foto"] = caminho
         item["foto_versao"] = versao
         item["custom"] = custom
+        # URL absoluta via /midia/ — não depende do Nginx achar o arquivo em /static/
+        if custom:
+            item["foto_url"] = f"/midia/uploads/lideres/{upload}"
+        else:
+            item["foto_url"] = f"/static/{caminho}"
         resultado.append(item)
     return resultado
 
 
 def mapa_fotos() -> dict[str, str]:
-    """id -> caminho static relativo."""
-    return {p["id"]: p["foto"] for p in listar_perfis()}
+    """id -> URL pública da foto ( /midia/... ou /static/... )."""
+    return {p["id"]: p.get("foto_url") or f"/static/{p['foto']}" for p in listar_perfis()}
 
 
 def mapa_fotos_meta() -> dict[str, dict]:
-    """id -> {foto, foto_versao, nome}."""
+    """id -> {foto, foto_url, foto_versao, nome}."""
     return {
         p["id"]: {
             "foto": p["foto"],
+            "foto_url": p.get("foto_url") or f"/static/{p['foto']}",
             "foto_versao": p.get("foto_versao") or "",
             "nome": p["nome"],
         }
@@ -179,13 +186,14 @@ def mapa_fotos_meta() -> dict[str, dict]:
 
 
 def foto(perfil_id: str) -> str:
-    """Caminho static da foto atual (upload da mídia ou padrão)."""
-    return mapa_fotos().get(perfil_id) or "images/emblema.png"
+    """URL pública da foto atual (upload da mídia ou padrão)."""
+    return mapa_fotos().get(perfil_id) or "/static/images/emblema.png"
 
 
 def foto_meta(perfil_id: str) -> dict:
     return mapa_fotos_meta().get(perfil_id) or {
         "foto": "images/emblema.png",
+        "foto_url": "/static/images/emblema.png",
         "foto_versao": "",
         "nome": "",
     }

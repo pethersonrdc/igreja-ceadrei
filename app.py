@@ -14,6 +14,7 @@ from pathlib import Path
 from flask import (
     Flask,
     Response,
+    abort,
     flash,
     jsonify,
     redirect,
@@ -60,7 +61,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "base-dados-limpar-ob-20260911")
+APP_BUILD = os.environ.get("APP_BUILD", "lideres-midia-foto-20260915")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -3330,6 +3331,39 @@ def api_obreiros():
 def data_files(filename: str):
     """Expõe os JSON para o front estático / GitHub Pages."""
     return send_from_directory(DATA_DIR, filename)
+
+
+@app.route("/midia/uploads/<path:filepath>")
+def servir_upload_midia(filepath: str):
+    """
+    Serve uploads do DATA_DIR (e espelho static) sem depender do Nginx
+    seguir symlink em /static/uploads/ — corrige fotos de líderes quebradas.
+    """
+    rel = (filepath or "").replace("\\", "/").lstrip("/")
+    if not rel or ".." in rel.split("/"):
+        abort(404)
+    partes = rel.split("/", 1)
+    if len(partes) != 2:
+        abort(404)
+    subdir, nome = partes[0], partes[1]
+    if "/" in nome or not nome:
+        abort(404)
+
+    # Garante espelho e tenta DATA_DIR primeiro, depois static/
+    try:
+        persistencia.garantir_espelho_real(subdir)
+        persistencia.espelhar_arquivo_upload(subdir, nome)
+    except (OSError, ValueError):
+        pass
+
+    origem = persistencia.upload_dir(subdir) / nome
+    if origem.is_file():
+        return send_from_directory(origem.parent, origem.name)
+
+    fallback = Path(app.root_path) / "static" / "uploads" / subdir / nome
+    if fallback.is_file():
+        return send_from_directory(fallback.parent, fallback.name)
+    abort(404)
 
 
 # Garante disco persistente (DATA_DIR) + pastas/banco mesmo com Gunicorn
