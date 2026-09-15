@@ -35,7 +35,7 @@
     </form>
     {% if foto_lider %}
     <figure class="arraial-lider-foto login-lider-foto--anim">
-      <img src="{{ url_for('static', filename=foto_lider) }}" alt="{{ nome_lider }}">
+      <img src="{{ foto_lider }}" alt="{{ nome_lider }}">
       <figcaption>{{ nome_lider }}</figcaption>
     </figure>
     {% endif %}

@@ -1,8 +1,12 @@
 """
-Disco persistente para SQLite e uploads (Render).
+Disco persistente para SQLite e uploads (Render / Hostinger).
 
 Defina DATA_DIR=/var/data no serviço e monte um Persistent Disk nesse caminho.
 Sem DATA_DIR, usa data/ e static/uploads/ do repositório (desenvolvimento local).
+
+Importante: com DATA_DIR NÃO usamos symlink para servir arquivos.
+O Nginx (alias /static/) falha com symlink quebrado ou sem permissão de
+seguir link — por isso o espelho em static/uploads/ é sempre pasta real + cópia.
 """
 
 from __future__ import annotations
@@ -50,55 +54,21 @@ def db_path(filename: str) -> Path:
     return data_root() / filename
 
 
-def upload_dir(subdir: str) -> Path:
-    """
-    Pasta de arquivos enviados.
-    Com DATA_DIR: grava no disco persistente e espelha em static/uploads/<subdir>
-    via symlink, para url_for('static', ...) continuar funcionando.
-    """
+def _pasta_persistente(subdir: str) -> Path:
     nome = (subdir or "").strip().strip("/").replace("\\", "/")
     if not nome:
         raise ValueError("subdir de upload vazio")
-
-    if usando_disco_persistente():
-        destino = data_root() / "uploads" / nome
-        destino.mkdir(parents=True, exist_ok=True)
-        link = STATIC_UPLOADS / nome
-        _garantir_link_upload(link, destino)
-        return destino
-
-    pasta = STATIC_UPLOADS / nome
+    pasta = data_root() / "uploads" / nome
     pasta.mkdir(parents=True, exist_ok=True)
     return pasta
 
 
-def _garantir_link_upload(link: Path, destino: Path) -> None:
-    link.parent.mkdir(parents=True, exist_ok=True)
-    destino.mkdir(parents=True, exist_ok=True)
-
+def _remover_symlink_se_houver(caminho: Path) -> None:
     try:
-        # Link quebrado (ex.: apontava para /tmp/... de teste) → remove e recria
-        if link.is_symlink() and not link.exists():
-            link.unlink()
-        if link.is_symlink():
-            if link.resolve() == destino.resolve():
-                return
-            link.unlink()
-        elif link.exists():
-            if link.is_dir():
-                for item in link.iterdir():
-                    alvo = destino / item.name
-                    if item.name == ".gitkeep":
-                        continue
-                    if not alvo.exists():
-                        shutil.move(str(item), str(alvo))
-                shutil.rmtree(link)
-            else:
-                link.unlink()
-        link.symlink_to(destino, target_is_directory=True)
+        if caminho.is_symlink():
+            caminho.unlink()
     except OSError:
-        # Sem symlink: mantém cópia em static/uploads para o Nginx servir.
-        _espelhar_pasta(destino, STATIC_UPLOADS / destino.name)
+        pass
 
 
 def _espelhar_pasta(origem: Path, destino_static: Path) -> None:
@@ -109,75 +79,81 @@ def _espelhar_pasta(origem: Path, destino_static: Path) -> None:
         if not item.is_file() or item.name == ".gitkeep":
             continue
         alvo = destino_static / item.name
-        if not alvo.exists() or item.stat().st_mtime > alvo.stat().st_mtime:
-            shutil.copy2(item, alvo)
+        try:
+            if not alvo.exists() or item.stat().st_mtime > alvo.stat().st_mtime:
+                shutil.copy2(item, alvo)
+        except OSError:
+            continue
+
+
+def garantir_espelho_real(subdir: str) -> Path:
+    """
+    Garante pasta REAL em static/uploads/<subdir> (nunca symlink)
+    e copia os arquivos do DATA_DIR para o Nginx servir.
+    Retorna a pasta de gravação (DATA_DIR quando ativo).
+    """
+    nome = (subdir or "").strip().strip("/").replace("\\", "/")
+    if not nome:
+        raise ValueError("subdir de upload vazio")
+
+    if not usando_disco_persistente():
+        pasta = STATIC_UPLOADS / nome
+        pasta.mkdir(parents=True, exist_ok=True)
+        return pasta
+
+    origem = _pasta_persistente(nome)
+    destino = STATIC_UPLOADS / nome
+    _remover_symlink_se_houver(destino)
+    if destino.exists() and not destino.is_dir():
+        try:
+            destino.unlink()
+        except OSError:
+            pass
+    destino.mkdir(parents=True, exist_ok=True)
+    _espelhar_pasta(origem, destino)
+    return origem
+
+
+def upload_dir(subdir: str) -> Path:
+    """
+    Pasta de gravação dos uploads.
+    Com DATA_DIR: grava no disco persistente e espelha cópia real em static/uploads/.
+    """
+    return garantir_espelho_real(subdir)
 
 
 def espelhar_arquivo_upload(subdir: str, nome_arquivo: str) -> Path | None:
     """
-    Garante que um arquivo novo em DATA_DIR também exista em static/uploads/
-    (necessário quando o symlink falha ou aponta para caminho inválido).
+    Copia um arquivo do disco persistente para static/uploads/ (pasta real).
+    Sempre copia — não confia em symlink (Nginx no Hostinger não serve bem).
     """
     nome = (subdir or "").strip().strip("/")
     arquivo = (nome_arquivo or "").strip()
     if not nome or not arquivo:
         return None
 
-    origem_dir = upload_dir(nome)
+    # Garante pasta real (remove symlink quebrado se existir)
+    origem_dir = garantir_espelho_real(nome)
     origem = origem_dir / arquivo
     if not origem.is_file():
         return None
 
-    link = STATIC_UPLOADS / nome
-    # Se o link está ok, o arquivo já é visível via static/
-    try:
-        if link.is_symlink() and link.resolve() == origem_dir.resolve():
-            return origem
-    except OSError:
-        pass
-
     destino_dir = STATIC_UPLOADS / nome
+    _remover_symlink_se_houver(destino_dir)
     destino_dir.mkdir(parents=True, exist_ok=True)
     destino = destino_dir / arquivo
     try:
-        if link.is_symlink() and not link.exists():
-            link.unlink()
+        shutil.copy2(origem, destino)
     except OSError:
-        pass
-
-    # Se static/uploads/<subdir> ainda é symlink quebrado para outro sítio,
-    # remove e usa pasta real para a cópia.
-    try:
-        if link.is_symlink():
-            try:
-                ok = link.resolve() == origem_dir.resolve()
-            except OSError:
-                ok = False
-            if not ok:
-                link.unlink()
-                destino_dir.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        pass
-
-    shutil.copy2(origem, destino)
+        return None
     return destino
 
 
 def preparar() -> Path:
-    """Garante DATA_DIR e pastas de upload no boot do app."""
+    """Garante DATA_DIR e espelho real de todas as pastas de upload no boot."""
     root = data_root()
     (root / "uploads").mkdir(parents=True, exist_ok=True)
+    STATIC_UPLOADS.mkdir(parents=True, exist_ok=True)
     for sub in UPLOAD_SUBDIRS:
-        upload_dir(sub)
-        # Repara espelho static após deploy/git reset
-        destino = root / "uploads" / sub if usando_disco_persistente() else STATIC_UPLOADS / sub
-        if usando_disco_persistente():
-            _garantir_link_upload(STATIC_UPLOADS / sub, destino)
-            # Cópia de segurança se o link continuar inválido
-            try:
-                link = STATIC_UPLOADS / sub
-                if not link.exists() or (link.is_dir() and not link.is_symlink()):
-                    _espelhar_pasta(destino, STATIC_UPLOADS / sub)
-            except OSError:
-                _espelhar_pasta(destino, STATIC_UPLOADS / sub)
+        garantir_espelho_real(sub)
     return root

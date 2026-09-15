@@ -233,7 +233,7 @@
     {% for perfil in perfis_lideres %}
     <article class="admin-card lider-perfil-card">
       <figure class="lider-perfil-foto">
-        <img src="{{ url_for('static', filename=perfil.foto) }}" alt="{{ perfil.nome }}">
+        <img src="{{ perfil.foto_url or url_for('static', filename=perfil.foto) }}" alt="{{ perfil.nome }}">
         <figcaption>
           <strong>{{ perfil.nome }}</strong>
           <span>{{ perfil.departamento }}</span>
