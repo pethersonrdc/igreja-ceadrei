@@ -117,6 +117,7 @@ def _post_home_vazio() -> dict:
         "texto": "",
         "link": "",
         "arquivo": "",
+        "arquivo_url": "",
         "ativo": False,
         "atualizado_em": "",
         "tem_arquivo": False,
@@ -138,6 +139,13 @@ def _enriquecer_post_home(dados: dict) -> dict:
     item["tem_conteudo"] = bool(
         item["titulo"] or item["texto"] or item["arquivo"] or item["link"]
     )
+    if item["arquivo"]:
+        # /midia/ não depende do Nginx achar symlink em /static/uploads/home
+        try:
+            persistencia.espelhar_arquivo_upload("home", item["arquivo"])
+        except OSError:
+            pass
+        item["arquivo_url"] = f"/midia/uploads/home/{item['arquivo']}"
     if item["ativo"] and not item["tem_conteudo"]:
         item["ativo"] = False
     return item

@@ -195,15 +195,20 @@
     </div>
     <p class="admin-help">JPG/PNG ou vídeo MP4/WEBM/MOV.</p>
     {% if post_home and post_home.tem_arquivo %}
-    <p class="admin-help">Arquivo atual:
+    <div class="admin-arquivo-atual">
+      <p class="admin-help">Arquivo atual:</p>
       {% if post_home.arquivo_eh_video %}
-      <video class="mocidade-preview" controls preload="metadata" playsinline>
-        <source src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
+      <video class="mocidade-preview admin-preview-midia" controls preload="metadata" playsinline>
+        <source src="{{ post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
       </video>
       {% else %}
-      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="">
+      <img
+        class="mocidade-preview admin-preview-midia"
+        src="{{ post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo) }}"
+        alt="Arquivo atual do post"
+      >
       {% endif %}
-    </p>
+    </div>
     {% endif %}
 
     <label class="check-line">

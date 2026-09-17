@@ -61,7 +61,7 @@
     <div class="home-post-midia-media">
       {% if post_home.arquivo_eh_video %}
       {% with
-        src=url_for('static', filename='uploads/home/' + post_home.arquivo),
+        src=post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo),
         poster='',
         titulo=post_home.titulo or 'Post da igreja',
         player_class='home-post-midia-player'
@@ -69,7 +69,7 @@
       {% include 'includes/video_lazy.html' %}
       {% endwith %}
       {% else %}
-      <img src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="{{ post_home.titulo or 'Post da igreja' }}" loading="lazy" decoding="async">
+      <img src="{{ post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="{{ post_home.titulo or 'Post da igreja' }}" loading="lazy" decoding="async">
       {% endif %}
     </div>
     {% endif %}
