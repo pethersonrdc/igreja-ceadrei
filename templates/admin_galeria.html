@@ -95,7 +95,7 @@
       <label class="file-pick-btn" for="fotos">Escolher fotos</label>
       <span class="file-pick-name" data-file-pick-for="fotos">Nenhuma foto escolhida</span>
     </div>
-    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP).</p>
+    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP). No celular, prefira <strong>Arquivos / Galeria</strong> (não o Google Fotos em edição).</p>
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
   </form>
@@ -125,7 +125,7 @@
       </div>
       <div class="admin-thumbs">
         {% for foto in post.fotos %}
-        <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="">
+        <img src="{{ galeria_url(foto.arquivo) }}" alt="">
         {% endfor %}
       </div>
       <p class="admin-help" style="margin-top:0.75rem">
@@ -309,23 +309,94 @@
       });
     }
 
-    function labelArquivos(input) {
+    // No celular (Chrome/Android), o arquivo escolhido pode sumir antes do
+    // envio (ERR_UPLOAD_FILE_CHANGED). Guardamos cópia em memória na seleção.
+    const arquivosProntos = new Map();
+
+    function labelArquivos(input, files) {
       const hint = document.querySelector('[data-file-pick-for="' + input.id + '"]');
       if (!hint) return;
-      const files = input.files;
-      if (!files || !files.length) {
-        hint.textContent = input.multiple ? 'Nenhuma foto escolhida' : 'Nenhuma foto escolhida';
+      const lista = files || input.files;
+      if (!lista || !lista.length) {
+        hint.textContent = 'Nenhuma foto escolhida';
         return;
       }
-      if (files.length === 1) {
-        hint.textContent = files[0].name;
+      if (lista.length === 1) {
+        hint.textContent = lista[0].name;
         return;
       }
-      hint.textContent = files.length + ' arquivos escolhidos';
+      hint.textContent = lista.length + ' arquivos escolhidos';
+    }
+
+    async function guardarArquivos(input) {
+      const lista = Array.from(input.files || []);
+      if (!lista.length) {
+        arquivosProntos.delete(input.id);
+        labelArquivos(input, []);
+        return;
+      }
+      const copias = [];
+      for (const file of lista) {
+        try {
+          const buffer = await file.arrayBuffer();
+          copias.push(new File([buffer], file.name, {
+            type: file.type || 'application/octet-stream',
+            lastModified: Date.now(),
+          }));
+        } catch (err) {
+          // Se falhar a cópia, ainda tenta o arquivo original
+          copias.push(file);
+        }
+      }
+      arquivosProntos.set(input.id, copias);
+      labelArquivos(input, copias);
     }
 
     document.querySelectorAll('.file-pick-input').forEach((input) => {
-      input.addEventListener('change', () => labelArquivos(input));
+      input.addEventListener('change', () => {
+        guardarArquivos(input).catch(() => labelArquivos(input));
+      });
+    });
+
+    document.querySelectorAll('form[enctype="multipart/form-data"]').forEach((form) => {
+      form.addEventListener('submit', (ev) => {
+        const inputs = form.querySelectorAll('.file-pick-input');
+        if (!inputs.length) return;
+        let precisaAjax = false;
+        inputs.forEach((input) => {
+          if (arquivosProntos.has(input.id)) precisaAjax = true;
+        });
+        if (!precisaAjax) return;
+        ev.preventDefault();
+        const fd = new FormData(form);
+        inputs.forEach((input) => {
+          const name = input.getAttribute('name');
+          if (!name) return;
+          const prontos = arquivosProntos.get(input.id);
+          if (!prontos) return;
+          fd.delete(name);
+          prontos.forEach((file) => fd.append(name, file, file.name));
+        });
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Enviando…';
+        }
+        fetch(form.getAttribute('action') || window.location.pathname, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          redirect: 'follow',
+        }).then((resp) => {
+          window.location.href = resp.url || (window.location.pathname + '#nova-postagem');
+        }).catch(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Tentar de novo';
+          }
+          alert('Não foi possível enviar a foto. Escolha o arquivo de novo e tente outra vez.');
+        });
+      });
     });
 
     function revelarSecao(el) {
