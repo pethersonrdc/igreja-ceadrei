@@ -31,6 +31,16 @@
     ·
     <a href="{{ url_for('admin_logout') }}">Sair</a>
   </p>
+
+  <nav class="admin-galeria-nav-wrap" aria-label="Atalhos do painel">
+    <ul class="admin-galeria-nav">
+      <li><a href="#nova-postagem">Publicar</a></li>
+      <li><a href="#postagens">Postagens</a></li>
+      <li><a href="#aviso-home">Aviso</a></li>
+      <li><a href="#post-home">Post início</a></li>
+      <li><a href="#lideres">Fotos líderes</a></li>
+    </ul>
+  </nav>
 </section>
 
 <section class="section" id="nova-postagem">
@@ -80,8 +90,12 @@
     <input id="titulo" name="titulo" type="text" placeholder="Ex.: Fotos do culto · Café da Manhã — Escola Dominical">
 
     <label for="fotos">Fotos</label>
-    <input id="fotos" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
-    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP).</p>
+    <div class="file-pick">
+      <input id="fotos" class="file-pick-input" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+      <label class="file-pick-btn" for="fotos">Escolher fotos</label>
+      <span class="file-pick-name" data-file-pick-for="fotos">Nenhuma foto escolhida</span>
+    </div>
+    <p class="admin-help">Pode selecionar várias de uma vez (JPG, PNG ou WebP). No celular, prefira <strong>Arquivos / Galeria</strong> (não o Google Fotos em edição).</p>
 
     <button class="btn btn-primary" type="submit">Publicar fotos</button>
   </form>
@@ -111,7 +125,7 @@
       </div>
       <div class="admin-thumbs">
         {% for foto in post.fotos %}
-        <img src="{{ url_for('static', filename='uploads/galeria/' + foto.arquivo) }}" alt="">
+        <img src="{{ galeria_url(foto.arquivo) }}" alt="">
         {% endfor %}
       </div>
       <p class="admin-help" style="margin-top:0.75rem">
@@ -174,18 +188,27 @@
     <input id="post_link" name="post_link" type="text" placeholder="https://... ou deixe em branco" value="{{ post_home.link if post_home else '' }}">
 
     <label for="post_arquivo">Imagem ou vídeo (opcional)</label>
-    <input id="post_arquivo" name="post_arquivo" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+    <div class="file-pick">
+      <input id="post_arquivo" class="file-pick-input" name="post_arquivo" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.mp4,.webm,.ogg,.mov,image/*,video/*">
+      <label class="file-pick-btn" for="post_arquivo">Escolher imagem ou vídeo</label>
+      <span class="file-pick-name" data-file-pick-for="post_arquivo">Nenhum arquivo escolhido</span>
+    </div>
     <p class="admin-help">JPG/PNG ou vídeo MP4/WEBM/MOV.</p>
     {% if post_home and post_home.tem_arquivo %}
-    <p class="admin-help">Arquivo atual:
+    <div class="admin-arquivo-atual">
+      <p class="admin-help">Arquivo atual:</p>
       {% if post_home.arquivo_eh_video %}
-      <video class="mocidade-preview" controls preload="metadata" playsinline>
-        <source src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
+      <video class="mocidade-preview admin-preview-midia" controls preload="metadata" playsinline>
+        <source src="{{ post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo) }}">
       </video>
       {% else %}
-      <img class="mocidade-preview" src="{{ url_for('static', filename='uploads/home/' + post_home.arquivo) }}" alt="">
+      <img
+        class="mocidade-preview admin-preview-midia"
+        src="{{ post_home.arquivo_url or url_for('static', filename='uploads/home/' + post_home.arquivo) }}"
+        alt="Arquivo atual do post"
+      >
       {% endif %}
-    </p>
+    </div>
     {% endif %}
 
     <label class="check-line">
@@ -244,13 +267,18 @@
         <input type="hidden" name="acao" value="lider_foto">
         <input type="hidden" name="perfil_id" value="{{ perfil.id }}">
         <label for="foto-{{ perfil.id }}">Atualizar imagem do perfil</label>
-        <input
-          id="foto-{{ perfil.id }}"
-          name="foto"
-          type="file"
-          accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
-          required
-        >
+        <div class="file-pick">
+          <input
+            id="foto-{{ perfil.id }}"
+            class="file-pick-input"
+            name="foto"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp,.gif,image/*"
+            required
+          >
+          <label class="file-pick-btn" for="foto-{{ perfil.id }}">Escolher nova foto</label>
+          <span class="file-pick-name" data-file-pick-for="foto-{{ perfil.id }}">Nenhuma foto escolhida</span>
+        </div>
         <button class="btn btn-primary" type="submit">Salvar nova foto</button>
       </form>
 
@@ -269,15 +297,145 @@
 
 {% block scripts %}
 <script>
-  const select = document.getElementById('culto_titulo');
-  const dia = document.getElementById('culto_dia');
-  if (select && dia) {
-    select.addEventListener('change', () => {
-      const opt = select.selectedOptions[0];
-      if (opt && opt.dataset.dia) {
-        dia.value = opt.dataset.dia;
+  (function () {
+    const select = document.getElementById('culto_titulo');
+    const dia = document.getElementById('culto_dia');
+    if (select && dia) {
+      select.addEventListener('change', () => {
+        const opt = select.selectedOptions[0];
+        if (opt && opt.dataset.dia) {
+          dia.value = opt.dataset.dia;
+        }
+      });
+    }
+
+    // No celular (Chrome/Android), o arquivo escolhido pode sumir antes do
+    // envio (ERR_UPLOAD_FILE_CHANGED). Guardamos cópia em memória na seleção.
+    const arquivosProntos = new Map();
+
+    function labelArquivos(input, files) {
+      const hint = document.querySelector('[data-file-pick-for="' + input.id + '"]');
+      if (!hint) return;
+      const lista = files || input.files;
+      if (!lista || !lista.length) {
+        hint.textContent = 'Nenhuma foto escolhida';
+        return;
       }
+      if (lista.length === 1) {
+        hint.textContent = lista[0].name;
+        return;
+      }
+      hint.textContent = lista.length + ' arquivos escolhidos';
+    }
+
+    async function guardarArquivos(input) {
+      const lista = Array.from(input.files || []);
+      if (!lista.length) {
+        arquivosProntos.delete(input.id);
+        labelArquivos(input, []);
+        return;
+      }
+      const copias = [];
+      for (const file of lista) {
+        try {
+          const buffer = await file.arrayBuffer();
+          copias.push(new File([buffer], file.name, {
+            type: file.type || 'application/octet-stream',
+            lastModified: Date.now(),
+          }));
+        } catch (err) {
+          // Se falhar a cópia, ainda tenta o arquivo original
+          copias.push(file);
+        }
+      }
+      arquivosProntos.set(input.id, copias);
+      labelArquivos(input, copias);
+    }
+
+    document.querySelectorAll('.file-pick-input').forEach((input) => {
+      input.addEventListener('change', () => {
+        guardarArquivos(input).catch(() => labelArquivos(input));
+      });
     });
-  }
+
+    document.querySelectorAll('form[enctype="multipart/form-data"]').forEach((form) => {
+      form.addEventListener('submit', (ev) => {
+        const inputs = form.querySelectorAll('.file-pick-input');
+        if (!inputs.length) return;
+        let precisaAjax = false;
+        inputs.forEach((input) => {
+          if (arquivosProntos.has(input.id)) precisaAjax = true;
+        });
+        if (!precisaAjax) return;
+        ev.preventDefault();
+        const fd = new FormData(form);
+        inputs.forEach((input) => {
+          const name = input.getAttribute('name');
+          if (!name) return;
+          const prontos = arquivosProntos.get(input.id);
+          if (!prontos) return;
+          fd.delete(name);
+          prontos.forEach((file) => fd.append(name, file, file.name));
+        });
+        const btn = form.querySelector('button[type="submit"]');
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Enviando…';
+        }
+        fetch(form.getAttribute('action') || window.location.pathname, {
+          method: 'POST',
+          body: fd,
+          credentials: 'same-origin',
+          redirect: 'follow',
+        }).then((resp) => {
+          window.location.href = resp.url || (window.location.pathname + '#nova-postagem');
+        }).catch(() => {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Tentar de novo';
+          }
+          alert('Não foi possível enviar a foto. Escolha o arquivo de novo e tente outra vez.');
+        });
+      });
+    });
+
+    function revelarSecao(el) {
+      if (!el) return;
+      el.classList.add('is-visible');
+      el.style.opacity = '1';
+      el.style.transform = 'none';
+    }
+
+    function irParaHash() {
+      const id = (window.location.hash || '').replace('#', '');
+      if (!id) return;
+      const alvo = document.getElementById(id);
+      if (!alvo) return;
+      revelarSecao(alvo);
+      document.querySelectorAll('.admin-galeria-nav a').forEach((a) => {
+        a.classList.toggle('is-active', a.getAttribute('href') === '#' + id);
+      });
+      requestAnimationFrame(() => {
+        alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+
+    document.querySelectorAll('.admin-galeria-nav a, .section-link a[href^="#"]').forEach((link) => {
+      link.addEventListener('click', (ev) => {
+        const href = link.getAttribute('href') || '';
+        if (!href.startsWith('#') || href.length < 2) return;
+        ev.preventDefault();
+        window.location.hash = href;
+        irParaHash();
+      });
+    });
+
+    document.querySelectorAll('main > .section, .page-hero').forEach(revelarSecao);
+    if (window.location.hash) {
+      irParaHash();
+    } else {
+      window.addEventListener('load', irParaHash);
+    }
+  })();
 </script>
 {% endblock %}

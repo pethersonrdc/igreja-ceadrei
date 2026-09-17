@@ -117,6 +117,7 @@ def _post_home_vazio() -> dict:
         "texto": "",
         "link": "",
         "arquivo": "",
+        "arquivo_url": "",
         "ativo": False,
         "atualizado_em": "",
         "tem_arquivo": False,
@@ -138,6 +139,13 @@ def _enriquecer_post_home(dados: dict) -> dict:
     item["tem_conteudo"] = bool(
         item["titulo"] or item["texto"] or item["arquivo"] or item["link"]
     )
+    if item["arquivo"]:
+        # /midia/ não depende do Nginx achar symlink em /static/uploads/home
+        try:
+            persistencia.espelhar_arquivo_upload("home", item["arquivo"])
+        except OSError:
+            pass
+        item["arquivo_url"] = f"/midia/uploads/home/{item['arquivo']}"
     if item["ativo"] and not item["tem_conteudo"]:
         item["ativo"] = False
     return item
@@ -470,6 +478,13 @@ def gerar_variantes(arquivo: str) -> list[str]:
                 criados.append(nome)
     except OSError:
         return []
+    # Espelha original + variantes para /static (e /midia já lê do DATA_DIR)
+    try:
+        persistencia.espelhar_arquivo_upload("galeria", arquivo)
+        for nome in criados:
+            persistencia.espelhar_arquivo_upload("galeria", nome)
+    except OSError:
+        pass
     return criados
 
 
@@ -488,8 +503,20 @@ def dimensao_imagem(arquivo: str) -> tuple[int, int]:
 
 
 def url_static_galeria(arquivo: str) -> str:
-    """Caminho relativo /static/... (sem depender do request Flask)."""
-    return f"/static/uploads/galeria/{arquivo}"
+    """
+    URL pública da foto da galeria.
+    Usa /midia/uploads/... (Flask lê do DATA_DIR) porque /static/uploads
+    no Hostinger frequentemente 404 quando o espelho/symlink falha.
+    """
+    nome = (arquivo or "").strip()
+    if not nome:
+        return "/static/images/emblema.png"
+    # Repara espelho quando possível (Nginx /static pode voltar a funcionar)
+    try:
+        persistencia.espelhar_arquivo_upload("galeria", nome)
+    except OSError:
+        pass
+    return f"/midia/uploads/galeria/{nome}"
 
 
 def src_galeria_grid(arquivo: str) -> str:

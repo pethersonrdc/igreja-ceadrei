@@ -110,8 +110,8 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         self.assertIn(f"{Path(nome).stem}_480.jpg", html)
         self.assertIn(f"{Path(nome).stem}_960.jpg", html)
         # Grid usa variante leve no src; original fica no href do lightbox
-        self.assertIn(f'src="/static/uploads/galeria/{Path(nome).stem}_960.jpg"', html)
-        self.assertIn(f'href="/static/uploads/galeria/{nome}"', html)
+        self.assertIn(f'src="/midia/uploads/galeria/{Path(nome).stem}_960.jpg"', html)
+        self.assertIn(f'href="/midia/uploads/galeria/{nome}"', html)
         self.assertIn("data-pswp-gallery", html)
         self.assertIn("galeria-lightbox.js", html)
         self.assertIn("photoswipe", html.lower())
@@ -122,11 +122,9 @@ class GaleriaPerformanceHttpTest(unittest.TestCase):
         self._post_ids.append(post_id)
 
         html = self.client.get("/").get_data(as_text=True)
-        stem0 = Path(nomes[0]).stem
-        stem1 = Path(nomes[1]).stem
-        # Sempre src real (evita tela branca se o JS antigo estiver em cache)
-        self.assertIn(f'src="/static/uploads/galeria/{stem0}_960.jpg"', html)
-        self.assertIn(f'src="/static/uploads/galeria/{stem1}_960.jpg"', html)
+        # URLs públicas da galeria passam por /midia/ (DATA_DIR), não /static/
+        self.assertIn("/midia/uploads/galeria/", html)
+        self.assertIn("_960.jpg", html)
         self.assertNotIn("data:image/gif;base64", html)
         self.assertIn("carousel.js?v=", html)
 
