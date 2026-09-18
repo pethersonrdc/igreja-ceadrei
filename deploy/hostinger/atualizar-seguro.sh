@@ -1,13 +1,24 @@
 #!/usr/bin/env bash
 # Atualização SEGURA: puxa código e sobe o site sem ficar em 502.
-# Uso (root): sudo bash /var/www/igreja-ceadrei/deploy/hostinger/atualizar-seguro.sh
+#
+# Uso (root) — escolha UMA forma:
+#   sudo bash /var/www/igreja-ceadrei/deploy/hostinger/atualizar-seguro.sh cursor/pastores-aniversario-data-d63c
+#   sudo BRANCH=cursor/pastores-aniversario-data-d63c bash /var/www/igreja-ceadrei/deploy/hostinger/atualizar-seguro.sh
+#
+# Atenção: "BRANCH=... sudo bash ..." NÃO funciona — o sudo apaga a variável.
 set -u
 APP_DIR="${APP_DIR:-/var/www/igreja-ceadrei}"
-# Se BRANCH não for passado, mantém a branch atual (não força portal-admin-tema).
-# Ex.: BRANCH=cursor/base-dados-congelar-d63c sudo bash deploy/hostinger/atualizar-seguro.sh
 git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
 cd "$APP_DIR"
-BRANCH="${BRANCH:-$(sudo -u www-data git -C "$APP_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo cursor/base-dados-congelar-d63c)}"
+
+# 1º argumento OU BRANCH= (depois do sudo) OU branch atual no servidor
+if [[ "${1:-}" != "" ]]; then
+  BRANCH="$1"
+elif [[ "${BRANCH:-}" != "" ]]; then
+  :
+else
+  BRANCH="$(sudo -u www-data git -C "$APP_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null || echo cursor/base-dados-congelar-d63c)"
+fi
 
 echo "==== 1) Código novo (branch=$BRANCH) ===="
 sudo -u www-data git fetch origin
