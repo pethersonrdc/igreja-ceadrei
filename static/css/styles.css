@@ -2897,6 +2897,11 @@ body.tema-pastores .btn-primary:hover {
   color: var(--ink);
 }
 
+/*
+  Post da igreja — layouts separados:
+  - Mobile/Android (padrão): mantém o enquadramento atual (contain + fundo escuro).
+  - Web/desktop (@media min-width): sem faixas pretas; cartaz centralizado no tamanho natural.
+*/
 .home-post-midia-media {
   margin: 0.35rem 0 0.85rem;
   border-radius: 0.9rem;
@@ -2911,6 +2916,46 @@ body.tema-pastores .btn-primary:hover {
   max-height: 480px;
   object-fit: contain;
   background: #111;
+}
+
+/* Versão web (tela larga): remove as faixas pretas laterais */
+@media (min-width: 801px) {
+  .home-post-midia-card {
+    max-width: min(560px, 100%);
+  }
+
+  .home-post-midia-media {
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .home-post-midia-media img,
+  .home-post-midia-player {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: min(78vh, 720px);
+    object-fit: contain;
+    background: transparent;
+    margin-inline: auto;
+  }
+}
+
+/* Versão mobile/Android: reforça o visual atual (não altera o que já está legal) */
+@media (max-width: 800px) {
+  .home-post-midia-media {
+    background: #111;
+  }
+
+  .home-post-midia-media img,
+  .home-post-midia-player {
+    width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    background: #111;
+  }
 }
 
 .home-post-midia-texto {
