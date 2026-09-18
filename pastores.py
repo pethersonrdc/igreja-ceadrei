@@ -122,6 +122,8 @@ def texto_whatsapp_mes(
     return "\n".join(linhas)
 
 # Cada responsável registra o próprio evento no calendário compartilhado
+ORIGEM_ANIVERSARIO_IGREJA = "aniversario_igreja"
+
 RESPONSAVEIS_EVENTO = {
     "batismo": {
         "titulo": "Evento Batismo",
@@ -154,6 +156,11 @@ RESPONSAVEIS_EVENTO = {
     "soldadinhos": {
         "titulo": "Soldadinhos de Cristo",
         "lider": "Soldadinhos de Cristo",
+    },
+    # Só os pastores podem criar/editar (painel /pastores/admin)
+    ORIGEM_ANIVERSARIO_IGREJA: {
+        "titulo": "Aniversário da Igreja",
+        "lider": "Pastores",
     },
 }
 
@@ -912,6 +919,117 @@ def salvar_evento_lider(
             ),
         )
         return int(cur.lastrowid)
+
+
+# Celebração costuma durar 5 dias seguidos (ex.: 23 a 27).
+ANIVERSARIO_DIAS_PADRAO = 5
+ANIVERSARIO_DIAS_MAX = 15
+
+
+def listar_aniversario_igreja(incluir_passados: bool = True) -> list[dict]:
+    return listar_eventos_lideres(
+        incluir_passados=incluir_passados,
+        origem=ORIGEM_ANIVERSARIO_IGREJA,
+    )
+
+
+def _parse_iso_date(valor: str) -> date | None:
+    texto = (valor or "").strip()
+    if not texto:
+        return None
+    try:
+        return date.fromisoformat(texto[:10])
+    except ValueError:
+        return None
+
+
+def datas_aniversario_periodo(
+    data_inicio_iso: str,
+    data_fim_iso: str = "",
+    dias: int | None = None,
+) -> list[str]:
+    """
+    Expande o período do aniversário em datas ISO (uma por dia).
+    Se não houver fim, usa `dias` (padrão 5). Ex.: 23→27 = 5 dias.
+    """
+    inicio = _parse_iso_date(data_inicio_iso)
+    if not inicio:
+        return []
+    fim = _parse_iso_date(data_fim_iso) if data_fim_iso else None
+    if fim is None:
+        qtd = ANIVERSARIO_DIAS_PADRAO if dias is None else int(dias)
+        qtd = max(1, min(ANIVERSARIO_DIAS_MAX, qtd))
+        fim = inicio + timedelta(days=qtd - 1)
+    if fim < inicio:
+        inicio, fim = fim, inicio
+    # Limite de segurança
+    if (fim - inicio).days + 1 > ANIVERSARIO_DIAS_MAX:
+        fim = inicio + timedelta(days=ANIVERSARIO_DIAS_MAX - 1)
+    saida: list[str] = []
+    atual = inicio
+    while atual <= fim:
+        saida.append(atual.isoformat())
+        atual += timedelta(days=1)
+    return saida
+
+
+def _evento_aniversario_na_data(data_iso: str) -> dict | None:
+    for ev in listar_aniversario_igreja(incluir_passados=True):
+        if ev.get("data") == data_iso:
+            return ev
+    return None
+
+
+def salvar_aniversario_igreja(
+    *,
+    data_iso: str,
+    horario: str = "",
+    local: str = "",
+    descricao: str = "",
+    aviso: str = "",
+    evento_id: int | None = None,
+) -> int:
+    """Somente para o painel dos pastores — trava título/lider/origem."""
+    info = RESPONSAVEIS_EVENTO[ORIGEM_ANIVERSARIO_IGREJA]
+    return salvar_evento_lider(
+        titulo=info["titulo"],
+        lider=info["lider"],
+        origem=ORIGEM_ANIVERSARIO_IGREJA,
+        data_iso=data_iso,
+        horario=horario,
+        local=local,
+        descricao=descricao,
+        aviso=aviso or "Aniversário da igreja — preparem-se!",
+        evento_id=evento_id,
+    )
+
+
+def salvar_aniversario_igreja_periodo(
+    *,
+    data_inicio_iso: str,
+    data_fim_iso: str = "",
+    dias: int | None = None,
+    horario: str = "",
+    local: str = "",
+    descricao: str = "",
+    aviso: str = "",
+) -> list[int]:
+    """Publica um dia no calendário para cada data do período (padrão 5 dias)."""
+    datas = datas_aniversario_periodo(data_inicio_iso, data_fim_iso, dias)
+    ids: list[int] = []
+    for data_iso in datas:
+        existente = _evento_aniversario_na_data(data_iso)
+        ids.append(
+            salvar_aniversario_igreja(
+                data_iso=data_iso,
+                horario=horario,
+                local=local,
+                descricao=descricao,
+                aviso=aviso,
+                evento_id=existente["id"] if existente else None,
+            )
+        )
+    return ids
 
 
 def apagar_evento_lider(evento_id: int, origem: str | None = None) -> bool:

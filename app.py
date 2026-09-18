@@ -61,7 +61,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "galeria-midia-upload-20260917")
+APP_BUILD = os.environ.get("APP_BUILD", "pastores-aniversario-5dias-20260918")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -1218,6 +1218,10 @@ def batismo_logout():
 
 def _processar_evento_responsavel(origem: str) -> bool:
     """Salva evento do responsável no calendário compartilhado. Retorna True se processou."""
+    # Aniversário da igreja: só pelo painel dos pastores
+    if origem == pastores.ORIGEM_ANIVERSARIO_IGREJA:
+        flash("Somente os pastores podem definir a data do aniversário da igreja.", "erro")
+        return True
     info = pastores.RESPONSAVEIS_EVENTO.get(origem)
     if not info:
         return False
@@ -2063,11 +2067,77 @@ def pastores_admin():
             flash("Destaque do culto atualizado.", "ok")
             return redirect(url_for("pastores_admin", aba="destaque"))
 
+        if acao == "aniversario_igreja":
+            evento_id = request.form.get("evento_id", type=int)
+            horario = request.form.get("horario", "")
+            local = request.form.get("local", "")
+            descricao = request.form.get("descricao", "")
+            aviso = request.form.get("aviso", "")
+
+            if evento_id:
+                # Edição de um dia específico
+                data_bruta = request.form.get("data", "").strip()
+                data_iso = campanha_eventos.data_para_iso(data_bruta)
+                if not data_iso:
+                    flash("Informe a data do aniversário da igreja.", "erro")
+                else:
+                    pastores.salvar_aniversario_igreja(
+                        data_iso=data_iso,
+                        horario=horario,
+                        local=local,
+                        descricao=descricao,
+                        aviso=aviso,
+                        evento_id=evento_id,
+                    )
+                    flash(
+                        "Data do aniversário da igreja atualizada no calendário.",
+                        "ok",
+                    )
+            else:
+                # Período: costuma ser 5 dias (ex.: 23 a 27)
+                inicio_bruta = request.form.get("data_inicio", "").strip()
+                fim_bruta = request.form.get("data_fim", "").strip()
+                inicio_iso = campanha_eventos.data_para_iso(inicio_bruta)
+                fim_iso = (
+                    campanha_eventos.data_para_iso(fim_bruta) if fim_bruta else ""
+                )
+                dias_form = request.form.get("dias", type=int)
+                if not inicio_iso:
+                    flash(
+                        "Informe a data de início do aniversário da igreja.",
+                        "erro",
+                    )
+                else:
+                    ids = pastores.salvar_aniversario_igreja_periodo(
+                        data_inicio_iso=inicio_iso,
+                        data_fim_iso=fim_iso,
+                        dias=dias_form,
+                        horario=horario,
+                        local=local,
+                        descricao=descricao,
+                        aviso=aviso,
+                    )
+                    flash(
+                        f"{len(ids)} dia(s) do aniversário da igreja "
+                        "publicados no calendário dos líderes.",
+                        "ok",
+                    )
+            return redirect(
+                url_for("pastores_admin", ano=ano, mes=mes, aba="calendario")
+            )
+
     editar_escala = None
     if request.args.get("editar_escala"):
         for item in pastores.listar_escala(ano, mes):
             if item["id"] == request.args.get("editar_escala", type=int):
                 editar_escala = item
+                break
+
+    editar_aniversario = None
+    if request.args.get("editar_aniversario"):
+        for item in pastores.listar_aniversario_igreja(incluir_passados=True):
+            if item["id"] == request.args.get("editar_aniversario", type=int):
+                editar_aniversario = item
                 break
 
     selecionados_abertura = (
@@ -2093,9 +2163,16 @@ def pastores_admin():
         escala=pastores.listar_escala(ano, mes),
         destaque=pastores.obter_destaque(),
         eventos=pastores.listar_eventos_lideres(incluir_passados=True),
+        aniversarios_igreja=pastores.listar_aniversario_igreja(incluir_passados=True),
         calendario=pastores.calendario_mes(ano, mes),
         avisos=pastores.avisos_proximos(7),
         editar_escala=editar_escala,
+        editar_aniversario=editar_aniversario,
+        info_aniversario=pastores.RESPONSAVEIS_EVENTO[
+            pastores.ORIGEM_ANIVERSARIO_IGREJA
+        ],
+        aniversario_dias_padrao=pastores.ANIVERSARIO_DIAS_PADRAO,
+        aniversario_dias_max=pastores.ANIVERSARIO_DIAS_MAX,
         obreiros=pastores.listar_obreiros(),
         selecionados_abertura=selecionados_abertura,
         selecionados_porta_vidro=selecionados_porta_vidro,

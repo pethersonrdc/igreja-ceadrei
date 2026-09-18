@@ -239,13 +239,176 @@
     <p class="admin-help">
       Cada responsável registra o próprio evento na área dele
       (Batismo → Evangelista Sueli · Casais → Diac. Robson e Diac. Luana).
-      Aqui os pastores só acompanham a visão geral e os avisos.
+      Só os pastores definem a data do <strong>Aniversário da Igreja</strong>.
     </p>
     <div class="hero-actions">
       <a class="btn btn-ghost-dark" href="{{ url_for('calendario_lideres') }}">Abrir calendário público</a>
     </div>
   </article>
 </section>
+
+<section class="section">
+  <form class="admin-card pastores-card" method="post">
+    <input type="hidden" name="acao" value="aniversario_igreja">
+    {% if editar_aniversario %}
+    <input type="hidden" name="evento_id" value="{{ editar_aniversario.id }}">
+    <h2>Editar um dia do aniversário</h2>
+    <p class="admin-help">
+      Altere esta data individual. Para publicar vários dias de uma vez
+      (ex.: 23 a 27), cancele e use o formulário de período.
+    </p>
+    <div class="pessoa-row">
+      <div>
+        <label for="data_aniversario">Data</label>
+        <input
+          id="data_aniversario"
+          name="data"
+          type="date"
+          required
+          value="{{ editar_aniversario.data }}"
+        >
+      </div>
+      <div>
+        <label for="horario_aniversario">Horário</label>
+        <input
+          id="horario_aniversario"
+          name="horario"
+          type="text"
+          placeholder="Ex.: 19:30"
+          value="{{ editar_aniversario.horario }}"
+        >
+      </div>
+    </div>
+    {% else %}
+    <h2>Aniversário da igreja</h2>
+    <p class="admin-help">
+      Escolha o período da celebração. Costuma ser
+      <strong>5 dias seguidos</strong> (ex.: 23, 24, 25, 26 e 27).
+      Cada dia aparece no calendário dos líderes como
+      <strong>{{ info_aniversario.titulo }}</strong> (somente pastores).
+    </p>
+
+    <div class="pessoa-row">
+      <div>
+        <label for="data_inicio_aniversario">Data de início</label>
+        <input
+          id="data_inicio_aniversario"
+          name="data_inicio"
+          type="date"
+          required
+        >
+      </div>
+      <div>
+        <label for="data_fim_aniversario">Data de fim</label>
+        <input
+          id="data_fim_aniversario"
+          name="data_fim"
+          type="date"
+        >
+        <p class="admin-help">
+          Se deixar em branco, publica
+          <strong>{{ aniversario_dias_padrao }} dias</strong> a partir do início.
+        </p>
+      </div>
+    </div>
+
+    <div class="pessoa-row">
+      <div>
+        <label for="dias_aniversario">Quantidade de dias</label>
+        <input
+          id="dias_aniversario"
+          name="dias"
+          type="number"
+          min="1"
+          max="{{ aniversario_dias_max }}"
+          value="{{ aniversario_dias_padrao }}"
+        >
+        <p class="admin-help">Usado só se a data de fim estiver vazia. Padrão: 5.</p>
+      </div>
+      <div>
+        <label for="horario_aniversario">Horário</label>
+        <input
+          id="horario_aniversario"
+          name="horario"
+          type="text"
+          placeholder="Ex.: 19:30"
+        >
+      </div>
+    </div>
+    {% endif %}
+
+    <label for="local_aniversario">Local</label>
+    <input
+      id="local_aniversario"
+      name="local"
+      type="text"
+      placeholder="Ex.: Templo"
+      value="{{ editar_aniversario.local if editar_aniversario else '' }}"
+    >
+
+    <label for="descricao_aniversario">Descrição</label>
+    <textarea
+      id="descricao_aniversario"
+      name="descricao"
+      rows="3"
+      placeholder="Detalhes da celebração"
+    >{{ editar_aniversario.descricao if editar_aniversario else '' }}</textarea>
+
+    <label for="aviso_aniversario">Aviso perto da data</label>
+    <input
+      id="aviso_aniversario"
+      name="aviso"
+      type="text"
+      placeholder="Ex.: Aniversário da igreja — preparem-se!"
+      value="{{ editar_aniversario.aviso if editar_aniversario else '' }}"
+    >
+
+    <button class="btn btn-primary btn-pastores" type="submit">
+      {% if editar_aniversario %}Salvar este dia{% else %}Publicar dias no calendário{% endif %}
+    </button>
+    {% if editar_aniversario %}
+    <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='calendario', ano=ano, mes=mes) }}">Cancelar edição</a>
+    {% endif %}
+  </form>
+</section>
+
+{% if aniversarios_igreja %}
+<section class="section">
+  <div class="section-head">
+    <h2>Datas do aniversário da igreja</h2>
+  </div>
+  <div class="batismo-table-wrap">
+    <table class="batismo-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Horário / Local</th>
+          <th>Aviso</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in aniversarios_igreja %}
+        <tr class="{% if ev.aviso_ativo %}is-proximo{% endif %}">
+          <td>{{ ev.data_br }}</td>
+          <td>
+            {% if ev.horario %}{{ ev.horario }}{% else %}—{% endif %}
+            <span class="admin-meta">{{ ev.local or '—' }}</span>
+          </td>
+          <td>{{ ev.aviso_texto }}</td>
+          <td>
+            <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='calendario', ano=ano, mes=mes, editar_aniversario=ev.id) }}">Editar</a>
+            <form method="post" action="{{ url_for('pastores_apagar_evento', evento_id=ev.id) }}" onsubmit="return confirm('Apagar esta data do aniversário no calendário?');" style="display:inline">
+              <button class="btn btn-ghost-dark" type="submit">Apagar</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
 
 <section class="section">
   <div class="section-head">
@@ -258,6 +421,10 @@
   </div>
 
   {% include 'partials/calendario_grid.html' %}
+  <p class="admin-help" style="margin-top:1rem">
+    <span class="cal-chip cal-chip--escala">Obreiros</span> = escala do culto ·
+    <span class="cal-chip cal-chip--evento">Evento</span> = agenda dos líderes (inclui aniversário da igreja)
+  </p>
 
   {% if avisos %}
   <div class="avisos-lista">
@@ -292,6 +459,9 @@
           <td>{{ ev.lider or '—' }}</td>
           <td>{{ ev.aviso_texto }}</td>
           <td>
+            {% if ev.origem == 'aniversario_igreja' %}
+            <a class="btn btn-ghost-dark" href="{{ url_for('pastores_admin', aba='calendario', ano=ano, mes=mes, editar_aniversario=ev.id) }}">Editar</a>
+            {% endif %}
             <form method="post" action="{{ url_for('pastores_apagar_evento', evento_id=ev.id) }}" onsubmit="return confirm('Apagar este evento do calendário?');" style="display:inline">
               <button class="btn btn-ghost-dark" type="submit">Apagar</button>
             </form>
