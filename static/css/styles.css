@@ -7052,10 +7052,13 @@ body.tema-historia.pagina-fundo {
 }
 
 body.tema-historia .fundo-pagina.fundo-pagina--arte {
-  background: #0a1c2e;
+  background-color: #061422;
+  background-image: none;
 }
 
 body.tema-historia .fundo-pagina--arte .fundo-pagina-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   object-position: center center;
   opacity: 1;

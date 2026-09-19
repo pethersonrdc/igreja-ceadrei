@@ -14,6 +14,31 @@
 </div>
 {% endblock %}
 
+{% block head %}
+<style>
+  /* Zoom: a arte preenche a tela inteira (sem faixas pretas) */
+  body.tema-historia .fundo-pagina,
+  body.tema-historia .fundo-pagina.fundo-pagina--arte {
+    background-color: #061422 !important;
+    background-image: none !important;
+  }
+  body.tema-historia .fundo-pagina-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+  body.tema-historia .fundo-pagina--arte::after {
+    background: linear-gradient(
+      180deg,
+      rgba(6, 16, 32, 0.28) 0%,
+      rgba(6, 16, 32, 0.12) 46%,
+      rgba(6, 16, 32, 0.38) 100%
+    ) !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="historia-hero pagina-fundo-content">
   <div class="historia-hero-inner">
