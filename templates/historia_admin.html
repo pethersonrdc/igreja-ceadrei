@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-historia tema-admin-midia{% endblock %}
+{% block body_class %}tema-historia tema-admin-midia pagina-fundo{% endblock %}
 
 {% block title %}História CEASDREI — Painel mídia{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/historia/fundo.jpg') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="page-hero historia-hero historia-hero--admin">
+<section class="page-hero historia-hero historia-hero--admin pagina-fundo-content">
   <div class="historia-hero-inner">
     <img class="historia-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="56" height="56">
     <p class="eyebrow">Mídia · mesmo login</p>
@@ -18,7 +28,7 @@
   </div>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
     <ul class="flash-list">
@@ -59,7 +69,7 @@
   </form>
 </section>
 
-<section class="section">
+<section class="section pagina-fundo-content">
   <h2>Marcos publicados</h2>
   {% if posts %}
   <ul class="admin-list">

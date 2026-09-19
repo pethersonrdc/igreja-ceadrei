@@ -1,11 +1,21 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-historia{% endblock %}
+{% block body_class %}tema-historia pagina-fundo{% endblock %}
 
 {% block title %}História CEASDREI — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('static', filename='images/historia/fundo.jpg') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
 {% block content %}
-<section class="historia-hero">
+<section class="historia-hero pagina-fundo-content">
   <div class="historia-hero-inner">
     <img class="historia-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="72" height="72">
     <p class="eyebrow">Linha do tempo</p>
@@ -19,7 +29,7 @@
   </div>
 </section>
 
-<section class="section historia-filtros">
+<section class="section historia-filtros pagina-fundo-content">
   <p class="eyebrow">Filtrar por ano</p>
   <div class="historia-anos" role="navigation" aria-label="Anos da história">
     <a class="historia-ano {% if not ano_filtro %}is-active{% endif %}" href="{{ url_for('historia_page') }}">Todos</a>
@@ -30,7 +40,7 @@
   </div>
 </section>
 
-<section class="section historia-timeline">
+<section class="section historia-timeline pagina-fundo-content">
   {% if posts %}
     {% for post in posts %}
     <article class="historia-card" id="marco-{{ post.id }}">

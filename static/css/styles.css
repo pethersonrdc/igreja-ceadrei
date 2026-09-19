@@ -7043,14 +7043,37 @@ body.tema-aniversario {
 
 /* ---------- História CEASDREI ---------- */
 body.tema-historia {
-  background:
-    radial-gradient(ellipse at top, rgba(184, 137, 58, 0.22), transparent 48%),
-    linear-gradient(180deg, #0d2436 0%, #122033 42%, #1a3a52 100%);
+  background: #0a1c2e;
   color: #f7f4ef;
 }
 
+body.tema-historia.pagina-fundo {
+  background: #0a1c2e;
+}
+
+body.tema-historia .fundo-pagina.fundo-pagina--arte {
+  background: #0a1c2e;
+}
+
+body.tema-historia .fundo-pagina--arte .fundo-pagina-img {
+  object-fit: cover;
+  object-position: center center;
+  opacity: 1;
+}
+
+/* Véu escuro leve para o texto branco continuar legível sobre o azul/ouro */
+body.tema-historia .fundo-pagina--arte::after {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 20, 36, 0.45) 0%,
+      rgba(10, 28, 46, 0.35) 40%,
+      rgba(8, 20, 36, 0.55) 100%
+    );
+}
+
 body.tema-historia .site-header {
-  background: rgba(13, 36, 54, 0.92);
+  background: rgba(13, 36, 54, 0.88);
   border-bottom: 1px solid rgba(184, 137, 58, 0.28);
 }
 
@@ -7087,12 +7110,14 @@ body.tema-historia .historia-hero h1,
 body.tema-historia .historia-copy h2 {
   font-family: var(--font-display);
   color: #f7f4ef;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 }
 
 body.tema-historia .historia-hero p,
-body.tema-historia .historia-copy p {
-  color: rgba(247, 244, 239, 0.82);
+body.tema-historia .historia-copy p,
+body.tema-historia .historia-vazio {
+  color: rgba(247, 244, 239, 0.88);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
 }
 
 .historia-filtros {
