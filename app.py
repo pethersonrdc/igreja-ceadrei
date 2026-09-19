@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import os
+import subprocess
 import uuid
 from datetime import date
 from functools import wraps
@@ -61,7 +62,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "historia-fundo-arte-20260919")
+APP_BUILD = os.environ.get("APP_BUILD", "historia-fundo-flask-20260919")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -700,6 +701,60 @@ def aniversario_apagar(post_id: int):
 
 
 # ---------- História CEASDREI (mídia — nunca na home) ----------
+
+_fundo_historia_cache: bytes | None = None
+
+
+def _carregar_fundo_historia() -> bytes | None:
+    """Lê o fundo da História. Se o Nginx não achar em /static/, serve pelo Flask."""
+    global _fundo_historia_cache
+    if _fundo_historia_cache:
+        return _fundo_historia_cache
+    caminho = BASE_DIR / "static" / "images" / "historia" / "fundo.jpg"
+    dados = b""
+    if caminho.is_file():
+        try:
+            dados = caminho.read_bytes()
+        except OSError:
+            dados = b""
+    if len(dados) < 1000:
+        try:
+            dados = subprocess.check_output(
+                [
+                    "git",
+                    "-C",
+                    str(BASE_DIR),
+                    "show",
+                    "HEAD:static/images/historia/fundo.jpg",
+                ],
+                stderr=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            dados = b""
+    if len(dados) < 1000:
+        return None
+    try:
+        caminho.parent.mkdir(parents=True, exist_ok=True)
+        if not caminho.is_file() or caminho.stat().st_size < 1000:
+            caminho.write_bytes(dados)
+    except OSError:
+        pass
+    _fundo_historia_cache = dados
+    return dados
+
+
+@app.route("/fundo/historia.jpg")
+def fundo_historia():
+    dados = _carregar_fundo_historia()
+    if not dados:
+        abort(404)
+    return send_file(
+        io.BytesIO(dados),
+        mimetype="image/jpeg",
+        download_name="fundo.jpg",
+        max_age=86400,
+    )
+
 
 @app.route("/historia")
 def historia_page():
