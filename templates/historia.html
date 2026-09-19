@@ -41,7 +41,7 @@
       <div class="historia-card-body">
         {% if post.destaque %}
         <figure class="historia-destaque">
-          <img src="{{ url_for('static', filename='uploads/historia/' + post.destaque) }}"
+          <img src="{{ midia_upload('historia', post.destaque) }}"
                alt="{{ post.titulo }}" loading="lazy">
         </figure>
         {% endif %}
@@ -58,10 +58,10 @@
         <figure>
           {% if midia.tipo == 'video' %}
           <video controls playsinline preload="metadata"
-            src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}">
+            src="{{ midia_upload('historia', midia.arquivo) }}">
           </video>
           {% else %}
-          <img src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}"
+          <img src="{{ midia_upload('historia', midia.arquivo) }}"
                alt="{{ post.titulo }}" loading="lazy">
           {% endif %}
         </figure>

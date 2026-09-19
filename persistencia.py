@@ -149,6 +149,18 @@ def espelhar_arquivo_upload(subdir: str, nome_arquivo: str) -> Path | None:
     return destino
 
 
+def url_upload(subdir: str, nome_arquivo: str) -> str:
+    """
+    URL pública de upload via /midia/ (Flask lê DATA_DIR).
+    Evita 404 do Nginx em /static/uploads quando o espelho falha.
+    """
+    pasta = (subdir or "").strip().strip("/").replace("\\", "/")
+    arquivo = (nome_arquivo or "").strip().lstrip("/").replace("\\", "/")
+    if not pasta or not arquivo or ".." in arquivo.split("/"):
+        return ""
+    return f"/midia/uploads/{pasta}/{arquivo}"
+
+
 def preparar() -> Path:
     """Garante DATA_DIR e espelho real de todas as pastas de upload no boot."""
     root = data_root()

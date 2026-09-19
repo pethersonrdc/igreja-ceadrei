@@ -61,7 +61,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "pastores-aniversario-5dias-20260918")
+APP_BUILD = os.environ.get("APP_BUILD", "midia-aniversario-historia-20260919")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -409,6 +409,7 @@ def inject_admin():
         "galeria_dimensao": gallery.dimensao_imagem,
         "galeria_url": gallery.url_static_galeria,
         "galeria_src_grid": gallery.src_galeria_grid,
+        "midia_upload": persistencia.url_upload,
         "og_image_default": url_for(
             "static", filename="images/emblema.png", _external=True
         ),
