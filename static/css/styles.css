@@ -7289,6 +7289,29 @@ body.tema-aniversario.tema-admin-midia .section > h2 {
   color: #000;
 }
 
+body.tema-historia .historia-hero .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+body.tema-historia .historia-hero .btn-ghost-dark,
+body.tema-historia .historia-hero .btn-historia-link {
+  color: #fff8ee;
+  background: rgba(8, 20, 36, 0.45);
+  border: 1px solid rgba(232, 200, 120, 0.65);
+  font-weight: 600;
+}
+
+body.tema-historia .historia-hero .btn-ghost-dark:hover,
+body.tema-historia .historia-hero .btn-historia-link:hover {
+  background: linear-gradient(135deg, #b8893a, #8f6a28);
+  color: #122033;
+  border-color: transparent;
+}
+
 body.tema-historia .site-footer {
   background: rgba(8, 18, 28, 0.9);
   color: rgba(247, 244, 239, 0.75);

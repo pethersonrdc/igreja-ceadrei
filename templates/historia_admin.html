@@ -35,6 +35,28 @@
       rgba(6, 16, 32, 0.38) 100%
     ) !important;
   }
+  /* Botões do hero: legíveis no fundo azul/dourado */
+  body.tema-historia .historia-hero .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1.25rem;
+  }
+  body.tema-historia .historia-hero .btn-ghost-dark,
+  body.tema-historia .historia-hero .btn-historia-link {
+    color: #fff8ee !important;
+    background: rgba(8, 20, 36, 0.45) !important;
+    border: 1px solid rgba(232, 200, 120, 0.65) !important;
+    font-weight: 600 !important;
+    text-shadow: none !important;
+  }
+  body.tema-historia .historia-hero .btn-ghost-dark:hover,
+  body.tema-historia .historia-hero .btn-historia-link:hover {
+    background: linear-gradient(135deg, #b8893a, #8f6a28) !important;
+    color: #122033 !important;
+    border-color: transparent !important;
+  }
 </style>
 {% endblock %}
 
@@ -46,8 +68,8 @@
     <h1>Publicar História CEASDREI</h1>
     <p>Marcos por data e ano. Só aparece na aba História — nunca na home.</p>
     <div class="hero-actions">
-      <a class="btn btn-ghost-dark" href="{{ url_for('historia_page') }}">Ver página pública</a>
-      <a class="btn btn-ghost-dark" href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
+      <a class="btn btn-ghost-dark btn-historia-link" href="{{ url_for('historia_page') }}">Ver página pública</a>
+      <a class="btn btn-ghost-dark btn-historia-link" href="{{ url_for('admin_galeria') }}">Painel da galeria</a>
     </div>
   </div>
 </section>
