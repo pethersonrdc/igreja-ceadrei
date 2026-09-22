@@ -7247,6 +7247,25 @@ body.tema-historia .historia-vazio {
   display: block;
 }
 
+.historia-zoom {
+  display: block;
+  cursor: zoom-in;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.historia-destaque .historia-zoom img,
+.historia-galeria .historia-zoom img {
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+.historia-destaque .historia-zoom:hover img,
+.historia-galeria .historia-zoom:hover img {
+  transform: scale(1.03);
+  filter: brightness(1.05);
+}
+
 .historia-admin-datas {
   display: grid;
   gap: 0.75rem;

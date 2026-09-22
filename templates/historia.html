@@ -15,6 +15,9 @@
 {% endblock %}
 
 {% block head %}
+{% if posts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css" crossorigin="anonymous">
+{% endif %}
 <style>
   /* Zoom: a arte preenche a tela inteira (sem faixas pretas) */
   body.tema-historia .fundo-pagina,
@@ -68,16 +71,27 @@
 <section class="section historia-timeline pagina-fundo-content">
   {% if posts %}
     {% for post in posts %}
-    <article class="historia-card" id="marco-{{ post.id }}">
+    <article class="historia-card" id="marco-{{ post.id }}" data-pswp-gallery>
       <div class="historia-card-meta">
         {% if post.ano %}<span class="historia-ano-badge">{{ post.ano }}</span>{% endif %}
         {% if post.data_br %}<time datetime="{{ post.data_evento }}">{{ post.data_br }}</time>{% endif %}
       </div>
       <div class="historia-card-body">
         {% if post.destaque %}
+        {% set dim_destaque = historia_dimensao(post.destaque) %}
         <figure class="historia-destaque">
-          <img src="{{ midia_upload('historia', post.destaque) }}"
-               alt="{{ post.titulo }}" loading="lazy">
+          <a
+            class="historia-zoom"
+            href="{{ midia_upload('historia', post.destaque) }}"
+            data-pswp-width="{{ dim_destaque[0] }}"
+            data-pswp-height="{{ dim_destaque[1] }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="Ampliar foto: {{ post.titulo }}"
+          >
+            <img src="{{ midia_upload('historia', post.destaque) }}"
+                 alt="{{ post.titulo }}" loading="lazy">
+          </a>
         </figure>
         {% endif %}
         <div class="historia-copy">
@@ -96,8 +110,19 @@
             src="{{ midia_upload('historia', midia.arquivo) }}">
           </video>
           {% else %}
-          <img src="{{ midia_upload('historia', midia.arquivo) }}"
-               alt="{{ post.titulo }}" loading="lazy">
+          {% set dim = historia_dimensao(midia.arquivo) %}
+          <a
+            class="historia-zoom"
+            href="{{ midia_upload('historia', midia.arquivo) }}"
+            data-pswp-width="{{ dim[0] }}"
+            data-pswp-height="{{ dim[1] }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="Ampliar foto {{ loop.index }}: {{ post.titulo }}"
+          >
+            <img src="{{ midia_upload('historia', midia.arquivo) }}"
+                 alt="{{ post.titulo }}" loading="lazy">
+          </a>
           {% endif %}
         </figure>
         {% endfor %}
@@ -109,4 +134,10 @@
     <p class="historia-vazio">Ainda não há marcos publicados nesta história.</p>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if posts %}
+<script type="module" src="{{ url_for('static', filename='js/galeria-lightbox.js') }}?v={{ galeria_lightbox_js_version }}"></script>
+{% endif %}
 {% endblock %}

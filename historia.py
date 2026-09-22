@@ -175,6 +175,26 @@ def criar_post(
         return post_id
 
 
+def dimensao_midia(arquivo: str) -> tuple[int, int]:
+    """Largura/altura para o lightbox (PhotoSwipe)."""
+    from PIL import Image
+
+    nome = (arquivo or "").strip()
+    if not nome:
+        return (1600, 1200)
+    caminho = UPLOAD_DIR / nome
+    if not caminho.is_file():
+        return (1600, 1200)
+    try:
+        with Image.open(caminho) as im:
+            w, h = im.size
+            if w > 0 and h > 0:
+                return (int(w), int(h))
+    except OSError:
+        pass
+    return (1600, 1200)
+
+
 def apagar_post(post_id: int) -> bool:
     init_db()
     with _connect() as conn:
