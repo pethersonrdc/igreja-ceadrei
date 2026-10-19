@@ -5,7 +5,7 @@
 {% block title %}Inscrição Batismo — {{ igreja.nome }}{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/inscricao-desktop.css') }}?v=20261019desk">
+{% include 'includes/inscricao_desktop_css.html' %}
 <style>
   .so-computador { display: none; }
   html.js-ready body.tema-batismo-cadastro .page-hero,
