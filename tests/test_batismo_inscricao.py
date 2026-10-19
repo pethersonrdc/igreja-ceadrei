@@ -21,11 +21,17 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.app.config["TESTING"] = True
         self.client = self.app.test_client()
         self._ids: list[int] = []
+        self._prazo_anterior = batismo.obter_data_limite_inscricao()
+        batismo.definir_data_limite_inscricao("")
 
     def tearDown(self) -> None:
         with batismo._connect() as conn:
             for inscricao_id in self._ids:
                 conn.execute("DELETE FROM inscricoes WHERE id = ?", (inscricao_id,))
+        if self._prazo_anterior:
+            batismo.definir_data_limite_inscricao(self._prazo_anterior.isoformat())
+        else:
+            batismo.definir_data_limite_inscricao("")
 
     def _criar(self, **kwargs) -> int:
         dados = {
@@ -273,6 +279,49 @@ class BatismoInscricaoTest(unittest.TestCase):
         corpo = gerar_pdf_batismo(batismo.listar_inscricoes())
         self.assertTrue(corpo.startswith(b"%PDF"))
         self.assertGreater(len(corpo), 1000)
+
+
+    def test_pagina_de_inscricao_tem_o_formulario(self) -> None:
+        resp = self.client.get("/batismo/inscricao")
+        self.assertEqual(resp.status_code, 200)
+        html = resp.get_data(as_text=True)
+        self.assertIn("Quem for para o batismo, acesse e preencha", html)
+        self.assertIn("Adicionar pessoa", html)
+        self.assertIn("Enviar inscrição", html)
+
+    def test_lider_define_data_e_o_formulario_fecha_depois(self) -> None:
+        with self.client.session_transaction() as sess:
+            sess["batismo_ok"] = True
+        salvo = self.client.post(
+            "/cadastro/batismo/prazo",
+            data={"inscricao_ate": "2099-12-31"},
+            follow_redirects=False,
+        )
+        self.assertEqual(salvo.status_code, 302)
+        self.assertEqual(
+            batismo.obter_data_limite_inscricao().isoformat(),
+            "2099-12-31",
+        )
+        aberta = self.client.get("/batismo/inscricao").get_data(as_text=True)
+        self.assertIn("31/12/2099", aberta)
+        self.assertIn("Enviar inscrição", aberta)
+
+        batismo.definir_data_limite_inscricao("2000-01-01")
+        antes = len(batismo.listar_inscricoes())
+        fechada = self.client.post(
+            "/batismo/inscricao",
+            data={
+                "pessoas": ["Familia Fora do Prazo"],
+                "pessoas_doc": [""],
+                "pessoas_sexo": ["M"],
+                "telefone": "11900010001",
+                "status": "vou",
+            },
+        )
+        self.assertEqual(fechada.status_code, 200)
+        self.assertIn("encerraram em 01/01/2000", fechada.get_data(as_text=True))
+        self.assertNotIn("Enviar inscrição", fechada.get_data(as_text=True))
+        self.assertEqual(len(batismo.listar_inscricoes()), antes)
 
 
 if __name__ == "__main__":

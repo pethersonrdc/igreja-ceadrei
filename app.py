@@ -1439,6 +1439,9 @@ def cadastro_batismo():
     igreja = load_json("igreja.json")
     inscricoes = batismo.listar_inscricoes()
     totais = batismo.contar_lista_batismo(inscricoes)
+    confirmados = sum(1 for item in inscricoes if item.get("status") in {"vou", "pago"})
+    pendentes = sum(1 for item in inscricoes if item.get("status") == "analise")
+    limite = batismo.obter_data_limite_inscricao()
     return render_template(
         "cadastro_batismo.html",
         igreja=igreja,
@@ -1446,7 +1449,27 @@ def cadastro_batismo():
         status_opcoes=batismo.STATUS_OPCOES,
         total_familias=totais["familias"],
         total_pessoas=totais["pessoas"],
+        total_confirmados=confirmados,
+        total_pendentes=pendentes,
+        inscricao_ate=limite.isoformat() if limite else "",
+        inscricao_ate_texto=limite.strftime("%d/%m/%Y") if limite else "",
+        inscricao_aberta=batismo.inscricao_esta_aberta(),
     )
+
+
+@app.route("/cadastro/batismo/prazo", methods=["POST"])
+@batismo_login_required
+def cadastro_batismo_prazo():
+    """O líder define até qual dia a família ainda pode se inscrever."""
+    if request.form.get("limpar") == "1":
+        _ok, mensagem = batismo.definir_data_limite_inscricao("")
+        flash(mensagem, "ok")
+        return redirect(url_for("cadastro_batismo"))
+    ok, mensagem = batismo.definir_data_limite_inscricao(
+        request.form.get("inscricao_ate", "")
+    )
+    flash(mensagem, "ok" if ok else "erro")
+    return redirect(url_for("cadastro_batismo"))
 
 
 @app.route("/cadastro/onibus")
@@ -1590,7 +1613,9 @@ def batismo_inscricao():
         else:
             nome_completo = f"{pessoas[0]['nome']} e +{len(pessoas) - 1}"
 
-        if not pessoas:
+        if not batismo.inscricao_esta_aberta():
+            erro = batismo.mensagem_inscricao_encerrada()
+        elif not pessoas:
             erro = "Adicione ao menos uma pessoa da família."
         elif not telefone:
             erro = "Informe o telefone de contato. O número evita cadastro repetido."
@@ -1624,12 +1649,16 @@ def batismo_inscricao():
             )
             return redirect(url_for("batismo_confirmacao", inscricao_id=inscricao_id))
 
+    limite = batismo.obter_data_limite_inscricao()
     return render_template(
         "batismo_inscricao.html",
         igreja=igreja,
         fotos=fotos,
         erro=erro,
         status_opcoes=batismo.STATUS_PUBLICO_OPCOES,
+        inscricao_aberta=batismo.inscricao_esta_aberta(),
+        inscricao_ate_texto=limite.strftime("%d/%m/%Y") if limite else "",
+        inscricao_encerrada_msg=batismo.mensagem_inscricao_encerrada(),
     )
 
 

@@ -7,8 +7,9 @@ from __future__ import annotations
 import io
 import json
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import persistencia
 from telefones import nome_chave, telefones_iguais
@@ -225,10 +226,88 @@ def init_db() -> None:
                 atualizado_em TEXT NOT NULL DEFAULT '',
                 FOREIGN KEY (inscricao_id) REFERENCES inscricoes(id) ON DELETE SET NULL
             );
+
+            CREATE TABLE IF NOT EXISTS config (
+                chave TEXT PRIMARY KEY,
+                valor TEXT NOT NULL DEFAULT ''
+            );
             """
         )
         _garantir_colunas(conn)
         _garantir_assentos_onibus(conn)
+
+
+CHAVE_INSCRICAO_ATE = "inscricao_ate"
+
+
+def hoje_brasil() -> date:
+    try:
+        return datetime.now(ZoneInfo("America/Sao_Paulo")).date()
+    except Exception:
+        return date.today()
+
+
+def obter_data_limite_inscricao() -> date | None:
+    """Data final em que a família ainda pode se inscrever. Vazio = sem limite."""
+    init_db()
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT valor FROM config WHERE chave = ?",
+            (CHAVE_INSCRICAO_ATE,),
+        ).fetchone()
+    if not row:
+        return None
+    texto = (row["valor"] or "").strip()
+    if not texto:
+        return None
+    try:
+        return datetime.strptime(texto, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+
+def definir_data_limite_inscricao(bruto: str) -> tuple[bool, str]:
+    """Grava AAAA-MM-DD. Texto vazio tira o limite e deixa o formulário aberto."""
+    texto = (bruto or "").strip()
+    init_db()
+    with _connect() as conn:
+        if not texto:
+            conn.execute(
+                "DELETE FROM config WHERE chave = ?",
+                (CHAVE_INSCRICAO_ATE,),
+            )
+            return True, "Inscrições sem data limite. O formulário continua aberto."
+        try:
+            limite = datetime.strptime(texto, "%Y-%m-%d").date()
+        except ValueError:
+            return False, "Informe uma data válida."
+        conn.execute(
+            """
+            INSERT INTO config (chave, valor) VALUES (?, ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor
+            """,
+            (CHAVE_INSCRICAO_ATE, limite.isoformat()),
+        )
+    return True, f"Inscrições abertas até {limite.strftime('%d/%m/%Y')}."
+
+
+def inscricao_esta_aberta(hoje: date | None = None) -> bool:
+    limite = obter_data_limite_inscricao()
+    if limite is None:
+        return True
+    if hoje is None:
+        hoje = hoje_brasil()
+    return hoje <= limite
+
+
+def mensagem_inscricao_encerrada() -> str:
+    limite = obter_data_limite_inscricao()
+    if limite is None:
+        return "As inscrições para o batismo estão encerradas."
+    return (
+        "As inscrições para o batismo encerraram em "
+        f"{limite.strftime('%d/%m/%Y')}."
+    )
 
 
 def agora() -> datetime:
