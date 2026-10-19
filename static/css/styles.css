@@ -4092,18 +4092,18 @@ body.tema-batismo-painel .status-form .btn-ghost-dark:hover {
   color: #ffffff;
 }
 
-/* Exportar PDF legível sobre o fundo escuro do painel/ônibus */
+/* Exportar PDF: branco com texto dourado, o inverso do botão dourado do Excel */
 body.tema-batismo-painel .batismo-export .btn-ghost-dark {
-  border: 2px solid rgba(255, 255, 255, 0.85);
-  color: #0f1c2e;
+  border: 2px solid #d4a84b;
+  color: #b8893a;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.92);
+  background: #ffffff;
 }
 
 body.tema-batismo-painel .batismo-export .btn-ghost-dark:hover {
-  background: #ffffff;
-  color: #0d3b66;
-  border-color: #ffffff;
+  background: #fff8e8;
+  color: #8f6a28;
+  border-color: #c9972a;
 }
 
 @media (max-width: 800px) {
