@@ -4106,6 +4106,58 @@ body.tema-batismo-painel .batismo-export .btn-ghost-dark:hover {
   border-color: #ffffff;
 }
 
+@media (max-width: 800px) {
+  body.tema-batismo-painel .batismo-table {
+    min-width: 0;
+  }
+
+  body.tema-batismo-painel .batismo-table thead {
+    display: none;
+  }
+
+  body.tema-batismo-painel .batismo-table,
+  body.tema-batismo-painel .batismo-table tbody,
+  body.tema-batismo-painel .batismo-table tr,
+  body.tema-batismo-painel .batismo-table td {
+    display: block;
+    width: 100%;
+  }
+
+  body.tema-batismo-painel .batismo-table tr {
+    margin: 0 0 0.85rem;
+    padding: 0.85rem 0.95rem 1rem;
+    border: 1px solid rgba(13, 59, 102, 0.16);
+    border-radius: 16px;
+    background: #ffffff;
+  }
+
+  body.tema-batismo-painel .batismo-table td {
+    border: 0;
+    padding: 0.4rem 0;
+    background: transparent;
+  }
+
+  body.tema-batismo-painel .batismo-table tr:nth-child(even) td {
+    background: transparent;
+  }
+
+  body.tema-batismo-painel .batismo-table td::before {
+    display: block;
+    margin-bottom: 0.15rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #0d3b66;
+  }
+
+  body.tema-batismo-painel .batismo-table td:nth-child(1)::before { content: "Família"; }
+  body.tema-batismo-painel .batismo-table td:nth-child(2)::before { content: "Pessoas"; }
+  body.tema-batismo-painel .batismo-table td:nth-child(3)::before { content: "Contato"; }
+  body.tema-batismo-painel .batismo-table td:nth-child(4)::before { content: "Status"; }
+  body.tema-batismo-painel .batismo-table td:nth-child(5)::before { content: "Atualizar"; }
+}
+
 /* Login pastores — texto claro sobre a imagem */
 body.tema-pastores-login {
   --ink: #fff8ee;
@@ -6084,6 +6136,17 @@ body.tema-admin-galeria input[type="file"]::-webkit-file-upload-button {
 /* Admin galeria: sem animação de reveal — no mobile #lideres ficava invisível (opacity 0) */
 body.tema-admin-galeria.js-ready .page-hero,
 body.tema-admin-galeria.js-ready main > .section {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* Cadastro do batismo: a lista é mais alta que a tela do celular e ficava com opacity 0.
+   js-ready fica no <html>, não no body. */
+html.js-ready body.tema-batismo-painel .page-hero,
+html.js-ready body.tema-batismo-painel main > .section,
+html.js-ready body.tema-batismo-cadastro .page-hero,
+html.js-ready body.tema-batismo-cadastro main > .section {
   opacity: 1;
   transform: none;
   transition: none;
