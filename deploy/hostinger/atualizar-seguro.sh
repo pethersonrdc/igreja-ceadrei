@@ -44,6 +44,13 @@ if git -C "$APP_DIR" show HEAD:static/css/styles.css > "$APP_DIR/static/css/styl
 else
   echo "AVISO: não atualizei styles.css"
 fi
+for arquivo in static/css/cadastro-desktop.css static/css/inscricao-desktop.css; do
+  if git -C "$APP_DIR" cat-file -e "HEAD:$arquivo" 2>/dev/null; then
+    git -C "$APP_DIR" show "HEAD:$arquivo" > "$APP_DIR/$arquivo"
+    chown www-data:www-data "$APP_DIR/$arquivo" 2>/dev/null || true
+    echo "$arquivo atualizado"
+  fi
+done
 sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"assets OK\")'" || true
 
 echo "==== 4) Restart seguro ===="
