@@ -34,6 +34,23 @@ def _fundo_para_pdf(caminho: Path, tamanho=(1684, 1190), clarear: float = 0.78) 
     return buf
 
 
+def _linhas_pessoas_batismo(item: dict) -> str:
+    """Um inscrito por linha no PDF do cadastro."""
+    import batismo
+
+    linhas = []
+    for pessoa in batismo.pessoas_da_inscricao(item):
+        extras = [parte for parte in (pessoa.get("sexo"), pessoa.get("documento")) if parte]
+        linha = pessoa.get("nome") or ""
+        if extras:
+            linha = f"{linha} — {' — '.join(extras)}"
+        if linha:
+            linhas.append(linha)
+    if linhas:
+        return "\n".join(linhas)
+    return _formatar_pessoas(item.get("pessoas_texto") or item.get("filhos_texto") or "")
+
+
 def _formatar_pessoas(texto: str) -> str:
     """Um nome por linha (quebra em vírgula) para caber completo na coluna."""
     partes = [p.strip() for p in (texto or "").replace(";", ",").split(",") if p.strip()]
@@ -238,12 +255,11 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
     ]
     linhas = []
     for item in inscricoes:
-        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
         linhas.append(
             [
                 str(item.get("id", "")),
                 (item.get("nome_completo") or "").strip(),
-                _formatar_pessoas(pessoas),
+                _linhas_pessoas_batismo(item),
                 (item.get("telefone") or "").strip(),
                 (item.get("status_texto") or "").strip(),
                 (item.get("valor_pago_texto") or "").strip(),
@@ -263,7 +279,7 @@ def gerar_pdf_onibus(assentos: list[dict]) -> bytes:
     pdf.add_page()
     pdf.cabecalho_relatorio(
         "Escala do ônibus — Evento Batismo CEASDREI",
-        "Semi Leito 7470 · 44 lugares · Responsável: Evangelista Sueli",
+        "ÔNIBUS CEASDREI · 44 lugares · Responsável: Evangelista Sueli",
     )
 
     colunas = [
@@ -344,4 +360,126 @@ def gerar_pdf_casais(inscricoes: list[dict]) -> bytes:
 
     pdf.tabela(colunas, linhas, wrap_cols={1, 3, 5})
     pdf.rodape_relatorio()
+    return bytes(pdf.output())
+
+
+def gerar_pdf_escala_obreiros(
+    itens: list[dict],
+    nome_mes: str,
+    ano: int,
+    igreja_nome: str = "IGREJA CEASDREI",
+) -> bytes:
+    """Folha para imprimir a escala: data, porta vidro, abertura e porta escada."""
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=16)
+    regular = FONTS_DIR / "DejaVuSans.ttf"
+    bold = FONTS_DIR / "DejaVuSans-Bold.ttf"
+    if regular.is_file() and bold.is_file():
+        pdf.add_font("DejaVu", "", str(regular))
+        pdf.add_font("DejaVu", "B", str(bold))
+        familia = "DejaVu"
+    else:
+        familia = "Helvetica"
+
+    colunas = (
+        ("Data", 34),
+        ("Porta vidro", 62),
+        ("Abertura", 45),
+        ("Porta escada", 45),
+    )
+    largura = sum(item[1] for item in colunas)
+
+    def faixa() -> None:
+        pdf.set_fill_color(18, 42, 92)
+        pdf.rect(0, 0, 210, 28, "F")
+        if EMBLEMA.is_file():
+            try:
+                pdf.image(str(EMBLEMA), x=12, y=5, w=16, h=16)
+            except Exception:
+                pass
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_font(familia, "B", 16)
+        pdf.set_xy(32, 5)
+        pdf.cell(166, 8, "ESCALA DE OBREIROS", align="L")
+        pdf.set_font(familia, "", 10)
+        pdf.set_xy(32, 14)
+        pdf.cell(166, 6, f"{igreja_nome}  ·  {nome_mes} / {ano}")
+
+    def cabecalho_tabela() -> None:
+        pdf.set_font(familia, "B", 10)
+        pdf.set_fill_color(18, 42, 92)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_x(12)
+        for titulo, col in colunas:
+            pdf.cell(col, 8, titulo, border=0, fill=True, align="C")
+        pdf.ln(8)
+
+    pdf.add_page()
+    faixa()
+    pdf.set_y(34)
+    cabecalho_tabela()
+
+    if not itens:
+        pdf.set_text_color(18, 40, 52)
+        pdf.set_font(familia, "", 11)
+        pdf.set_x(12)
+        pdf.cell(largura, 12, "Nenhum culto neste mês.", align="C")
+    else:
+        for i, item in enumerate(itens):
+            bruto = (item.get("data_br") or "").strip()
+            if not bruto and item.get("data"):
+                try:
+                    bruto = datetime.fromisoformat(item["data"]).strftime("%d/%m/%Y")
+                except ValueError:
+                    bruto = str(item.get("data") or "")
+            data_txt = bruto[:5]
+            dia = item.get("dia_semana") or ""
+            valores = [
+                f"{data_txt}\n{dia}".strip(),
+                (item.get("porta_vidro") or "—").replace(" & ", " e "),
+                item.get("abertura") or "—",
+                item.get("porta_escada") or "—",
+            ]
+            pdf.set_font(familia, "", 9)
+            alturas = []
+            for texto, (_, col) in zip(valores, colunas):
+                altura = pdf.multi_cell(
+                    col - 3,
+                    4.4,
+                    texto,
+                    dry_run=True,
+                    output=MethodReturnValue.HEIGHT,
+                )
+                alturas.append(max(float(altura), 4.4) + 3)
+            row_h = max(alturas)
+            if pdf.get_y() + row_h > pdf.h - 16:
+                pdf.add_page()
+                faixa()
+                pdf.set_y(34)
+                cabecalho_tabela()
+                pdf.set_font(familia, "", 9)
+
+            y0 = pdf.get_y()
+            if item.get("eh_domingo"):
+                fundo = (255, 246, 226)
+            elif i % 2 == 0:
+                fundo = (255, 255, 255)
+            else:
+                fundo = (230, 240, 248)
+            pdf.set_fill_color(*fundo)
+            pdf.set_draw_color(180, 196, 214)
+            x = 12
+            for texto, (_, col) in zip(valores, colunas):
+                pdf.rect(x, y0, col, row_h, style="DF")
+                pdf.set_text_color(18, 40, 52)
+                pdf.set_xy(x + 1.5, y0 + 1.4)
+                pdf.multi_cell(col - 3, 4.4, texto, border=0)
+                x += col
+            pdf.set_xy(12, y0 + row_h)
+
+    pdf.set_y(-12)
+    pdf.set_text_color(70, 84, 102)
+    pdf.set_font(familia, "", 8)
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    pdf.cell(0, 6, f"{igreja_nome}  ·  Gerado em {agora}", align="C")
     return bytes(pdf.output())

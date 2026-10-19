@@ -675,6 +675,114 @@ def obter_proxima_escala() -> dict | None:
         return _enriquecer_escala(dict(row)) if row else None
 
 
+# Quarta, sexta e domingo — os cultos da escala impressa
+DIAS_CULTO = (2, 4, 6)
+
+
+def datas_de_culto(ano: int, mes: int) -> list[date]:
+    """Dias de culto (quarta, sexta e domingo) dentro do mês."""
+    ultimo = monthrange(ano, mes)[1]
+    dias: list[date] = []
+    for numero in range(1, ultimo + 1):
+        dia = date(ano, mes, numero)
+        if dia.weekday() in DIAS_CULTO:
+            dias.append(dia)
+    return dias
+
+
+def _cultos_antes_do_mes(ano: int, mes: int) -> int:
+    """Cultos desde janeiro de 2026 até a véspera deste mês. A fila de nomes continua."""
+    inicio = date(2026, 1, 1)
+    primeiro = date(ano, mes, 1)
+    if primeiro <= inicio:
+        return 0
+    total = 0
+    cursor = inicio
+    while cursor < primeiro:
+        if cursor.weekday() in DIAS_CULTO:
+            total += 1
+        cursor += timedelta(days=1)
+    return total
+
+
+def montar_escala_automatica(nomes: list[str], ano: int, mes: int) -> list[dict]:
+    """
+    Um culto por quarta, sexta e domingo.
+    Porta vidro leva duas pessoas; abertura e porta escada, uma cada.
+    A mesma pessoa não entra duas vezes no mesmo culto.
+    O mês seguinte continua de onde o anterior parou.
+    """
+    limpos: list[str] = []
+    for nome in nomes:
+        texto = " ".join(str(nome or "").split())
+        if texto and texto not in limpos:
+            limpos.append(texto)
+    if len(limpos) < 4:
+        return []
+
+    total = len(limpos)
+    cursor = (_cultos_antes_do_mes(ano, mes) * 4) % total
+    linhas: list[dict] = []
+    for dia in datas_de_culto(ano, mes):
+        usados: set[str] = set()
+        escolhidos: list[str] = []
+        voltas = 0
+        while len(escolhidos) < 4 and voltas < total * 2:
+            nome = limpos[cursor % total]
+            cursor = (cursor + 1) % total
+            voltas += 1
+            if nome not in usados:
+                usados.add(nome)
+                escolhidos.append(nome)
+        if len(escolhidos) < 4:
+            break
+        linhas.append(
+            {
+                "data": dia.isoformat(),
+                "porta_vidro": juntar_obreiros(escolhidos[0], escolhidos[1]),
+                "abertura": escolhidos[2],
+                "porta_escada": escolhidos[3],
+            }
+        )
+    return linhas
+
+
+def gerar_escala_do_mes(ano: int, mes: int) -> tuple[bool, str]:
+    """Substitui a escala do mês pelos cultos gerados com a lista atual."""
+    if mes < 1 or mes > 12:
+        return False, "Mês inválido."
+    nomes = [item["nome"] for item in listar_obreiros()]
+    linhas = montar_escala_automatica(nomes, ano, mes)
+    if not linhas:
+        return (
+            False,
+            "A lista precisa de pelo menos 4 obreiros para montar porta vidro, abertura e porta escada.",
+        )
+    init_db()
+    prefixo = f"{ano:04d}-{mes:02d}"
+    criado = agora().isoformat(timespec="seconds")
+    with _connect() as conn:
+        conn.execute("DELETE FROM escala WHERE data LIKE ?", (f"{prefixo}%",))
+        conn.executemany(
+            """
+            INSERT INTO escala (data, porta_vidro, abertura, porta_escada, criado_em)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            [
+                (
+                    item["data"],
+                    item["porta_vidro"],
+                    item["abertura"],
+                    item["porta_escada"],
+                    criado,
+                )
+                for item in linhas
+            ],
+        )
+    exportar_escala_json()
+    return True, f"Escala gerada: {len(linhas)} cultos neste mês."
+
+
 def salvar_escala(
     *,
     data_iso: str,

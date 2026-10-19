@@ -4,7 +4,7 @@
    Opcional: onibus_editavel=true + inscritos_pagos (admin)
 #}
 {% set editavel = onibus_editavel|default(false) %}
-{% set onibus_link = url_for('home', _external=True) + '#escala-onibus-home' %}
+{% set onibus_link = url_for('cadastro_onibus', _external=True) %}
 {% set onibus_logo = url_for('static', filename='images/emblema.png') %}
 {% set onibus_igreja = igreja.nome if igreja is defined and igreja.nome else 'IGREJA CEASDREI' %}
 
@@ -30,8 +30,8 @@
 {%- endif -%}
 {%- endmacro %}
 
-<div class="onibus-mapa" aria-label="Mapa do ônibus Semi Leito 7470 — 44 lugares">
-  <p class="onibus-mapa-titulo">Ônibus Semi Leito 7470 · 44 lugares</p>
+<div class="onibus-mapa" aria-label="ÔNIBUS CEASDREI — 44 lugares">
+  <p class="onibus-mapa-titulo">ÔNIBUS CEASDREI · 44 lugares</p>
   <div class="onibus-frente">Frente do ônibus</div>
   {% for linha in onibus_linhas %}
   <div class="onibus-linha onibus-linha--{{ linha.tipo }}">

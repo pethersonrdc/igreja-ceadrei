@@ -66,6 +66,7 @@
       {% endif %}
       {% if batismo_logado and not portal_logado %}
       <a href="{{ url_for('batismo_admin') }}">Batismo</a>
+      <a href="{{ url_for('cadastro_batismo') }}">Cadastro</a>
       <a href="{{ url_for('cadastro_onibus') }}">Ônibus</a>
       {% endif %}
       {% if casais_logado and not portal_logado %}

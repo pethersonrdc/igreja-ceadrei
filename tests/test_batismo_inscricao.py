@@ -135,12 +135,14 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.mimetype, "application/pdf")
 
-        html = self.client.get("/batismo/admin").get_data(as_text=True)
+        html = self.client.get("/cadastro/batismo").get_data(as_text=True)
         self.assertIn("Valor pago", html)
         self.assertIn('name="valor_pago"', html)
         self.assertIn('placeholder="Ex.: 100,00"', html)
         self.assertIn("Baixar comprovante", html)
         self.assertIn("85,50", html)
+        onibus = self.client.get("/cadastro/onibus").get_data(as_text=True)
+        self.assertNotIn('name="valor_pago"', onibus)
 
         # limpar pagamento
         self.assertTrue(batismo.atualizar_valor_pago(inscricao_id, ""))
@@ -164,11 +166,15 @@ class BatismoInscricaoTest(unittest.TestCase):
 
         with self.client.session_transaction() as sess:
             sess["batismo_ok"] = True
-        html = self.client.get("/batismo/admin").get_data(as_text=True)
+        html = self.client.get("/cadastro/batismo").get_data(as_text=True)
         self.assertIn("Pago", html)
         self.assertIn('value="pago"', html)
-        self.assertIn("Cadastro / ônibus", html)
-        self.assertIn("/cadastro/onibus", html)
+        admin = self.client.get("/batismo/admin").get_data(as_text=True)
+        self.assertIn("Cadastro do batismo", admin)
+        self.assertIn("Escala do ônibus", admin)
+        self.assertIn("/cadastro/batismo", admin)
+        self.assertIn("/cadastro/onibus", admin)
+        self.assertNotIn('name="valor_pago"', admin)
 
     def test_escala_onibus_assento_e_limpeza(self) -> None:
         inscricao_id = self._criar(nome_completo="Maria Onibus")
@@ -182,9 +188,8 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertEqual(mapa[15]["inscricao_id"], inscricao_id)
 
         home = self.client.get("/").get_data(as_text=True)
-        self.assertIn("Escala do ônibus", home)
-        self.assertIn("Maria Onibus", home)
-        self.assertIn(">15<", home)
+        self.assertNotIn("Maria Onibus", home)
+        self.assertNotIn("onibus-mapa", home)
 
         limpos = batismo.limpar_escala_onibus()
         self.assertGreaterEqual(limpos, 44)
@@ -210,7 +215,8 @@ class BatismoInscricaoTest(unittest.TestCase):
         with self.client.session_transaction() as sess:
             sess["batismo_ok"] = True
         admin = self.client.get("/batismo/admin").get_data(as_text=True)
-        self.assertIn("Cadastro / ônibus", admin)
+        self.assertIn("Cadastro do batismo", admin)
+        self.assertIn("Escala do ônibus", admin)
         self.assertNotIn("js-onibus-share", admin)
 
         onibus = self.client.get("/cadastro/onibus").get_data(as_text=True)
@@ -225,9 +231,9 @@ class BatismoInscricaoTest(unittest.TestCase):
         self.assertIn("/cadastro/onibus/exportar.pdf", onibus)
 
         home = self.client.get("/").get_data(as_text=True)
-        self.assertIn("Compartilhar escala no WhatsApp", home)
-        self.assertIn("js-onibus-share", home)
-        self.assertIn("onibus-share.js", home)
+        self.assertNotIn("onibus-mapa", home)
+        self.assertNotIn("onibus-share.js", home)
+        self.assertIn("ÔNIBUS CEASDREI", onibus)
 
     def test_exportar_escala_onibus_excel_e_pdf(self) -> None:
         inscricao_id = self._criar(nome_completo="Família Export")

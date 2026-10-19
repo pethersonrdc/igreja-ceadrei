@@ -1321,6 +1321,18 @@ body.tema-sobre .footer-copy {
 }
 
 @media (max-width: 800px) {
+  html {
+    scroll-padding-top: 5.2rem;
+  }
+
+  .site-header {
+    top: 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 0 0 18px 18px;
+    background: rgba(8, 18, 28, 0.94);
+  }
+
   .nav-toggle {
     display: inline-block;
     flex-shrink: 0;
@@ -3940,6 +3952,45 @@ body.tema-batismo-painel .admin-help,
 body.tema-batismo-cadastro .admin-help {
   color: #1a1208;
   text-shadow: none;
+}
+
+body.tema-batismo-painel .cadastro-hero {
+  background: rgba(8, 16, 28, 0.9);
+  border: 1px solid rgba(255, 248, 238, 0.16);
+  border-radius: 1.1rem;
+  padding: 1.2rem 1.35rem 1rem;
+  max-width: 44rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+body.tema-batismo-painel .fundo-pagina--arte::after {
+  background: linear-gradient(90deg, rgba(5, 8, 14, 0.92) 0%, rgba(5, 8, 14, 0.8) 46%, rgba(5, 8, 14, 0.55) 100%);
+}
+
+body.tema-batismo-painel .cadastro-abas {
+  margin: 0.9rem 0 0.2rem;
+}
+
+.cadastro-total {
+  margin: 0.35rem 0 0.6rem;
+  font-size: 1.15rem;
+}
+
+.cadastro-total strong {
+  font-size: 1.45rem;
+}
+
+.cadastro-pessoas {
+  margin: 0.35rem 0 0;
+  padding-left: 1.1rem;
+}
+
+.cadastro-pessoas li + li {
+  margin-top: 0.2rem;
+}
+
+.hero-actions form {
+  margin: 0;
 }
 
 body.tema-batismo-login .arraial-lider-foto figcaption {

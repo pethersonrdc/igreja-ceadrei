@@ -552,109 +552,189 @@ def _fontes_pdf() -> tuple[Path, Path] | None:
     return None
 
 
-def _nomes_para_bilhete(inscricao: dict) -> list[str]:
-    nomes: list[str] = []
-    for campo in ("nome_marido", "nome_mulher"):
-        valor = (inscricao.get(campo) or "").strip()
-        if valor:
-            nomes.append(valor)
+def pessoas_da_inscricao(inscricao: dict) -> list[dict]:
+    """Cada inscrito em um item, na ordem do cadastro, sem repetir o nome."""
+    pessoas: list[dict] = []
+    vistos: set[str] = set()
+
+    def adicionar(nome: str, sexo: str = "", documento: str = "") -> None:
+        limpo = " ".join((nome or "").split())
+        if not limpo:
+            return
+        chave = limpo.casefold()
+        if chave in vistos:
+            return
+        vistos.add(chave)
+        pessoas.append(
+            {
+                "nome": limpo,
+                "sexo": (sexo or "").strip(),
+                "documento": " ".join((documento or "").split()),
+            }
+        )
+
+    adicionar(
+        inscricao.get("nome_marido") or "",
+        inscricao.get("sexo_marido") or "",
+        inscricao.get("rg_marido") or "",
+    )
+    adicionar(
+        inscricao.get("nome_mulher") or "",
+        inscricao.get("sexo_mulher") or "",
+        inscricao.get("rg_mulher") or "",
+    )
     for pessoa in inscricao.get("filhos_objs") or inscricao.get("pessoas_objs") or []:
-        if isinstance(pessoa, dict) and (pessoa.get("nome") or "").strip():
-            nomes.append(pessoa["nome"].strip())
-    if not nomes:
-        titulo = (inscricao.get("nome_completo") or "").strip()
-        if titulo:
-            nomes.append(titulo)
-    return nomes
+        if isinstance(pessoa, dict):
+            adicionar(
+                pessoa.get("nome") or "",
+                pessoa.get("sexo") or "",
+                pessoa.get("documento") or "",
+            )
+    if not pessoas:
+        adicionar(inscricao.get("nome_completo") or "")
+    return pessoas
 
 
-def gerar_bilhete_pdf(inscricao: dict, igreja: dict | None = None) -> io.BytesIO:
-    """Convite / bilhete de confirmação da família no batismo."""
-    from fpdf import FPDF
+def _nomes_para_bilhete(inscricao: dict) -> list[str]:
+    return [pessoa["nome"] for pessoa in pessoas_da_inscricao(inscricao)]
 
-    igreja = igreja or {}
-    nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
-    criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
 
-    pdf = FPDF(orientation="P", unit="mm", format=(148, 210))
-    pdf.set_auto_page_break(auto=False)
-    pdf.add_page()
+def _pdf_familia_fonte(pdf) -> str:
     fontes = _fontes_pdf()
     if fontes:
         pdf.add_font("Ticket", "", str(fontes[0]))
         pdf.add_font("Ticket", "B", str(fontes[1]))
-        familia = "Ticket"
-    else:
-        familia = "Helvetica"
+        return "Ticket"
+    return "Helvetica"
 
-    pdf.set_fill_color(26, 92, 110)
-    pdf.rect(0, 0, 148, 18, "F")
+
+def _pdf_faixa_igreja(pdf, familia: str, nome_igreja: str) -> None:
+    pdf.set_fill_color(18, 52, 78)
+    pdf.rect(0, 0, 210, 22, "F")
     pdf.set_text_color(245, 251, 252)
-    pdf.set_font(familia, "B", 11)
-    pdf.set_xy(10, 5)
-    pdf.cell(128, 8, nome_igreja, align="C")
+    pdf.set_font(familia, "B", 13)
+    pdf.set_xy(14, 7)
+    pdf.cell(182, 8, nome_igreja, align="C")
 
-    if EMBLEMA_PATH.exists():
-        pdf.image(str(EMBLEMA_PATH), x=64, y=24, w=20)
 
-    pdf.set_text_color(18, 54, 64)
-    pdf.set_font(familia, "B", 16)
-    pdf.set_xy(10, 48)
-    pdf.cell(128, 8, "Convite de confirmação", align="C")
-    pdf.set_font(familia, "", 11)
-    pdf.set_xy(10, 56)
-    pdf.cell(128, 7, "Evento Batismo", align="C")
-
-    protocolo = f"Protocolo Nº {int(inscricao.get('id') or 0):04d}"
-    pdf.set_font(familia, "B", 10)
-    pdf.set_xy(10, 66)
-    pdf.cell(128, 6, protocolo, align="C")
-
-    pdf.set_draw_color(46, 125, 140)
-    pdf.set_line_width(0.4)
-    pdf.line(18, 75, 130, 75)
-
+def _pdf_tabela_pessoas(pdf, familia: str, pessoas: list[dict]) -> None:
+    """Um nome por linha, com sexo e documento na mesma faixa."""
     pdf.set_font(familia, "B", 12)
-    pdf.set_xy(14, 80)
-    titulo = (inscricao.get("nome_completo") or "Família").strip() or "Família"
-    pdf.multi_cell(120, 7, titulo, align="C")
+    pdf.set_text_color(18, 52, 78)
+    pdf.set_x(14)
+    pdf.cell(182, 8, "Pessoas da inscrição", new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font(familia, "", 10)
-    pessoas = _nomes_para_bilhete(inscricao)
-    if pessoas:
-        pdf.set_x(14)
-        pdf.multi_cell(120, 6, "Pessoas: " + ", ".join(pessoas), align="C")
-    pdf.set_x(14)
-    pdf.multi_cell(120, 6, f"Telefone: {inscricao.get('telefone') or '—'}", align="C")
-    pdf.set_x(14)
-    pdf.multi_cell(
-        120,
-        6,
-        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
-        align="C",
-    )
-    pdf.set_x(14)
-    pdf.multi_cell(120, 6, f"Inscrito em: {criado_fmt}", align="C")
-    y = pdf.get_y()
-
-    pdf.set_y(max(y + 8, 145))
+    pdf.set_fill_color(18, 52, 78)
+    pdf.set_text_color(255, 255, 255)
     pdf.set_font(familia, "B", 10)
-    pdf.multi_cell(120, 6, MSG_JA_CADASTRADO, align="C")
+    pdf.set_x(14)
+    pdf.cell(100, 8, "  Nome", fill=True)
+    pdf.cell(28, 8, "Sexo", fill=True, align="C")
+    pdf.cell(54, 8, "Documento", fill=True)
+    pdf.ln(8)
+
+    if not pessoas:
+        pdf.set_text_color(18, 40, 52)
+        pdf.set_font(familia, "", 11)
+        pdf.set_x(14)
+        pdf.cell(182, 9, "  —", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(3)
+        return
+
+    for indice, pessoa in enumerate(pessoas):
+        if pdf.get_y() > 255:
+            pdf.add_page()
+            pdf.set_y(16)
+        y = pdf.get_y()
+        pdf.set_fill_color(*(232, 244, 247) if indice % 2 == 0 else (255, 255, 255))
+        pdf.rect(14, y, 182, 9, "F")
+        nome = pessoa.get("nome") or "—"
+        pdf.set_text_color(18, 40, 52)
+        pdf.set_font(familia, "", 11)
+        if pdf.get_string_width(nome) > 94:
+            pdf.set_font(familia, "", 8)
+        pdf.set_xy(16, y + 1.6)
+        pdf.cell(98, 6, nome)
+        pdf.set_font(familia, "", 10)
+        pdf.cell(28, 6, pessoa.get("sexo") or "—", align="C")
+        pdf.cell(52, 6, pessoa.get("documento") or "—")
+        pdf.set_y(y + 9)
+    pdf.ln(4)
+
+
+def _pdf_abrir_folha(nome_igreja: str):
+    from fpdf import FPDF
+
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=True, margin=18)
+    pdf.add_page()
+    familia = _pdf_familia_fonte(pdf)
+    _pdf_faixa_igreja(pdf, familia, nome_igreja)
+    if EMBLEMA_PATH.exists():
+        pdf.image(str(EMBLEMA_PATH), x=95, y=26, w=18)
+        pdf.set_y(48)
+    else:
+        pdf.set_y(30)
+    return pdf, familia
+
+
+def _pdf_linha_info(pdf, familia: str, texto: str) -> None:
+    pdf.set_font(familia, "", 11)
+    pdf.set_text_color(18, 40, 52)
+    pdf.set_x(14)
+    pdf.multi_cell(182, 6, texto, new_x="LMARGIN", new_y="NEXT")
+
+
+def gerar_bilhete_pdf(inscricao: dict, igreja: dict | None = None) -> io.BytesIO:
+    """Confirmação da família: cada pessoa em uma linha."""
+    igreja = igreja or {}
+    nome_igreja = (igreja.get("nome") or "IGREJA CEASDREI").strip()
+    criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
+    pdf, familia = _pdf_abrir_folha(nome_igreja)
+
+    pdf.set_text_color(18, 52, 78)
+    pdf.set_font(familia, "B", 18)
+    pdf.set_x(14)
+    pdf.cell(182, 9, "Confirmação de inscrição", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font(familia, "", 12)
+    pdf.cell(182, 7, "Evento Batismo", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font(familia, "B", 11)
+    pdf.cell(
+        182,
+        7,
+        f"Protocolo Nº {int(inscricao.get('id') or 0):04d}",
+        align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
+    )
     pdf.ln(3)
-    pdf.set_font(familia, "", 9)
+    _pdf_tabela_pessoas(pdf, familia, pessoas_da_inscricao(inscricao))
+    _pdf_linha_info(pdf, familia, f"Telefone: {inscricao.get('telefone') or '—'}")
+    _pdf_linha_info(
+        pdf,
+        familia,
+        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
+    )
+    _pdf_linha_info(pdf, familia, f"Inscrito em: {criado_fmt}")
+    pdf.ln(4)
+    pdf.set_font(familia, "B", 10)
+    pdf.set_text_color(18, 52, 78)
+    pdf.set_x(14)
+    pdf.multi_cell(182, 6, MSG_JA_CADASTRADO, align="C")
+    pdf.ln(2)
+    pdf.set_font(familia, "", 10)
+    pdf.set_x(14)
     pdf.multi_cell(
-        120,
+        182,
         5,
-        "Guarde este convite. Não é necessário cadastrar de novo.",
+        "Guarde este documento. Não é necessário cadastrar de novo.",
         align="C",
     )
-
-    pdf.set_fill_color(26, 92, 110)
-    pdf.rect(0, 195, 148, 15, "F")
-    pdf.set_text_color(245, 251, 252)
-    pdf.set_font(familia, "", 8)
-    pdf.set_xy(10, 198)
-    pdf.cell(128, 8, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
+    pdf.ln(6)
+    pdf.set_font(familia, "", 9)
+    pdf.set_text_color(70, 90, 104)
+    pdf.set_x(14)
+    pdf.cell(182, 6, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
 
     buffer = io.BytesIO(pdf.output())
     buffer.seek(0)
@@ -665,11 +745,9 @@ def gerar_comprovante_pagamento_pdf(
     inscricao: dict, igreja: dict | None = None
 ) -> io.BytesIO:
     """
-    Comprovante no mesmo formato do convite, com o valor escolhido no picklist.
-    O valor vem do banco (valor_pago) — a equipe digita no admin e o PDF imprime.
+    Comprovante com o valor salvo no admin.
+    Cada pessoa da inscrição fica em uma linha.
     """
-    from fpdf import FPDF
-
     if not inscricao.get("tem_pagamento"):
         raise ValueError("Inscrição sem valor de pagamento registrado.")
 
@@ -680,111 +758,99 @@ def gerar_comprovante_pagamento_pdf(
     ) or "—"
     pago_fmt = formatar_data_hora(inscricao.get("pago_em") or "")
     criado_fmt = formatar_data_hora(inscricao.get("criado_em") or "")
+    pdf, familia = _pdf_abrir_folha(nome_igreja)
 
-    pdf = FPDF(orientation="P", unit="mm", format=(148, 210))
-    pdf.set_auto_page_break(auto=False)
-    pdf.add_page()
-    fontes = _fontes_pdf()
-    if fontes:
-        pdf.add_font("Ticket", "", str(fontes[0]))
-        pdf.add_font("Ticket", "B", str(fontes[1]))
-        familia = "Ticket"
-    else:
-        familia = "Helvetica"
-
-    pdf.set_fill_color(26, 92, 110)
-    pdf.rect(0, 0, 148, 18, "F")
-    pdf.set_text_color(245, 251, 252)
+    pdf.set_text_color(18, 52, 78)
+    pdf.set_font(familia, "B", 18)
+    pdf.set_x(14)
+    pdf.cell(182, 9, "Comprovante de pagamento", align="C", new_x="LMARGIN", new_y="NEXT")
+    pdf.set_font(familia, "", 12)
+    pdf.cell(182, 7, "Evento Batismo", align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.set_font(familia, "B", 11)
-    pdf.set_xy(10, 5)
-    pdf.cell(128, 8, nome_igreja, align="C")
-
-    if EMBLEMA_PATH.exists():
-        pdf.image(str(EMBLEMA_PATH), x=64, y=24, w=20)
-
-    pdf.set_text_color(18, 54, 64)
-    pdf.set_font(familia, "B", 15)
-    pdf.set_xy(10, 48)
-    pdf.cell(128, 8, "Comprovante de pagamento", align="C")
-    pdf.set_font(familia, "", 11)
-    pdf.set_xy(10, 56)
-    pdf.cell(128, 7, "Evento Batismo", align="C")
-
-    protocolo = f"Protocolo Nº {int(inscricao.get('id') or 0):04d}"
-    pdf.set_font(familia, "B", 10)
-    pdf.set_xy(10, 66)
-    pdf.cell(128, 6, protocolo, align="C")
-
-    pdf.set_draw_color(46, 125, 140)
-    pdf.set_line_width(0.4)
-    pdf.line(18, 75, 130, 75)
-
-    # Destaque do valor pago (o que a equipe escolheu no picklist)
-    pdf.set_fill_color(232, 244, 247)
-    pdf.set_draw_color(26, 92, 110)
-    pdf.rect(18, 80, 112, 22, "DF")
-    pdf.set_text_color(18, 54, 64)
-    pdf.set_font(familia, "", 9)
-    pdf.set_xy(18, 82)
-    pdf.cell(112, 5, "Valor pago", align="C")
-    pdf.set_font(familia, "B", 16)
-    pdf.set_xy(18, 88)
-    pdf.cell(112, 10, valor_texto, align="C")
-
-    pdf.set_font(familia, "B", 12)
-    pdf.set_xy(14, 108)
-    titulo = (inscricao.get("nome_completo") or "Família").strip() or "Família"
-    pdf.multi_cell(120, 7, titulo, align="C")
-
-    pdf.set_font(familia, "", 10)
-    pessoas = _nomes_para_bilhete(inscricao)
-    if pessoas:
-        pdf.set_x(14)
-        pdf.multi_cell(120, 6, "Pessoas: " + ", ".join(pessoas), align="C")
-    pdf.set_x(14)
-    pdf.multi_cell(120, 6, f"Telefone: {inscricao.get('telefone') or '—'}", align="C")
-    pdf.set_x(14)
-    pdf.multi_cell(
-        120,
-        6,
-        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
+    pdf.cell(
+        182,
+        7,
+        f"Protocolo Nº {int(inscricao.get('id') or 0):04d}",
         align="C",
+        new_x="LMARGIN",
+        new_y="NEXT",
     )
-    pdf.set_x(14)
-    pdf.multi_cell(120, 6, f"Inscrito em: {criado_fmt}", align="C")
-    pdf.set_x(14)
-    pdf.multi_cell(120, 6, f"Pagamento registrado em: {pago_fmt}", align="C")
-    y = pdf.get_y()
+    pdf.ln(2)
 
-    pdf.set_y(max(y + 8, 155))
+    pdf.set_fill_color(232, 244, 247)
+    pdf.set_draw_color(18, 52, 78)
+    y_valor = pdf.get_y()
+    pdf.rect(14, y_valor, 182, 20, "DF")
+    pdf.set_text_color(18, 52, 78)
+    pdf.set_font(familia, "", 9)
+    pdf.set_xy(14, y_valor + 2)
+    pdf.cell(182, 5, "Valor pago", align="C")
+    pdf.set_font(familia, "B", 16)
+    pdf.set_xy(14, y_valor + 8)
+    pdf.cell(182, 8, valor_texto, align="C")
+    pdf.set_y(y_valor + 24)
+
+    _pdf_tabela_pessoas(pdf, familia, pessoas_da_inscricao(inscricao))
+    _pdf_linha_info(pdf, familia, f"Telefone: {inscricao.get('telefone') or '—'}")
+    _pdf_linha_info(
+        pdf,
+        familia,
+        f"Situação: {inscricao.get('status_texto') or inscricao.get('status') or '—'}",
+    )
+    _pdf_linha_info(pdf, familia, f"Inscrito em: {criado_fmt}")
+    _pdf_linha_info(pdf, familia, f"Pagamento registrado em: {pago_fmt}")
+    pdf.ln(4)
     pdf.set_font(familia, "B", 10)
+    pdf.set_text_color(18, 52, 78)
     pdf.set_x(14)
     pdf.multi_cell(
-        120,
+        182,
         6,
         "Este documento comprova o registro do pagamento referente ao Evento Batismo.",
         align="C",
     )
     pdf.ln(2)
-    pdf.set_font(familia, "", 9)
+    pdf.set_font(familia, "", 10)
     pdf.set_x(14)
     pdf.multi_cell(
-        120,
+        182,
         5,
         "Guarde este comprovante. Em caso de dúvida, fale com a Evangelista Sueli.",
         align="C",
     )
-
-    pdf.set_fill_color(26, 92, 110)
-    pdf.rect(0, 195, 148, 15, "F")
-    pdf.set_text_color(245, 251, 252)
-    pdf.set_font(familia, "", 8)
-    pdf.set_xy(10, 198)
-    pdf.cell(128, 8, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
+    pdf.ln(6)
+    pdf.set_font(familia, "", 9)
+    pdf.set_text_color(70, 90, 104)
+    pdf.set_x(14)
+    pdf.cell(182, 6, "Evangelista Sueli  ·  Responsável pelo Evento Batismo", align="C")
 
     buffer = io.BytesIO(pdf.output())
     buffer.seek(0)
     return buffer
+
+
+def contar_lista_batismo(inscricoes: list[dict] | None = None) -> dict:
+    """Quantas famílias e quantas pessoas estão na lista do batismo."""
+    itens = inscricoes if inscricoes is not None else listar_inscricoes()
+    pessoas = 0
+    for item in itens:
+        lista = item.get("pessoas_objs") or item.get("filhos_objs") or []
+        nomes = [
+            p
+            for p in lista
+            if isinstance(p, dict) and (p.get("nome") or "").strip()
+        ]
+        if nomes:
+            pessoas += len(nomes)
+            continue
+        legado = int(bool((item.get("nome_marido") or "").strip())) + int(
+            bool((item.get("nome_mulher") or "").strip())
+        )
+        if legado:
+            pessoas += legado
+        elif (item.get("nome_completo") or "").strip():
+            pessoas += 1
+    return {"familias": len(itens), "pessoas": pessoas}
 
 
 def listar_inscritos_pagos() -> list[dict]:
@@ -924,7 +990,7 @@ def texto_whatsapp_onibus(
     linhas = [
         "*Escala do Ônibus — Evento Batismo*",
         f"{igreja_nome}",
-        "Semi Leito 7470 · 44 lugares",
+        "ÔNIBUS CEASDREI · 44 lugares",
         "",
     ]
     if not ocupados:

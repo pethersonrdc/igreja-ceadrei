@@ -1,0 +1,4 @@
+<nav class="pastores-tabs cadastro-abas" aria-label="Cadastro e ônibus">
+  <a class="pastores-tab{% if aba_cadastro == 'batismo' %} is-active{% endif %}" href="{{ url_for('cadastro_batismo') }}">Cadastro do batismo</a>
+  <a class="pastores-tab{% if aba_cadastro == 'onibus' %} is-active{% endif %}" href="{{ url_for('cadastro_onibus') }}">Escala do ônibus</a>
+</nav>

@@ -152,6 +152,14 @@
       ·
       <a href="{{ url_for('pastores_admin', aba='escala', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
     </p>
+    <p class="admin-help">O botão monta quarta, sexta e domingo deste mês e gira os nomes da lista. Cada mês continua de onde o anterior parou. Depois é só baixar o PDF para imprimir.</p>
+    <div class="hero-actions">
+      <form method="post" action="{{ url_for('pastores_admin', aba='escala', ano=ano, mes=mes) }}" onsubmit="return confirm('Gerar a escala de {{ calendario.nome_mes }} de {{ ano }}? Os dias já lançados neste mês serão substituídos.');">
+        <input type="hidden" name="acao" value="gerar_escala">
+        <button class="btn btn-primary btn-pastores" type="submit">Gerar escala do mês</button>
+      </form>
+      <a class="btn btn-ghost-dark" href="{{ url_for('pastores_escala_pdf', ano=ano, mes=mes) }}">Baixar PDF para imprimir</a>
+    </div>
   </div>
 
   {% if escala %}

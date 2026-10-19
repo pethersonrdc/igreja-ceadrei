@@ -470,22 +470,6 @@
 </section>
 {% endif %}
 
-{% if onibus_linhas is defined and onibus_mapa is defined %}
-<section class="section onibus-home" id="escala-onibus-home">
-  <div class="section-head">
-    <p class="eyebrow">Evento Batismo</p>
-    <h2>Escala do ônibus</h2>
-    <p>Assentos do Semi Leito 7470 (44 lugares). A Evangelista Sueli organiza após a confirmação do pagamento.</p>
-  </div>
-  {% if whatsapp_onibus %}
-  <p class="hero-actions" style="margin-bottom:1rem">
-    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
-  </p>
-  {% endif %}
-  {% include 'includes/onibus_mapa.html' %}
-</section>
-{% endif %}
-
 {% if casais_fotos or casais_programacao %}
 <section class="section gallery-home casais-home">
   <div class="section-head">
@@ -537,8 +521,5 @@
 {% endif %}
 {% if escala_hoje %}
 <script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>
-{% endif %}
-{% if onibus_linhas is defined and onibus_mapa is defined %}
-<script src="{{ url_for('static', filename='js/onibus-share.js') }}"></script>
 {% endif %}
 {% endblock %}
