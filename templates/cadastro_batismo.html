@@ -25,6 +25,20 @@
     border-color: #c9972a !important;
   }
 
+  body.tema-batismo-painel .cadastro-hero .cadastro-total,
+  body.tema-batismo-painel .cadastro-hero .cadastro-resumo {
+    color: #f0c75e !important;
+    font-size: 1.35rem !important;
+    font-weight: 600;
+    line-height: 1.45;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+
+  body.tema-batismo-painel .cadastro-hero .cadastro-total strong {
+    color: #ffe7a3 !important;
+    font-size: 1.75rem !important;
+  }
+
   @media (max-width: 800px) {
     body.tema-batismo-painel .batismo-table { min-width: 0; }
     body.tema-batismo-painel .batismo-table thead { display: none; }
@@ -70,7 +84,7 @@
     em <strong>{{ total_familias }}</strong>
     {{ 'família' if total_familias == 1 else 'famílias' }}.
   </p>
-  <p>Famílias inscritas, pagamento e convite. A escala do ônibus fica na outra aba.</p>
+  <p class="cadastro-resumo">Famílias inscritas, pagamento e convite. A escala do ônibus fica na outra aba.</p>
   {% with aba_cadastro='batismo' %}
     {% include 'includes/cadastro_abas.html' %}
   {% endwith %}

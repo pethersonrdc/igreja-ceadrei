@@ -3973,11 +3973,22 @@ body.tema-batismo-painel .cadastro-abas {
 
 .cadastro-total {
   margin: 0.35rem 0 0.6rem;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
 }
 
-.cadastro-total strong {
-  font-size: 1.45rem;
+body.tema-batismo-painel .cadastro-hero .cadastro-total,
+body.tema-batismo-painel .cadastro-hero .cadastro-resumo {
+  color: #f0c75e;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.45;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+
+.cadastro-total strong,
+body.tema-batismo-painel .cadastro-hero .cadastro-total strong {
+  color: #ffe7a3;
+  font-size: 1.75rem;
 }
 
 .cadastro-pessoas {
