@@ -8666,24 +8666,26 @@ body.tema-portal-login .fundo-pagina--portal::after {
   }
 }
 
-/* Painel do cadastro do batismo — só esta página, visual escuro */
-body.cadastro-admin {
-  background:
-    linear-gradient(100deg, rgba(4, 12, 24, 0.96) 0%, rgba(4, 14, 28, 0.88) 52%, rgba(4, 16, 32, 0.62) 100%),
-    url("../images/batismo/fundo-cadastro.png") right center / cover no-repeat,
-    #06111e;
-  color: #e8eef8;
-}
+/* Painel novo do cadastro: só no computador. O celular usa a lista antiga. */
+@media (min-width: 721px) {
+  body.cadastro-admin {
+    background:
+      linear-gradient(100deg, rgba(4, 12, 24, 0.96) 0%, rgba(4, 14, 28, 0.88) 52%, rgba(4, 16, 32, 0.62) 100%),
+      url("../images/batismo/fundo-cadastro.png") right center / cover no-repeat,
+      #06111e;
+    color: #e8eef8;
+  }
 
-body.cadastro-admin .site-header,
-body.cadastro-admin .site-footer,
-body.cadastro-admin .fundo-pagina {
-  display: none;
-}
+  body.cadastro-admin .site-header,
+  body.cadastro-admin .site-footer,
+  body.cadastro-admin .fundo-pagina {
+    display: none;
+  }
 
-body.cadastro-admin main {
-  padding: 0;
-  margin: 0;
+  body.cadastro-admin main {
+    padding: 0;
+    margin: 0;
+  }
 }
 
 .cad-shell {
@@ -9241,29 +9243,31 @@ body.cadastro-admin .cad-ferramentas .btn-ghost-dark {
   border: 1px solid rgba(224, 180, 78, 0.7);
 }
 
-/* Página pública de inscrição do batismo */
-body.inscricao-publica .site-header,
-body.inscricao-publica .site-footer {
-  display: none;
-}
+/* Inscrição nova: só no computador. O celular continua com o formulário anterior. */
+@media (min-width: 721px) {
+  body.inscricao-publica .site-header,
+  body.inscricao-publica .site-footer {
+    display: none;
+  }
 
-body.inscricao-publica main {
-  padding: 0;
-  margin: 0;
-}
+  body.inscricao-publica main {
+    padding: 0;
+    margin: 0;
+  }
 
-body.inscricao-publica .fundo-pagina--arte {
-  background-image: none;
-  background-color: #07111c;
-}
+  body.inscricao-publica .fundo-pagina--arte {
+    background-image: none;
+    background-color: #07111c;
+  }
 
-body.inscricao-publica .fundo-pagina--arte .fundo-pagina-img {
-  object-fit: cover;
-  object-position: 78% center;
-}
+  body.inscricao-publica .fundo-pagina--arte .fundo-pagina-img {
+    object-fit: cover;
+    object-position: 78% center;
+  }
 
-body.inscricao-publica .fundo-pagina--arte::after {
-  background: linear-gradient(90deg, rgba(6, 14, 26, 0.94) 0%, rgba(6, 14, 26, 0.82) 34%, rgba(6, 14, 26, 0.35) 62%, rgba(6, 14, 26, 0.12) 100%);
+  body.inscricao-publica .fundo-pagina--arte::after {
+    background: linear-gradient(90deg, rgba(6, 14, 26, 0.94) 0%, rgba(6, 14, 26, 0.82) 34%, rgba(6, 14, 26, 0.35) 62%, rgba(6, 14, 26, 0.12) 100%);
+  }
 }
 
 .insc-pagina {

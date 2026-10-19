@@ -1,10 +1,78 @@
 {% extends "base.html" %}
 
-{% block body_class %}cadastro-admin{% endblock %}
+{% block body_class %}pagina-fundo tema-batismo-painel cadastro-admin{% endblock %}
 
 {% block title %}Cadastro de Batismo — {{ igreja.nome }}{% endblock %}
 
+{% block head %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-painel .page-hero,
+  html.js-ready body.tema-batismo-painel main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  body.tema-batismo-painel .batismo-export .btn-ghost-dark {
+    background: #ffffff !important;
+    color: #b8893a !important;
+    border: 2px solid #d4a84b !important;
+    font-weight: 700;
+  }
+  body.tema-batismo-painel .cadastro-hero .cadastro-total,
+  body.tema-batismo-painel .cadastro-hero .cadastro-resumo {
+    color: #f0c75e !important;
+    font-size: 1.35rem !important;
+    font-weight: 600;
+    line-height: 1.45;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+  body.tema-batismo-painel .cadastro-hero .cadastro-total strong {
+    color: #ffe7a3 !important;
+    font-size: 1.75rem !important;
+  }
+  @media (max-width: 720px) {
+    body.tema-batismo-painel .batismo-table { min-width: 0; }
+    body.tema-batismo-painel .batismo-table thead { display: none; }
+    body.tema-batismo-painel .batismo-table,
+    body.tema-batismo-painel .batismo-table tbody,
+    body.tema-batismo-painel .batismo-table tr,
+    body.tema-batismo-painel .batismo-table td {
+      display: block;
+      width: 100%;
+    }
+    body.tema-batismo-painel .batismo-table tr {
+      margin: 0 0 0.85rem;
+      padding: 0.85rem 0.95rem 1rem;
+      border-radius: 16px;
+      background: #fff;
+    }
+    body.tema-batismo-painel .batismo-table td {
+      border: 0;
+      padding: 0.4rem 0;
+      background: transparent;
+    }
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.cadastro-admin .site-header,
+    body.cadastro-admin .site-footer,
+    body.cadastro-admin .fundo-pagina { display: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img class="fundo-pagina-img" src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}" alt="">
+</div>
+{% endblock %}
+
 {% block content %}
+<div class="so-celular">
+  {% include 'includes/cadastro_batismo_celular.html' %}
+</div>
+<div class="so-computador">
 <div class="cad-shell">
   <header class="cad-topbar">
     <a class="cad-brand" href="{{ url_for('home') }}">
@@ -243,6 +311,7 @@
       {% endif %}
     </div>
   </div>
+</div>
 </div>
 {% endblock %}
 

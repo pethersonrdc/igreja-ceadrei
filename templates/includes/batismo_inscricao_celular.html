@@ -1,0 +1,95 @@
+<section class="page-hero pagina-fundo-content">
+  <p class="eyebrow">Evento Batismo</p>
+  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
+  <p>Confira o local e confirme a participação da sua família.</p>
+</section>
+
+{% if fotos %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Local do batismo</h2>
+    <p>Fotos do sítio alugado para o evento.</p>
+  </div>
+  <div class="gallery-grid">
+    {% for foto in fotos %}
+    <figure>
+      <img
+        src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
+        alt="{{ foto.titulo or 'Local do batismo' }}"
+        loading="{{ 'eager' if loop.first else 'lazy' }}"
+      >
+    </figure>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Quem for para o batismo, acesse e preencha</h2>
+    <p>Envie os dados da família e a confirmação de participação. O telefone é a chave: mesmo mudando o nome, se o número já existir o site avisa e libera o convite anterior.</p>
+  </div>
+
+  {% if inscricao_ate_texto and inscricao_aberta %}
+  <p class="admin-help">Inscrições abertas até {{ inscricao_ate_texto }}.</p>
+  {% endif %}
+
+  {% if erro %}
+  <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+  {% endif %}
+
+  {% if not inscricao_aberta %}
+  <div class="admin-card">
+    <h2>Inscrições encerradas</h2>
+    <p>{{ inscricao_encerrada_msg }}</p>
+    <p>Se você já se inscreveu, aguarde o contato do líder do evento.</p>
+  </div>
+  {% else %}
+  <form class="admin-card batismo-form" method="post" id="form-batismo">
+    <div class="filhos-block">
+      <label>Pessoas da família</label>
+      <p class="admin-help">
+        Adicione quem vai ao batismo: marido, mulher, filhos, tios, primos e demais familiares.
+        Informe nome completo, RG/CPF e sexo.
+      </p>
+      <div id="pessoas-lista" class="filhos-lista">
+        <div class="filho-row filho-row--sexo">
+          <input name="pessoas" type="text" placeholder="Nome completo" aria-label="Nome completo da pessoa 1" required>
+          <input name="pessoas_doc" type="text" placeholder="RG ou CPF" aria-label="RG ou CPF da pessoa 1">
+          <div class="sexo-field" data-pessoa-sexo-group>
+            <span class="sexo-field-label">Sexo</span>
+            <div class="sexo-picker" role="group" aria-label="Sexo da pessoa">
+              <label class="sexo-option">
+                <input type="radio" value="M" data-pessoa-sexo>
+                <span>M</span>
+              </label>
+              <label class="sexo-option">
+                <input type="radio" value="F" data-pessoa-sexo>
+                <span>F</span>
+              </label>
+            </div>
+            <input type="hidden" name="pessoas_sexo" value="" data-pessoa-sexo-hidden>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-ghost-dark filhos-add" type="button" id="btn-add-pessoa">Adicionar pessoa</button>
+    </div>
+
+    <label for="telefone">Telefone de contato</label>
+    <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
+    <p class="admin-help">Use um número da família. Ele impede cadastro repetido.</p>
+
+    <fieldset class="batismo-fieldset">
+      <legend>Confirmação</legend>
+      {% for chave, rotulo in status_opcoes.items() %}
+      <label class="check-line">
+        <input type="radio" name="status" value="{{ chave }}" {% if chave == 'vou' %}checked{% endif %} required>
+        <span>{{ rotulo }}</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+
+    <button class="btn btn-primary" type="submit">Enviar inscrição</button>
+  </form>
+  {% endif %}
+</section>

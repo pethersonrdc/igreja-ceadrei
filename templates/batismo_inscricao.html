@@ -1,8 +1,25 @@
 {% extends "base.html" %}
 
-{% block body_class %}inscricao-publica pagina-fundo{% endblock %}
+{% block body_class %}pagina-fundo tema-batismo-cadastro inscricao-publica{% endblock %}
 
 {% block title %}Inscrição Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block head %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-cadastro .page-hero,
+  html.js-ready body.tema-batismo-cadastro main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.inscricao-publica .site-header,
+    body.inscricao-publica .site-footer { display: none !important; }
+  }
+</style>
+{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
@@ -15,6 +32,10 @@
 {% endblock %}
 
 {% block content %}
+<div class="so-celular">
+  {% include 'includes/batismo_inscricao_celular.html' %}
+</div>
+<div class="so-computador">
 <div class="insc-pagina">
   <a class="insc-marca" href="{{ url_for('home') }}">
     <img src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="64" height="64">
@@ -44,14 +65,14 @@
     <p>Se você já se inscreveu, aguarde o contato do líder do evento.</p>
   </div>
   {% else %}
-  <form class="insc-card" method="post" id="form-batismo">
+  <form class="insc-card" method="post" id="form-batismo-desk">
     <p class="insc-passo"><span>1</span> Dados da família</p>
 
     <div class="insc-bloco">
       <h2>Pessoas da família</h2>
       <p>Adicione quem vai ao batismo: marido, mulher, filhos, tios, primos e demais familiares. Informe nome completo, RG/CPF e sexo.</p>
       <div class="insc-bloco-pessoas">
-        <div id="pessoas-lista" class="filhos-lista">
+        <div id="pessoas-lista-desk" class="filhos-lista">
           <div class="filho-row filho-row--sexo">
             <input name="pessoas" type="text" placeholder="Nome completo" aria-label="Nome completo da pessoa 1" required>
             <input name="pessoas_doc" type="text" placeholder="RG ou CPF" aria-label="RG ou CPF da pessoa 1">
@@ -72,14 +93,14 @@
           </div>
         </div>
         <div class="insc-add-linha">
-          <button class="insc-add" type="button" id="btn-add-pessoa">Adicionar pessoa</button>
+          <button class="insc-add" type="button" id="btn-add-pessoa-desk">Adicionar pessoa</button>
         </div>
       </div>
     </div>
 
     <div class="insc-bloco">
       <h2>Telefone de contato</h2>
-      <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
+      <input id="telefone-desk" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
       <p>Use um número da família. Ele impede cadastro repetido.</p>
     </div>
 
@@ -114,14 +135,15 @@
   </section>
   {% endif %}
 </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  (() => {
-    const lista = document.getElementById('pessoas-lista');
-    const btn = document.getElementById('btn-add-pessoa');
-    const form = document.getElementById('form-batismo');
+  function ligarFormulario(listaId, btnId, formId) {
+    const lista = document.getElementById(listaId);
+    const btn = document.getElementById(btnId);
+    const form = document.getElementById(formId);
     if (!lista || !btn) return;
 
     function syncPessoaSexo(row) {
@@ -136,7 +158,7 @@
       const group = row.querySelector('[data-pessoa-sexo-group]');
       if (!group) return;
       const radios = group.querySelectorAll('[data-pessoa-sexo]');
-      const name = `pessoas_sexo_opt_${index}`;
+      const name = `${lista.id}_sexo_${index}`;
       radios.forEach((radio) => {
         radio.name = name;
         radio.addEventListener('change', () => syncPessoaSexo(row));
@@ -205,6 +227,8 @@
 
     btn.addEventListener('click', adicionarPessoa);
     renumerar();
-  })();
+  }
+  ligarFormulario('pessoas-lista', 'btn-add-pessoa', 'form-batismo');
+  ligarFormulario('pessoas-lista-desk', 'btn-add-pessoa-desk', 'form-batismo-desk');
 </script>
 {% endblock %}
