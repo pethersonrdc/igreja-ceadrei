@@ -1,8 +1,27 @@
 {% extends "base.html" %}
 
-{% block body_class %}pagina-fundo tema-batismo-painel{% endblock %}
+{% block body_class %}pagina-fundo tema-batismo-painel cadastro-admin{% endblock %}
 
 {% block title %}Admin Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block head %}
+{% include 'includes/cadastro_desktop_css.html' %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-painel .page-hero,
+  html.js-ready body.tema-batismo-painel main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.cadastro-admin .site-header,
+    body.cadastro-admin .site-footer,
+    body.cadastro-admin .fundo-pagina { display: none !important; }
+  }
+</style>
+{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
@@ -15,6 +34,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="so-celular">
 <section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Evento Batismo</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
@@ -103,4 +123,51 @@
 %}
   {% include 'partials/evento_responsavel_form.html' %}
 {% endwith %}
+</div>
+
+<div class="so-computador">
+<div class="cad-shell">
+  {% with menu_aba='painel' %}
+    {% include 'includes/cadastro_menu_desktop.html' %}
+  {% endwith %}
+      <header class="cad-top">
+        <h1>Painel do batismo</h1>
+        <p>Fotos do sítio e o evento no calendário dos líderes.</p>
+      </header>
+      <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="acao" value="fotos">
+        <h2>Fotos do sítio</h2>
+        <label for="titulo-desk">Título / legenda</label>
+        <input id="titulo-desk" name="titulo" type="text" placeholder="Ex.: Sítio Esperança — área da piscina">
+        <label for="fotos-desk">Fotos do local</label>
+        <input id="fotos-desk" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+        <button class="btn btn-primary" type="submit">Publicar fotos</button>
+      </form>
+      {% if fotos %}
+      <div class="admin-card" style="margin-top:1rem">
+        <h2>Fotos publicadas</h2>
+        {% for foto in fotos %}
+        <p>
+          {{ foto.titulo }}
+          <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');" style="display:inline">
+            <button class="cad-apagar" type="submit">Apagar</button>
+          </form>
+        </p>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% with
+        card_class='',
+        btn_class='',
+        id_suffix='-desk',
+        cancel_url=url_for('batismo_admin'),
+        edit_url_base=url_for('batismo_admin') + '?editar_evento=',
+        delete_url_base=url_for('batismo_admin') + '/evento/'
+      %}
+        {% include 'partials/evento_responsavel_form.html' %}
+      {% endwith %}
+    </div>
+  </div>
+</div>
+</div>
 {% endblock %}

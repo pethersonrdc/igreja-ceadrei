@@ -1251,11 +1251,11 @@ def batismo_login():
         senha = request.form.get("senha", "")
         if check_password_hash(BATISMO_PASSWORD_HASH, senha):
             session["batismo_ok"] = True
-            destino = request.args.get("next") or url_for("batismo_admin")
+            destino = request.args.get("next") or url_for("cadastro_batismo")
             return redirect(destino)
         erro = "Senha incorreta. Tente novamente."
     if session.get("batismo_ok"):
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_batismo"))
     return render_template("batismo_login.html", igreja=igreja, erro=erro, foto_lider=lideres_midia.foto("batismo"))
 
 
