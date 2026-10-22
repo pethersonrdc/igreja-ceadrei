@@ -91,6 +91,18 @@
     </div>
   </section>
   {% endif %}
+
+  {% if videos %}
+  <section class="insc-videos">
+    <h2>Vídeo do batismo</h2>
+    {% for video in videos %}
+    <figure>
+      <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}" style="width:100%;max-height:420px;border-radius:14px;background:#000"></video>
+      {% if video.titulo %}<figcaption>{{ video.titulo }}</figcaption>{% endif %}
+    </figure>
+    {% endfor %}
+  </section>
+  {% endif %}
 </div>
 {% endif %}
 </div>

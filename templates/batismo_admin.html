@@ -13,6 +13,13 @@
     opacity: 1 !important;
     transform: none !important;
   }
+  .cad-videos video {
+    width: 100%;
+    max-height: 360px;
+    border-radius: 12px;
+    background: #000;
+    margin-top: 0.6rem;
+  }
   @media (min-width: 721px) {
     .so-celular { display: none !important; }
     .so-computador { display: block; }
@@ -132,8 +139,15 @@
   {% endwith %}
       <header class="cad-top">
         <h1>Painel do batismo</h1>
-        <p>Fotos do sítio e o evento no calendário dos líderes.</p>
+        <p>Fotos do sítio, o vídeo e o evento no calendário dos líderes.</p>
       </header>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for categoria, mensagem in messages %}
+          <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
       <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
         <input type="hidden" name="acao" value="fotos">
         <h2>Fotos do sítio</h2>
@@ -157,6 +171,30 @@
           </figure>
           {% endfor %}
         </div>
+      </div>
+      {% endif %}
+      <form class="admin-card admin-upload" method="post" enctype="multipart/form-data" style="margin-top:1rem">
+        <input type="hidden" name="acao" value="video">
+        <h2>Vídeo do sítio</h2>
+        <p class="admin-help">O vídeo fica separado da galeria de fotos. Ele aparece na página inicial e na inscrição.</p>
+        <label for="titulo-video-desk">Título / legenda</label>
+        <input id="titulo-video-desk" name="titulo_video" type="text" placeholder="Ex.: Caminhada pelo sítio">
+        <label for="video-desk">Arquivo de vídeo</label>
+        <input id="video-desk" name="video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*" required>
+        <button class="btn btn-primary" type="submit">Publicar vídeo</button>
+      </form>
+      {% if videos %}
+      <div class="admin-card cad-videos" style="margin-top:1rem">
+        <h2>Vídeos publicados</h2>
+        {% for video in videos %}
+        <figure>
+          <figcaption>{{ video.titulo }}</figcaption>
+          <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}"></video>
+          <form method="post" action="{{ url_for('batismo_apagar_video', video_id=video.id) }}" onsubmit="return confirm('Apagar este vídeo?');">
+            <button class="cad-apagar" type="submit">Apagar</button>
+          </form>
+        </figure>
+        {% endfor %}
       </div>
       {% endif %}
       {% with

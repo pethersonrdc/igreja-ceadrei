@@ -438,13 +438,14 @@
   <p class="section-link"><a href="{{ url_for('cultos_page') }}">Ver todos os cultos</a></p>
 </section>
 
-{% if batismo_fotos %}
+{% if batismo_fotos or batismo_videos %}
 <section class="section gallery-home batismo-home">
   <div class="section-head">
     <h2>Destaque — Evento Batismo</h2>
     <p>Evangelista Sueli é a Responsável pelo evento. Confira o local e confirme sua participação.</p>
   </div>
 
+  {% if batismo_fotos %}
   <div class="carousel" data-carousel>
     <div class="carousel-track">
       {% for foto in batismo_fotos %}
@@ -463,6 +464,19 @@
     <div class="carousel-dots" data-carousel-dots></div>
     {% endif %}
   </div>
+  {% endif %}
+
+  {% if batismo_videos %}
+  <div class="batismo-videos">
+    <h3 style="margin:1.2rem 0 0.6rem">Vídeo do batismo</h3>
+    {% for video in batismo_videos %}
+    <figure>
+      <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}" style="width:100%;max-height:420px;border-radius:14px;background:#000"></video>
+      {% if video.titulo %}<figcaption>{{ video.titulo }}</figcaption>{% endif %}
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <p class="section-link">
     <a href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo, acesse aqui</a>

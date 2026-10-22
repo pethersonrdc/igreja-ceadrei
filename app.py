@@ -480,6 +480,7 @@ def home():
     posts = gallery.listar_posts_ativos()
     destaque = posts[0] if posts else None
     fotos_batismo = batismo.listar_fotos()
+    videos_batismo = batismo.listar_videos()
     fotos_casais = casais.listar_fotos()
     programacao_casais = casais.obter_programacao()
     escala_hoje = pastores.obter_proxima_escala()
@@ -521,6 +522,7 @@ def home():
         cultos=cultos,
         galeria_destaque=destaque,
         batismo_fotos=fotos_batismo,
+        batismo_videos=videos_batismo,
         casais_fotos=fotos_casais,
         casais_programacao=programacao_casais,
         escala_hoje=escala_hoje,
@@ -1307,6 +1309,24 @@ def batismo_admin():
             _processar_evento_responsavel("batismo")
             return redirect(url_for("batismo_admin"))
 
+        if acao == "video":
+            titulo_video = request.form.get("titulo_video", "").strip() or "Vídeo do batismo"
+            arquivo = request.files.get("video")
+            if not arquivo or not arquivo.filename:
+                flash("Envie um arquivo de vídeo.", "erro")
+            elif not batismo.extensao_video_ok(arquivo.filename):
+                flash("Use um vídeo MP4, WEBM, OGG ou MOV.", "erro")
+            else:
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"{uuid.uuid4().hex}{extensao}"
+                destino = batismo.UPLOAD_DIR / nome_final
+                arquivo.save(destino)
+                persistencia.espelhar_arquivo_upload("batismo", nome_final)
+                batismo.adicionar_video(nome_final, titulo_video)
+                flash("Vídeo publicado. Ele aparece separado das fotos.", "ok")
+            return redirect(url_for("batismo_admin"))
+
         titulo = request.form.get("titulo", "").strip() or "Local do batismo"
         arquivos = request.files.getlist("fotos")
         salvos = []
@@ -1343,6 +1363,7 @@ def batismo_admin():
         "batismo_admin.html",
         igreja=igreja,
         fotos=batismo.listar_fotos(),
+        videos=batismo.listar_videos(),
         inscricoes=batismo.listar_inscricoes(),
         status_opcoes=batismo.STATUS_OPCOES,
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
@@ -1358,6 +1379,16 @@ def batismo_apagar_foto(foto_id: int):
         flash("Foto apagada.", "ok")
     else:
         flash("Foto não encontrada.", "erro")
+    return redirect(url_for("batismo_admin"))
+
+
+@app.route("/batismo/admin/video/<int:video_id>/apagar", methods=["POST"])
+@batismo_login_required
+def batismo_apagar_video(video_id: int):
+    if batismo.apagar_video(video_id):
+        flash("Vídeo apagado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
     return redirect(url_for("batismo_admin"))
 
 
@@ -1655,6 +1686,7 @@ def batismo_inscricao():
         "batismo_inscricao.html",
         igreja=igreja,
         fotos=fotos,
+        videos=batismo.listar_videos(),
         erro=erro,
         status_opcoes=batismo.STATUS_PUBLICO_OPCOES,
         inscricao_aberta=batismo.inscricao_esta_aberta(),

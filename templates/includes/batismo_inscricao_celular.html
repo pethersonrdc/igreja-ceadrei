@@ -24,6 +24,21 @@
 </section>
 {% endif %}
 
+{% if videos %}
+<section class="section pagina-fundo-content">
+  <div class="section-head">
+    <h2>Vídeo do batismo</h2>
+    <p>Assista separado das fotos do sítio.</p>
+  </div>
+  {% for video in videos %}
+  <figure>
+    <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}" style="width:100%;max-height:420px;border-radius:14px;background:#000"></video>
+    {% if video.titulo %}<figcaption>{{ video.titulo }}</figcaption>{% endif %}
+  </figure>
+  {% endfor %}
+</section>
+{% endif %}
+
 <section class="section pagina-fundo-content">
   <div class="section-head">
     <h2>Quem for para o batismo, acesse e preencha</h2>

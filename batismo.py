@@ -20,6 +20,7 @@ UPLOAD_DIR = persistencia.upload_dir("batismo")
 DB_PATH = persistencia.db_path("batismo.db")
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".mov"}
 
 H1_RESPONSAVEL = (
     "Evangelista Sueli é a Responsável pelo evento dúvida entre em contato."
@@ -231,6 +232,13 @@ def init_db() -> None:
                 chave TEXT PRIMARY KEY,
                 valor TEXT NOT NULL DEFAULT ''
             );
+
+            CREATE TABLE IF NOT EXISTS videos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                arquivo TEXT NOT NULL,
+                titulo TEXT NOT NULL DEFAULT '',
+                criado_em TEXT NOT NULL
+            );
             """
         )
         _garantir_colunas(conn)
@@ -316,6 +324,10 @@ def agora() -> datetime:
 
 def extensao_ok(nome: str) -> bool:
     return Path(nome).suffix.lower() in ALLOWED_EXTENSIONS
+
+
+def extensao_video_ok(nome: str) -> bool:
+    return Path(nome).suffix.lower() in VIDEO_EXTENSIONS
 
 
 def serializar_filhos(filhos: list[dict]) -> str:
@@ -404,6 +416,43 @@ def apagar_foto(foto_id: int) -> bool:
         if caminho.exists():
             caminho.unlink()
         conn.execute("DELETE FROM fotos WHERE id = ?", (foto_id,))
+        return True
+
+
+def listar_videos() -> list[dict]:
+    init_db()
+    with _connect() as conn:
+        rows = conn.execute(
+            "SELECT * FROM videos ORDER BY criado_em DESC, id DESC"
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+
+def adicionar_video(arquivo: str, titulo: str = "") -> int:
+    init_db()
+    criado = agora().isoformat(timespec="seconds")
+    titulo = (titulo or "Vídeo do batismo").strip()
+    with _connect() as conn:
+        cur = conn.execute(
+            "INSERT INTO videos (arquivo, titulo, criado_em) VALUES (?, ?, ?)",
+            (arquivo, titulo, criado),
+        )
+        return int(cur.lastrowid)
+
+
+def apagar_video(video_id: int) -> bool:
+    init_db()
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT arquivo FROM videos WHERE id = ?",
+            (video_id,),
+        ).fetchone()
+        if not row:
+            return False
+        caminho = UPLOAD_DIR / row["arquivo"]
+        if caminho.exists():
+            caminho.unlink()
+        conn.execute("DELETE FROM videos WHERE id = ?", (video_id,))
         return True
 
 
