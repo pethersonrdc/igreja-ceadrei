@@ -2,6 +2,64 @@
 
 {% block title %}{{ igreja.nome }} — Bem-vindo{% endblock %}
 
+{% block head %}
+<style>
+  /* Só o destaque do batismo na página inicial. Os outros carrosséis ficam como estão. */
+  .batismo-home {
+    padding-top: 2.4rem;
+    padding-bottom: 2.4rem;
+  }
+  .batismo-home .section-head {
+    margin-bottom: 1rem;
+  }
+  .batismo-home .carousel {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+    background: #0d2436;
+  }
+  .batismo-home .carousel-track,
+  .batismo-home .carousel-slide {
+    width: 100%;
+    height: 100%;
+  }
+  .batismo-home .carousel-slide {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+  .batismo-home .carousel-slide img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    object-fit: cover;
+    object-position: center;
+    animation: none;
+  }
+  .batismo-home .batismo-videos video {
+    width: 100%;
+    max-height: 420px;
+    border-radius: 18px;
+    background: #000;
+  }
+  @media (max-width: 720px) {
+    .batismo-home {
+      width: min(100% - 1.2rem, 1120px);
+      padding-top: 1.4rem;
+      padding-bottom: 1.4rem;
+    }
+    .batismo-home .carousel {
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+    }
+    .batismo-home .section-head h2 {
+      font-size: 1.7rem;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <div class="hero-media">
