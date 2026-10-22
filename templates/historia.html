@@ -1,11 +1,49 @@
 {% extends "base.html" %}
 
-{% block body_class %}tema-historia{% endblock %}
+{% block body_class %}tema-historia pagina-fundo{% endblock %}
 
 {% block title %}História CEASDREI — {{ igreja.nome }}{% endblock %}
 
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img
+    class="fundo-pagina-img"
+    src="{{ url_for('fundo_historia') }}"
+    alt=""
+  >
+</div>
+{% endblock %}
+
+{% block head %}
+{% if posts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@5.4.4/dist/photoswipe.css" crossorigin="anonymous">
+{% endif %}
+<style>
+  /* Zoom: a arte preenche a tela inteira (sem faixas pretas) */
+  body.tema-historia .fundo-pagina,
+  body.tema-historia .fundo-pagina.fundo-pagina--arte {
+    background-color: #061422 !important;
+    background-image: none !important;
+  }
+  body.tema-historia .fundo-pagina-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+  body.tema-historia .fundo-pagina--arte::after {
+    background: linear-gradient(
+      180deg,
+      rgba(6, 16, 32, 0.28) 0%,
+      rgba(6, 16, 32, 0.12) 46%,
+      rgba(6, 16, 32, 0.38) 100%
+    ) !important;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="historia-hero">
+<section class="historia-hero pagina-fundo-content">
   <div class="historia-hero-inner">
     <img class="historia-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="72" height="72">
     <p class="eyebrow">Linha do tempo</p>
@@ -19,7 +57,7 @@
   </div>
 </section>
 
-<section class="section historia-filtros">
+<section class="section historia-filtros pagina-fundo-content">
   <p class="eyebrow">Filtrar por ano</p>
   <div class="historia-anos" role="navigation" aria-label="Anos da história">
     <a class="historia-ano {% if not ano_filtro %}is-active{% endif %}" href="{{ url_for('historia_page') }}">Todos</a>
@@ -30,19 +68,30 @@
   </div>
 </section>
 
-<section class="section historia-timeline">
+<section class="section historia-timeline pagina-fundo-content">
   {% if posts %}
     {% for post in posts %}
-    <article class="historia-card" id="marco-{{ post.id }}">
+    <article class="historia-card" id="marco-{{ post.id }}" data-pswp-gallery>
       <div class="historia-card-meta">
         {% if post.ano %}<span class="historia-ano-badge">{{ post.ano }}</span>{% endif %}
         {% if post.data_br %}<time datetime="{{ post.data_evento }}">{{ post.data_br }}</time>{% endif %}
       </div>
       <div class="historia-card-body">
         {% if post.destaque %}
+        {% set dim_destaque = historia_dimensao(post.destaque) %}
         <figure class="historia-destaque">
-          <img src="{{ url_for('static', filename='uploads/historia/' + post.destaque) }}"
-               alt="{{ post.titulo }}" loading="lazy">
+          <a
+            class="historia-zoom"
+            href="{{ midia_upload('historia', post.destaque) }}"
+            data-pswp-width="{{ dim_destaque[0] }}"
+            data-pswp-height="{{ dim_destaque[1] }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="Ampliar foto: {{ post.titulo }}"
+          >
+            <img src="{{ midia_upload('historia', post.destaque) }}"
+                 alt="{{ post.titulo }}" loading="lazy">
+          </a>
         </figure>
         {% endif %}
         <div class="historia-copy">
@@ -58,11 +107,22 @@
         <figure>
           {% if midia.tipo == 'video' %}
           <video controls playsinline preload="metadata"
-            src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}">
+            src="{{ midia_upload('historia', midia.arquivo) }}">
           </video>
           {% else %}
-          <img src="{{ url_for('static', filename='uploads/historia/' + midia.arquivo) }}"
-               alt="{{ post.titulo }}" loading="lazy">
+          {% set dim = historia_dimensao(midia.arquivo) %}
+          <a
+            class="historia-zoom"
+            href="{{ midia_upload('historia', midia.arquivo) }}"
+            data-pswp-width="{{ dim[0] }}"
+            data-pswp-height="{{ dim[1] }}"
+            target="_blank"
+            rel="noopener"
+            aria-label="Ampliar foto {{ loop.index }}: {{ post.titulo }}"
+          >
+            <img src="{{ midia_upload('historia', midia.arquivo) }}"
+                 alt="{{ post.titulo }}" loading="lazy">
+          </a>
           {% endif %}
         </figure>
         {% endfor %}
@@ -74,4 +134,10 @@
     <p class="historia-vazio">Ainda não há marcos publicados nesta história.</p>
   {% endif %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+{% if posts %}
+<script type="module" src="{{ url_for('static', filename='js/galeria-lightbox.js') }}?v={{ galeria_lightbox_js_version }}"></script>
+{% endif %}
 {% endblock %}

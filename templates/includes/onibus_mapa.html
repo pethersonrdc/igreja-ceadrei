@@ -4,16 +4,17 @@
    Opcional: onibus_editavel=true + inscritos_pagos (admin)
 #}
 {% set editavel = onibus_editavel|default(false) %}
-{% set onibus_link = url_for('home', _external=True) + '#escala-onibus-home' %}
+{% set onibus_link = url_for('cadastro_onibus', _external=True) %}
 {% set onibus_logo = url_for('static', filename='images/emblema.png') %}
 {% set onibus_igreja = igreja.nome if igreja is defined and igreja.nome else 'IGREJA CEASDREI' %}
+{% set hint_id = onibus_hint_id|default('onibus-share-hint') %}
 
 {% macro onibus_share_btn(num, assento) -%}
 {%- if assento and assento.ocupado -%}
 <button
   type="button"
   class="onibus-wa js-onibus-share"
-  data-hint="#onibus-share-hint"
+  data-hint="#{{ hint_id }}"
   data-payload='{{ {
     "numero": num,
     "nome": assento.nome,
@@ -30,8 +31,8 @@
 {%- endif -%}
 {%- endmacro %}
 
-<div class="onibus-mapa" aria-label="Mapa do ônibus Semi Leito 7470 — 44 lugares">
-  <p class="onibus-mapa-titulo">Ônibus Semi Leito 7470 · 44 lugares</p>
+<div class="onibus-mapa" aria-label="ÔNIBUS CEASDREI — 44 lugares">
+  <p class="onibus-mapa-titulo">ÔNIBUS CEASDREI · 44 lugares</p>
   <div class="onibus-frente">Frente do ônibus</div>
   {% for linha in onibus_linhas %}
   <div class="onibus-linha onibus-linha--{{ linha.tipo }}">
@@ -103,4 +104,4 @@
   </div>
   {% endfor %}
 </div>
-<p class="onibus-share-hint admin-help" id="onibus-share-hint" hidden></p>
+<p class="onibus-share-hint admin-help" id="{{ hint_id }}" hidden></p>

@@ -1,0 +1,32 @@
+<header class="cad-topbar">
+  <a class="cad-brand" href="{{ url_for('home') }}">
+    <img src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="42" height="42">
+    <span>
+      <strong>IGREJA CEASDREI</strong>
+      <small>Servindo a Deus · Servindo ao Próximo</small>
+    </span>
+  </a>
+  <nav class="cad-topnav" aria-label="Atalhos">
+    <a href="{{ url_for('home') }}">Início</a>
+    <a href="{{ url_for('cadastro_batismo') }}" {% if menu_aba == 'familias' %}class="is-active"{% endif %}>Famílias</a>
+  </nav>
+  <div class="cad-user">
+    <img src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="36" height="36">
+    <span>
+      <strong>Administrador</strong>
+      <small>Cadastro</small>
+    </span>
+  </div>
+</header>
+<div class="cad-corpo">
+  <aside class="cad-side">
+    <img class="cad-emblema" src="{{ url_for('static', filename='images/emblema.png') }}" alt="Emblema da Igreja CEASDREI" width="148" height="148">
+    <nav class="cad-nav" aria-label="Painel do líder">
+      <a href="{{ url_for('cadastro_batismo') }}" {% if menu_aba == 'familias' %}class="is-active"{% endif %}>Cadastro de Batismo</a>
+      <a href="{{ url_for('cadastro_onibus') }}" {% if menu_aba == 'onibus' %}class="is-active"{% endif %}>Escala do ônibus</a>
+      <a href="{{ url_for('batismo_inscricao') }}" {% if menu_aba == 'nova' %}class="is-active"{% endif %}>Nova inscrição</a>
+      <a href="{{ url_for('batismo_admin') }}" {% if menu_aba == 'painel' %}class="is-active"{% endif %}>Painel do batismo</a>
+      <a href="{{ url_for('batismo_logout') }}">Sair</a>
+    </nav>
+  </aside>
+  <div class="cad-main">

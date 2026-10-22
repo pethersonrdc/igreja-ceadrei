@@ -32,6 +32,25 @@ if ! sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from app i
 fi
 
 echo "==== 3) Assets ===="
+# styles.css no VPS às vezes fica skip-worktree e o reset não atualiza.
+# Grava como root: www-data não consegue sobrescrever se o arquivo for de outro dono.
+sudo -u www-data git update-index --no-skip-worktree static/css/styles.css 2>/dev/null || true
+sudo -u www-data git update-index --no-assume-unchanged static/css/styles.css 2>/dev/null || true
+chown www-data:www-data "$APP_DIR/static/css/styles.css" 2>/dev/null || true
+chmod 644 "$APP_DIR/static/css/styles.css" 2>/dev/null || true
+if git -C "$APP_DIR" show HEAD:static/css/styles.css > "$APP_DIR/static/css/styles.css"; then
+  chown www-data:www-data "$APP_DIR/static/css/styles.css" 2>/dev/null || true
+  echo "styles.css atualizado"
+else
+  echo "AVISO: não atualizei styles.css"
+fi
+for arquivo in static/css/cadastro-desktop.css static/css/inscricao-desktop.css; do
+  if git -C "$APP_DIR" cat-file -e "HEAD:$arquivo" 2>/dev/null; then
+    git -C "$APP_DIR" show "HEAD:$arquivo" > "$APP_DIR/$arquivo"
+    chown www-data:www-data "$APP_DIR/$arquivo" 2>/dev/null || true
+    echo "$arquivo atualizado"
+  fi
+done
 sudo -u www-data bash -lc "cd '$APP_DIR' && .venv/bin/python -c 'from portal_login_assets import ensure_portal_login_files; ensure_portal_login_files(\"static\"); print(\"assets OK\")'" || true
 
 echo "==== 4) Restart seguro ===="

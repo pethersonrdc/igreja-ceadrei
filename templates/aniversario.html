@@ -31,7 +31,7 @@
   <div class="section-head">
     <p class="eyebrow">Marcadas pela mídia</p>
     <h2>Fotos especiais em destaque</h2>
-    <p>Modelo Polaroid — cards inclinados, estilo foto impressa.</p>
+    <p>Destaques da celebração — moldura estilo foto impressa.</p>
   </div>
 
   <div class="polaroid-rail" data-polaroid-rail>
@@ -39,7 +39,7 @@
     <figure class="polaroid-card polaroid-card--{{ (loop.index0 % 5) + 1 }}">
       <div class="polaroid-photo">
         <img
-          src="{{ url_for('static', filename='uploads/aniversario/' + item.arquivo) }}"
+          src="{{ midia_upload('aniversario', item.arquivo) }}"
           alt="{{ item.titulo }}"
           loading="{% if loop.index <= 3 %}eager{% else %}lazy{% endif %}"
         >
@@ -79,11 +79,11 @@
           <figure class="film-strip-frame">
             {% if midia.tipo == 'video' %}
             <video controls playsinline preload="metadata"
-              src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}">
+              src="{{ midia_upload('aniversario', midia.arquivo) }}">
             </video>
             {% else %}
             <img
-              src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
+              src="{{ midia_upload('aniversario', midia.arquivo) }}"
               alt="{{ post.titulo }} — foto {{ loop.index }}"
               loading="{% if loop.first %}eager{% else %}lazy{% endif %}"
               draggable="false"
@@ -100,10 +100,10 @@
         <figure class="aniversario-media {% if midia.tipo == 'video' %}aniversario-media--video{% endif %} aniversario-media--single">
           {% if midia.tipo == 'video' %}
           <video controls playsinline preload="metadata"
-            src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}">
+            src="{{ midia_upload('aniversario', midia.arquivo) }}">
           </video>
           {% else %}
-          <img src="{{ url_for('static', filename='uploads/aniversario/' + midia.arquivo) }}"
+          <img src="{{ midia_upload('aniversario', midia.arquivo) }}"
                alt="{{ post.titulo }}" loading="lazy">
           {% endif %}
         </figure>

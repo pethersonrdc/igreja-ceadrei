@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import io
 import os
+import subprocess
 import uuid
 from datetime import date
 from functools import wraps
@@ -47,6 +48,7 @@ import som
 import tema_site
 
 BASE_DIR = Path(__file__).resolve().parent
+
 # JSON de configuração versionados no Git (igreja, cultos, etc.)
 DATA_DIR = BASE_DIR / "data"
 
@@ -61,7 +63,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ceasdrei-dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 120 * 1024 * 1024  # 120 MB (vídeos do Papo de Altar)
 # Versão visível para confirmar deploy no ar
-APP_BUILD = os.environ.get("APP_BUILD", "pastores-aniversario-5dias-20260918")
+APP_BUILD = os.environ.get("APP_BUILD", "cadastro-onibus-escala-20261019")
 
 # Garante CSS/fundo no disco; rotas /portal/assets/* também servem da memória.
 # Nunca derrubar o boot do Gunicorn por falha de escrita em static/.
@@ -212,8 +214,13 @@ def _portal_modulos() -> list[dict]:
             "url": url_for("batismo_admin"),
         },
         {
-            "titulo": "Cadastro / ônibus",
-            "desc": "Escala e famílias do ônibus.",
+            "titulo": "Cadastro do batismo",
+            "desc": "Famílias inscritas, pagamento e convite.",
+            "url": url_for("cadastro_batismo"),
+        },
+        {
+            "titulo": "Escala do ônibus",
+            "desc": "ÔNIBUS CEASDREI.",
             "url": url_for("cadastro_onibus"),
         },
         {
@@ -409,6 +416,8 @@ def inject_admin():
         "galeria_dimensao": gallery.dimensao_imagem,
         "galeria_url": gallery.url_static_galeria,
         "galeria_src_grid": gallery.src_galeria_grid,
+        "midia_upload": persistencia.url_upload,
+        "historia_dimensao": historia.dimensao_midia,
         "og_image_default": url_for(
             "static", filename="images/emblema.png", _external=True
         ),
@@ -471,6 +480,7 @@ def home():
     posts = gallery.listar_posts_ativos()
     destaque = posts[0] if posts else None
     fotos_batismo = batismo.listar_fotos()
+    videos_batismo = batismo.listar_videos()
     fotos_casais = casais.listar_fotos()
     programacao_casais = casais.obter_programacao()
     escala_hoje = pastores.obter_proxima_escala()
@@ -506,16 +516,13 @@ def home():
             )
         )
     videos_pos_culto = porta_altar.listar_videos_publicos(tipo="pos_culto")[:2]
-    onibus_mapa = batismo.mapa_assentos_onibus(
-        igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
-        link=url_for("home", _external=True) + "#escala-onibus-home",
-    )
     return render_template(
         "index.html",
         igreja=igreja,
         cultos=cultos,
         galeria_destaque=destaque,
         batismo_fotos=fotos_batismo,
+        batismo_videos=videos_batismo,
         casais_fotos=fotos_casais,
         casais_programacao=programacao_casais,
         escala_hoje=escala_hoje,
@@ -530,18 +537,6 @@ def home():
         escala_louvor=escala_louvor,
         whatsapp_escala_louvor=whatsapp_escala_louvor,
         videos_pos_culto=videos_pos_culto,
-        onibus_linhas=batismo.ONIBUS_LINHAS,
-        onibus_mapa=onibus_mapa,
-        onibus_tem_ocupacao=any(
-            (onibus_mapa.get(n) or {}).get("ocupado") for n in batismo.ONIBUS_NUMEROS
-        ),
-        whatsapp_onibus=batismo.url_whatsapp(
-            batismo.texto_whatsapp_onibus(
-                list(onibus_mapa.values()),
-                igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
-                link=url_for("home", _external=True) + "#escala-onibus-home",
-            )
-        ),
     )
 
 
@@ -699,6 +694,60 @@ def aniversario_apagar(post_id: int):
 
 
 # ---------- História CEASDREI (mídia — nunca na home) ----------
+
+_fundo_historia_cache: bytes | None = None
+
+
+def _carregar_fundo_historia() -> bytes | None:
+    """Lê o fundo da História. Se o Nginx não achar em /static/, serve pelo Flask."""
+    global _fundo_historia_cache
+    if _fundo_historia_cache:
+        return _fundo_historia_cache
+    caminho = BASE_DIR / "static" / "images" / "historia" / "fundo.jpg"
+    dados = b""
+    if caminho.is_file():
+        try:
+            dados = caminho.read_bytes()
+        except OSError:
+            dados = b""
+    if len(dados) < 1000:
+        try:
+            dados = subprocess.check_output(
+                [
+                    "git",
+                    "-C",
+                    str(BASE_DIR),
+                    "show",
+                    "HEAD:static/images/historia/fundo.jpg",
+                ],
+                stderr=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            dados = b""
+    if len(dados) < 1000:
+        return None
+    try:
+        caminho.parent.mkdir(parents=True, exist_ok=True)
+        if not caminho.is_file() or caminho.stat().st_size < 1000:
+            caminho.write_bytes(dados)
+    except OSError:
+        pass
+    _fundo_historia_cache = dados
+    return dados
+
+
+@app.route("/fundo/historia.jpg")
+def fundo_historia():
+    dados = _carregar_fundo_historia()
+    if not dados:
+        abort(404)
+    return send_file(
+        io.BytesIO(dados),
+        mimetype="image/jpeg",
+        download_name="fundo.jpg",
+        max_age=86400,
+    )
+
 
 @app.route("/historia")
 def historia_page():
@@ -1190,6 +1239,8 @@ def app_versao():
             "admin_tem_exportar_excel": "Exportar Excel" in admin_txt
             and "Abrir Cadastro / ônibus" not in admin_txt,
             "onibus_tem_inscricoes": "Inscrições das famílias" in onibus_txt,
+            "cadastro_separado_do_onibus": "Escala do ônibus" in onibus_txt
+            and "Inscrições das famílias" not in onibus_txt,
         }
     )
 
@@ -1202,11 +1253,11 @@ def batismo_login():
         senha = request.form.get("senha", "")
         if check_password_hash(BATISMO_PASSWORD_HASH, senha):
             session["batismo_ok"] = True
-            destino = request.args.get("next") or url_for("batismo_admin")
+            destino = request.args.get("next") or url_for("cadastro_batismo")
             return redirect(destino)
         erro = "Senha incorreta. Tente novamente."
     if session.get("batismo_ok"):
-        return redirect(url_for("batismo_admin"))
+        return redirect(url_for("cadastro_batismo"))
     return render_template("batismo_login.html", igreja=igreja, erro=erro, foto_lider=lideres_midia.foto("batismo"))
 
 
@@ -1258,6 +1309,24 @@ def batismo_admin():
             _processar_evento_responsavel("batismo")
             return redirect(url_for("batismo_admin"))
 
+        if acao == "video":
+            titulo_video = request.form.get("titulo_video", "").strip() or "Vídeo do batismo"
+            arquivo = request.files.get("video")
+            if not arquivo or not arquivo.filename:
+                flash("Envie um arquivo de vídeo.", "erro")
+            elif not batismo.extensao_video_ok(arquivo.filename):
+                flash("Use um vídeo MP4, WEBM, OGG ou MOV.", "erro")
+            else:
+                nome_seguro = secure_filename(arquivo.filename)
+                extensao = Path(nome_seguro).suffix.lower()
+                nome_final = f"{uuid.uuid4().hex}{extensao}"
+                destino = batismo.UPLOAD_DIR / nome_final
+                arquivo.save(destino)
+                persistencia.espelhar_arquivo_upload("batismo", nome_final)
+                batismo.adicionar_video(nome_final, titulo_video)
+                flash("Vídeo publicado. Ele aparece separado das fotos.", "ok")
+            return redirect(url_for("batismo_admin"))
+
         titulo = request.form.get("titulo", "").strip() or "Local do batismo"
         arquivos = request.files.getlist("fotos")
         salvos = []
@@ -1273,6 +1342,7 @@ def batismo_admin():
             nome_final = f"{uuid.uuid4().hex}{extensao}"
             destino = batismo.UPLOAD_DIR / nome_final
             arquivo.save(destino)
+            persistencia.espelhar_arquivo_upload("batismo", nome_final)
             salvos.append(nome_final)
 
         if not salvos:
@@ -1293,6 +1363,7 @@ def batismo_admin():
         "batismo_admin.html",
         igreja=igreja,
         fotos=batismo.listar_fotos(),
+        videos=batismo.listar_videos(),
         inscricoes=batismo.listar_inscricoes(),
         status_opcoes=batismo.STATUS_OPCOES,
         eventos_calendario=pastores.listar_eventos_lideres(origem="batismo"),
@@ -1311,6 +1382,16 @@ def batismo_apagar_foto(foto_id: int):
     return redirect(url_for("batismo_admin"))
 
 
+@app.route("/batismo/admin/video/<int:video_id>/apagar", methods=["POST"])
+@batismo_login_required
+def batismo_apagar_video(video_id: int):
+    if batismo.apagar_video(video_id):
+        flash("Vídeo apagado.", "ok")
+    else:
+        flash("Vídeo não encontrado.", "erro")
+    return redirect(url_for("batismo_admin"))
+
+
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/status", methods=["POST"])
 @batismo_login_required
 def batismo_atualizar_status(inscricao_id: int):
@@ -1319,7 +1400,7 @@ def batismo_atualizar_status(inscricao_id: int):
         flash("Status atualizado.", "ok")
     else:
         flash("Não foi possível atualizar o status.", "erro")
-    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+    return redirect(url_for("cadastro_batismo"))
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/pagamento", methods=["POST"])
@@ -1336,7 +1417,7 @@ def batismo_atualizar_pagamento(inscricao_id: int):
             flash("Pagamento removido desta inscrição.", "ok")
     else:
         flash("Não foi possível salvar o valor pago.", "erro")
-    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+    return redirect(url_for("cadastro_batismo"))
 
 
 @app.route("/batismo/admin/inscricao/<int:inscricao_id>/comprovante.pdf")
@@ -1346,15 +1427,15 @@ def batismo_baixar_comprovante(inscricao_id: int):
     inscricao = batismo.obter_inscricao(inscricao_id)
     if not inscricao:
         flash("Inscrição não encontrada.", "erro")
-        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+        return redirect(url_for("cadastro_batismo"))
     if not inscricao.get("tem_pagamento"):
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+        return redirect(url_for("cadastro_batismo"))
     try:
         buffer = batismo.gerar_comprovante_pagamento_pdf(inscricao, igreja)
     except ValueError:
         flash("Selecione e salve o valor pago antes de baixar o comprovante.", "erro")
-        return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+        return redirect(url_for("cadastro_batismo"))
     return send_file(
         buffer,
         as_attachment=True,
@@ -1380,20 +1461,58 @@ def batismo_apagar_inscricao(inscricao_id: int):
         flash("Família removida da lista de batismo.", "ok")
     else:
         flash("Inscrição não encontrada.", "erro")
-    return redirect(url_for("cadastro_onibus") + "#inscricoes-familias")
+    return redirect(url_for("cadastro_batismo"))
+
+
+@app.route("/cadastro/batismo")
+@batismo_login_required
+def cadastro_batismo():
+    """Somente as inscrições das famílias. A escala do ônibus fica em outra página."""
+    igreja = load_json("igreja.json")
+    inscricoes = batismo.listar_inscricoes()
+    totais = batismo.contar_lista_batismo(inscricoes)
+    confirmados = sum(1 for item in inscricoes if item.get("status") in {"vou", "pago"})
+    pendentes = sum(1 for item in inscricoes if item.get("status") == "analise")
+    limite = batismo.obter_data_limite_inscricao()
+    return render_template(
+        "cadastro_batismo.html",
+        igreja=igreja,
+        inscricoes=inscricoes,
+        status_opcoes=batismo.STATUS_OPCOES,
+        total_familias=totais["familias"],
+        total_pessoas=totais["pessoas"],
+        total_confirmados=confirmados,
+        total_pendentes=pendentes,
+        inscricao_ate=limite.isoformat() if limite else "",
+        inscricao_ate_texto=limite.strftime("%d/%m/%Y") if limite else "",
+        inscricao_aberta=batismo.inscricao_esta_aberta(),
+    )
+
+
+@app.route("/cadastro/batismo/prazo", methods=["POST"])
+@batismo_login_required
+def cadastro_batismo_prazo():
+    """O líder define até qual dia a família ainda pode se inscrever."""
+    if request.form.get("limpar") == "1":
+        _ok, mensagem = batismo.definir_data_limite_inscricao("")
+        flash(mensagem, "ok")
+        return redirect(url_for("cadastro_batismo"))
+    ok, mensagem = batismo.definir_data_limite_inscricao(
+        request.form.get("inscricao_ate", "")
+    )
+    flash(mensagem, "ok" if ok else "erro")
+    return redirect(url_for("cadastro_batismo"))
 
 
 @app.route("/cadastro/onibus")
 @batismo_login_required
 def cadastro_onibus():
-    """Cadastro / ônibus: inscrições das famílias + escala de assentos."""
+    """Somente a escala de assentos do ônibus."""
     igreja = load_json("igreja.json")
-    link_home = url_for("home", _external=True) + "#escala-onibus-home"
+    link_home = url_for("cadastro_onibus", _external=True)
     return render_template(
         "cadastro_onibus.html",
         igreja=igreja,
-        inscricoes=batismo.listar_inscricoes(),
-        status_opcoes=batismo.STATUS_OPCOES,
         onibus_linhas=batismo.ONIBUS_LINHAS,
         onibus_mapa=batismo.mapa_assentos_onibus(
             igreja_nome=igreja.get("nome") or "IGREJA CEASDREI",
@@ -1526,7 +1645,9 @@ def batismo_inscricao():
         else:
             nome_completo = f"{pessoas[0]['nome']} e +{len(pessoas) - 1}"
 
-        if not pessoas:
+        if not batismo.inscricao_esta_aberta():
+            erro = batismo.mensagem_inscricao_encerrada()
+        elif not pessoas:
             erro = "Adicione ao menos uma pessoa da família."
         elif not telefone:
             erro = "Informe o telefone de contato. O número evita cadastro repetido."
@@ -1560,12 +1681,17 @@ def batismo_inscricao():
             )
             return redirect(url_for("batismo_confirmacao", inscricao_id=inscricao_id))
 
+    limite = batismo.obter_data_limite_inscricao()
     return render_template(
         "batismo_inscricao.html",
         igreja=igreja,
         fotos=fotos,
+        videos=batismo.listar_videos(),
         erro=erro,
         status_opcoes=batismo.STATUS_PUBLICO_OPCOES,
+        inscricao_aberta=batismo.inscricao_esta_aberta(),
+        inscricao_ate_texto=limite.strftime("%d/%m/%Y") if limite else "",
+        inscricao_encerrada_msg=batismo.mensagem_inscricao_encerrada(),
     )
 
 
@@ -2037,6 +2163,11 @@ def pastores_admin():
                 flash("Não foi possível remover o obreiro.", "erro")
             return redirect(url_for("pastores_admin", ano=ano, mes=mes, aba="escala"))
 
+        if acao == "gerar_escala":
+            ok, mensagem = pastores.gerar_escala_do_mes(ano, mes)
+            flash(mensagem, "ok" if ok else "erro")
+            return redirect(url_for("pastores_admin", ano=ano, mes=mes, aba="escala"))
+
         if acao == "destaque":
             pregador_nome = request.form.get("pregador_nome", "").strip()
             arquivo = request.files.get("pregador_foto")
@@ -2181,6 +2312,49 @@ def pastores_admin():
         mes=mes,
         aba=request.args.get("aba", "escala"),
     )
+
+
+def _pdf_escala_obreiros(ano: int, mes: int):
+    import pdf_relatorios
+
+    igreja = load_json("igreja.json")
+    calendario = pastores.calendario_mes(ano, mes)
+    buffer = io.BytesIO(
+        pdf_relatorios.gerar_pdf_escala_obreiros(
+            pastores.listar_escala(ano, mes),
+            calendario["nome_mes"],
+            ano,
+            igreja.get("nome") or "IGREJA CEASDREI",
+        )
+    )
+    buffer.seek(0)
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"escala-obreiros-{mes:02d}-{ano}.pdf",
+        mimetype="application/pdf",
+    )
+
+
+@app.route("/pastores/admin/escala.pdf")
+@pastores_login_required
+def pastores_escala_pdf():
+    hoje = pastores.hoje()
+    ano = int(request.args.get("ano", hoje.year))
+    mes = int(request.args.get("mes", hoje.month))
+    if mes < 1 or mes > 12:
+        mes = hoje.month
+    return _pdf_escala_obreiros(ano, mes)
+
+
+@app.route("/comunicado/escala.pdf")
+def comunicado_escala_pdf():
+    hoje = pastores.hoje()
+    ano = int(request.args.get("ano", hoje.year))
+    mes = int(request.args.get("mes", hoje.month))
+    if mes < 1 or mes > 12:
+        mes = hoje.month
+    return _pdf_escala_obreiros(ano, mes)
 
 
 @app.route("/pastores/admin/escala/<int:escala_id>/apagar", methods=["POST"])

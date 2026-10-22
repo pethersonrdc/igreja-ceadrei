@@ -18,6 +18,9 @@ import persistencia
 _AVISO_HORA_RE = re.compile(
     r"(?<![\d])(\d{1,2}\s*[:hH]\s*\d{2})(?!\d)",
 )
+_AVISO_NUMERO_RE = re.compile(
+    r"(\d{1,3}(?:\.\d{3})*,\d{2}|\d{8,})",
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = persistencia.data_root()
@@ -68,10 +71,14 @@ def formatar_aviso_html(texto: str) -> Markup:
         return Markup("")
     escapado = str(escape(limpo))
 
+    def _numero(match: re.Match[str]) -> str:
+        return f'<span class="aviso-numero">{match.group(1)}</span>'
+
     def _wrap(match: re.Match[str]) -> str:
         return f'<span class="aviso-hora">{match.group(1)}</span>'
 
-    return Markup(_AVISO_HORA_RE.sub(_wrap, escapado))
+    com_numeros = _AVISO_NUMERO_RE.sub(_numero, escapado)
+    return Markup(_AVISO_HORA_RE.sub(_wrap, com_numeros))
 
 
 def obter_aviso_home() -> dict:

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from fpdf import FPDF
 from fpdf.enums import MethodReturnValue, XPos, YPos
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 
 BASE_DIR = Path(__file__).resolve().parent
 FONTS_DIR = BASE_DIR / "static" / "fonts"
@@ -32,6 +32,23 @@ def _fundo_para_pdf(caminho: Path, tamanho=(1684, 1190), clarear: float = 0.78) 
     misturado.save(buf, format="JPEG", quality=88, optimize=True)
     buf.seek(0)
     return buf
+
+
+def _linhas_pessoas_batismo(item: dict) -> str:
+    """Um inscrito por linha no PDF do cadastro."""
+    import batismo
+
+    linhas = []
+    for pessoa in batismo.pessoas_da_inscricao(item):
+        extras = [parte for parte in (pessoa.get("sexo"), pessoa.get("documento")) if parte]
+        linha = pessoa.get("nome") or ""
+        if extras:
+            linha = f"{linha} — {' — '.join(extras)}"
+        if linha:
+            linhas.append(linha)
+    if linhas:
+        return "\n".join(linhas)
+    return _formatar_pessoas(item.get("pessoas_texto") or item.get("filhos_texto") or "")
 
 
 def _formatar_pessoas(texto: str) -> str:
@@ -238,12 +255,11 @@ def gerar_pdf_batismo(inscricoes: list[dict]) -> bytes:
     ]
     linhas = []
     for item in inscricoes:
-        pessoas = item.get("pessoas_texto") or item.get("filhos_texto") or ""
         linhas.append(
             [
                 str(item.get("id", "")),
                 (item.get("nome_completo") or "").strip(),
-                _formatar_pessoas(pessoas),
+                _linhas_pessoas_batismo(item),
                 (item.get("telefone") or "").strip(),
                 (item.get("status_texto") or "").strip(),
                 (item.get("valor_pago_texto") or "").strip(),
@@ -263,7 +279,7 @@ def gerar_pdf_onibus(assentos: list[dict]) -> bytes:
     pdf.add_page()
     pdf.cabecalho_relatorio(
         "Escala do ônibus — Evento Batismo CEASDREI",
-        "Semi Leito 7470 · 44 lugares · Responsável: Evangelista Sueli",
+        "ÔNIBUS CEASDREI · 44 lugares · Responsável: Evangelista Sueli",
     )
 
     colunas = [
@@ -344,4 +360,226 @@ def gerar_pdf_casais(inscricoes: list[dict]) -> bytes:
 
     pdf.tabela(colunas, linhas, wrap_cols={1, 3, 5})
     pdf.rodape_relatorio()
+    return bytes(pdf.output())
+
+
+def _nome_escala(texto: str) -> str:
+    limpo = " ".join((texto or "").replace(" & ", " e ").split())
+    return limpo or "—"
+
+
+ESCALA_CABECALHO = BASE_DIR / "static" / "images" / "escala-cabecalho.png"
+
+
+def _banner_escala(nome_mes: str, ano: int, igreja_nome: str) -> io.BytesIO:
+    """Arte do topo, com o mês certo no lugar do texto fixo da imagem."""
+    im = Image.open(ESCALA_CABECALHO).convert("RGBA")
+    faixa = im.crop((190, 146, 600, 154)).resize((430, 28))
+    im.paste(faixa, (175, 120))
+    draw = ImageDraw.Draw(im)
+    fonte = FONTS_DIR / "DejaVuSans.ttf"
+    font = ImageFont.truetype(str(fonte), 15) if fonte.is_file() else ImageFont.load_default()
+    texto = f"{(igreja_nome or 'IGREJA CEASDREI').upper()}   •   {(nome_mes or '').upper()} / {ano}"
+    caixa = draw.textbbox((0, 0), texto, font=font)
+    largura = caixa[2] - caixa[0]
+    draw.text(((im.width - largura) / 2, 124), texto, font=font, fill=(255, 255, 255, 255))
+    buf = io.BytesIO()
+    im.convert("RGB").save(buf, format="PNG")
+    buf.seek(0)
+    return buf
+
+
+def _icone_coluna(draw: ImageDraw.ImageDraw, tipo: str, cx: int, cy: int, tam: int, cor: tuple[int, int, int]) -> None:
+    if tipo == "data":
+        draw.rounded_rectangle((cx - tam, cy - tam, cx + tam, cy + tam), radius=3, outline=cor, width=3)
+        draw.rectangle((cx - tam, cy - tam, cx + tam, cy - tam // 3), fill=cor)
+    elif tipo == "vidro":
+        draw.rectangle((cx - tam, cy - tam, cx + tam, cy + tam), outline=cor, width=3)
+        draw.line((cx, cy - tam, cx, cy + tam), fill=cor, width=3)
+    else:
+        draw.rectangle((cx - int(tam * 0.8), cy - tam, cx + int(tam * 0.8), cy + tam), outline=cor, width=3)
+        draw.ellipse((cx + 1, cy - 2, cx + int(tam * 0.45), cy + int(tam * 0.3)), fill=cor)
+
+
+def _barra_colunas_ouro(larguras: list[float]) -> io.BytesIO:
+    """Faixa dourada com ícone e nome de cada coluna, na mesma largura da tabela."""
+    ppm = 14
+    alt = 9 * ppm
+    fatias = [max(int(item * ppm), 1) for item in larguras]
+    total = sum(fatias)
+    img = Image.new("RGB", (total, alt))
+    px = img.load()
+    for x in range(total):
+        t = x / max(total - 1, 1)
+        brilho = 1 - abs(t - 0.38) * 1.15
+        brilho = max(0.15, min(1.0, brilho))
+        for y in range(alt):
+            v = 1 - abs((y / alt) - 0.35) * 0.55
+            r = int((120 + 120 * brilho) * v)
+            g = int((78 + 110 * brilho) * v)
+            b = int((18 + 48 * brilho) * v)
+            px[x, y] = (min(r, 255), min(g, 255), min(b, 255))
+    draw = ImageDraw.Draw(img)
+    fonte = FONTS_DIR / "DejaVuSans-Bold.ttf"
+    font = ImageFont.truetype(str(fonte), int(alt * 0.52)) if fonte.is_file() else ImageFont.load_default()
+    tinta = (18, 32, 58)
+    tipos = ("data", "vidro", "porta", "porta")
+    x = 0
+    titulos = ("DATA", "PORTA VIDRO", "ABERTURA", "PORTA ESCADA")
+    tam_icone = int(alt * 0.24)
+    for i, (titulo, fatia) in enumerate(zip(titulos, fatias)):
+        if i:
+            draw.line((x, 10, x, alt - 10), fill=(110, 74, 18), width=3)
+        caixa = draw.textbbox((0, 0), titulo, font=font)
+        tw = caixa[2] - caixa[0]
+        bloco = tw + tam_icone * 2 + 14
+        inicio = x + max(6, (fatia - bloco) / 2)
+        _icone_coluna(draw, tipos[i], int(inicio + tam_icone), alt // 2, tam_icone, tinta)
+        draw.text((inicio + tam_icone * 2 + 12, alt / 2), titulo, font=font, fill=tinta, anchor="lm")
+        x += fatia
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return buf
+
+
+def gerar_pdf_escala_obreiros(
+    itens: list[dict],
+    nome_mes: str,
+    ano: int,
+    igreja_nome: str = "IGREJA CEASDREI",
+) -> bytes:
+    """Folha paisagem no visual da escala impressa: azul, ouro e quatro colunas."""
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.set_auto_page_break(auto=False)
+    regular = FONTS_DIR / "DejaVuSans.ttf"
+    bold = FONTS_DIR / "DejaVuSans-Bold.ttf"
+    if regular.is_file() and bold.is_file():
+        pdf.add_font("DejaVu", "", str(regular))
+        pdf.add_font("DejaVu", "B", str(bold))
+        familia = "DejaVu"
+    else:
+        familia = "Helvetica"
+
+    ouro = (214, 168, 62)
+    ouro_claro = (236, 201, 110)
+    azul_fundo = (7, 16, 38)
+    azul_linha = (16, 62, 128)
+    azul_linha_b = (12, 48, 104)
+    branco = (255, 255, 255)
+
+    colunas = (
+        ("DATA", 38),
+        ("PORTA VIDRO", 96),
+        ("ABERTURA", 74),
+        ("PORTA ESCADA", 74),
+    )
+    x0 = 8.0
+    largura = sum(item[1] for item in colunas)
+    linha_h = 4.2
+
+    def fundo_pagina() -> None:
+        pdf.set_fill_color(*azul_fundo)
+        pdf.rect(0, 0, 297, 210, "F")
+        pdf.set_draw_color(*ouro)
+        pdf.set_line_width(0.8)
+        pdf.rect(4.5, 4.5, 288, 201, "D")
+        pdf.set_line_width(0.25)
+        pdf.rect(6.2, 6.2, 284.6, 197.6, "D")
+
+    def cabecalho() -> float:
+        if ESCALA_CABECALHO.is_file():
+            banner = _banner_escala(nome_mes, ano, igreja_nome)
+            largura_banner = 236.0
+            altura_banner = largura_banner * 180 / 762
+            pdf.image(banner, x=(297 - largura_banner) / 2, y=7, w=largura_banner, h=altura_banner)
+            return 7 + altura_banner + 1.5
+        pdf.set_text_color(*ouro_claro)
+        pdf.set_font(familia, "B", 26)
+        pdf.set_xy(12, 12)
+        pdf.cell(273, 12, "ESCALA DE OBREIROS", align="C")
+        return 36
+
+    def cabecalho_tabela(y: float) -> float:
+        barra = _barra_colunas_ouro([col for _, col in colunas])
+        pdf.image(barra, x=x0, y=y, w=largura, h=9)
+        return y + 9
+
+    def nova_pagina() -> float:
+        pdf.add_page()
+        fundo_pagina()
+        y = cabecalho()
+        return cabecalho_tabela(y)
+
+    y = nova_pagina()
+
+    if not itens:
+        pdf.set_text_color(*branco)
+        pdf.set_font(familia, "", 12)
+        pdf.set_xy(x0, y + 8)
+        pdf.cell(largura, 10, "Nenhum culto neste mês.", align="C")
+    else:
+        for i, item in enumerate(itens):
+            bruto = (item.get("data_br") or "").strip()
+            if not bruto and item.get("data"):
+                try:
+                    bruto = datetime.fromisoformat(str(item["data"])).strftime("%d/%m/%Y")
+                except ValueError:
+                    bruto = str(item.get("data") or "")
+            data_txt = bruto[:5]
+            dia = item.get("dia_semana") or ""
+            nomes = [
+                _nome_escala(item.get("porta_vidro") or ""),
+                _nome_escala(item.get("abertura") or ""),
+                _nome_escala(item.get("porta_escada") or ""),
+            ]
+            pdf.set_font(familia, "", 9)
+            alturas = [9.4]
+            for texto, (_, col) in zip(nomes, colunas[1:]):
+                altura = pdf.multi_cell(
+                    col - 4,
+                    linha_h,
+                    texto,
+                    dry_run=True,
+                    output=MethodReturnValue.HEIGHT,
+                )
+                alturas.append(max(float(altura), linha_h) + 3.2)
+            row_h = max(alturas)
+            if y + row_h > 196:
+                y = nova_pagina()
+            fundo = azul_linha if i % 2 == 0 else azul_linha_b
+            pdf.set_fill_color(*fundo)
+            pdf.set_draw_color(*ouro)
+            pdf.set_line_width(0.25)
+            x = x0
+            for col_i, (_, col) in enumerate(colunas):
+                pdf.rect(x, y, col, row_h, style="DF")
+                pdf.set_text_color(*branco)
+                if col_i == 0:
+                    pdf.set_text_color(*ouro_claro)
+                    pdf.set_font(familia, "B", 10)
+                    pdf.set_xy(x + 2, y + 0.8)
+                    pdf.cell(col - 4, 4, data_txt, align="L")
+                    pdf.set_text_color(*branco)
+                    pdf.set_font(familia, "", 7.5)
+                    pdf.set_xy(x + 2, y + 4.8)
+                    pdf.cell(col - 4, 3.2, dia, align="L")
+                else:
+                    pdf.set_font(familia, "", 9)
+                    texto_h = pdf.multi_cell(
+                        col - 4,
+                        linha_h,
+                        nomes[col_i - 1],
+                        dry_run=True,
+                        output=MethodReturnValue.HEIGHT,
+                    )
+                    pdf.set_xy(x + 2, y + max(1.4, (row_h - float(texto_h)) / 2))
+                    pdf.multi_cell(col - 4, linha_h, nomes[col_i - 1], border=0, align="L")
+                x += col
+            y += row_h
+
+    pdf.set_text_color(*ouro_claro)
+    pdf.set_font(familia, "B", 12)
+    pdf.set_xy(8, 198)
+    pdf.cell(281, 6, "Juntos na Obra de Deus", align="C")
     return bytes(pdf.output())

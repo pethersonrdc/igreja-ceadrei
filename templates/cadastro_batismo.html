@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+
+{% block body_class %}pagina-fundo tema-batismo-painel cadastro-admin{% endblock %}
+
+{% block title %}Cadastro de Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block head %}
+{% include 'includes/cadastro_desktop_css.html' %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-painel .page-hero,
+  html.js-ready body.tema-batismo-painel main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  body.tema-batismo-painel .batismo-export .btn-ghost-dark {
+    background: #ffffff !important;
+    color: #b8893a !important;
+    border: 2px solid #d4a84b !important;
+    font-weight: 700;
+  }
+  body.tema-batismo-painel .cadastro-hero .cadastro-total,
+  body.tema-batismo-painel .cadastro-hero .cadastro-resumo {
+    color: #f0c75e !important;
+    font-size: 1.35rem !important;
+    font-weight: 600;
+    line-height: 1.45;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+  }
+  body.tema-batismo-painel .cadastro-hero .cadastro-total strong {
+    color: #ffe7a3 !important;
+    font-size: 1.75rem !important;
+  }
+  @media (max-width: 720px) {
+    body.tema-batismo-painel .batismo-table { min-width: 0; }
+    body.tema-batismo-painel .batismo-table thead { display: none; }
+    body.tema-batismo-painel .batismo-table,
+    body.tema-batismo-painel .batismo-table tbody,
+    body.tema-batismo-painel .batismo-table tr,
+    body.tema-batismo-painel .batismo-table td {
+      display: block;
+      width: 100%;
+    }
+    body.tema-batismo-painel .batismo-table tr {
+      margin: 0 0 0.85rem;
+      padding: 0.85rem 0.95rem 1rem;
+      border-radius: 16px;
+      background: #fff;
+    }
+    body.tema-batismo-painel .batismo-table td {
+      border: 0;
+      padding: 0.4rem 0;
+      background: transparent;
+    }
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.cadastro-admin .site-header,
+    body.cadastro-admin .site-footer,
+    body.cadastro-admin .fundo-pagina { display: none !important; }
+  }
+</style>
+{% endblock %}
+
+{% block page_bg %}
+<div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
+  <img class="fundo-pagina-img" src="{{ url_for('static', filename='images/batismo/fundo-cadastro.png') }}" alt="">
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="so-celular">
+  {% include 'includes/cadastro_batismo_celular.html' %}
+</div>
+<div class="so-computador">
+<div class="cad-shell">
+  {% with menu_aba='familias' %}
+    {% include 'includes/cadastro_menu_desktop.html' %}
+  {% endwith %}
+      <header class="cad-top">
+        <h1>Cadastro de Batismo</h1>
+        <p>Gerencie famílias e candidatos ao batismo.</p>
+      </header>
+
+      <form class="cad-prazo" method="post" action="{{ url_for('cadastro_batismo_prazo') }}">
+        <div>
+          <label for="inscricao-ate">Inscrições abertas até</label>
+          {% if inscricao_ate %}
+          <p>As famílias podem se inscrever até {{ inscricao_ate_texto }}. No dia seguinte o formulário fecha.</p>
+          {% else %}
+          <p>Sem data limite, o formulário público continua aberto. Escolha o último dia e salve.</p>
+          {% endif %}
+        </div>
+        <input id="inscricao-ate" name="inscricao_ate" type="date" value="{{ inscricao_ate }}">
+        <button type="submit">Salvar data</button>
+        {% if inscricao_ate %}
+        <button type="submit" name="limpar" value="1">Deixar sempre aberta</button>
+        {% endif %}
+      </form>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for categoria, mensagem in messages %}
+          <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <section class="cad-cards" aria-label="Resumo da lista">
+        <article class="cad-card cad-card--azul">
+          <span class="cad-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M8 11a3 3 0 1 0-3-3 3 3 0 0 0 3 3zm8 0a3 3 0 1 0-3-3 3 3 0 0 0 3 3zM8 13c-2.7 0-6 1.3-6 4v1h8.2a6.4 6.4 0 0 1 1.2-3.2A8.7 8.7 0 0 0 8 13zm8 0c-.7 0-1.4.1-2 .2A5.2 5.2 0 0 1 16.5 18H22v-1c0-2.7-3.3-4-6-4z"/></svg>
+          </span>
+          <div>
+            <span>Famílias cadastradas</span>
+            <strong>{{ total_familias }}</strong>
+          </div>
+        </article>
+        <article class="cad-card cad-card--azul">
+          <span class="cad-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg>
+          </span>
+          <div>
+            <span>Candidatos</span>
+            <strong>{{ total_pessoas }}</strong>
+          </div>
+        </article>
+        <article class="cad-card cad-card--verde">
+          <span class="cad-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V5zm-1.2 13.2-3.3-3.3 1.4-1.4 1.9 1.9 3.9-3.9 1.4 1.4z"/></svg>
+          </span>
+          <div>
+            <span>Confirmados</span>
+            <strong>{{ total_confirmados }}</strong>
+          </div>
+        </article>
+        <article class="cad-card cad-card--ouro">
+          <span class="cad-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 11h-4V7h2v4h2z"/></svg>
+          </span>
+          <div>
+            <span>Pendentes</span>
+            <strong>{{ total_pendentes }}</strong>
+          </div>
+        </article>
+        <article class="cad-card cad-card--azul">
+          <span class="cad-ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5z"/></svg>
+          </span>
+          <div>
+            <span>Total inscritos</span>
+            <strong>{{ total_pessoas }}</strong>
+          </div>
+        </article>
+      </section>
+
+      <div class="cad-ferramentas">
+        <label class="cad-busca">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 1 0-.7.7l.3.3v.8l5 5 1.5-1.5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+          <input id="cad-busca" type="search" placeholder="Pesquisar por nome da família, pessoa ou telefone..." aria-label="Buscar inscrição">
+        </label>
+        <label class="cad-filtro">
+          <span>Status</span>
+          <select id="cad-status" aria-label="Filtrar por status">
+            <option value="">Todos</option>
+            {% for chave, rotulo in status_opcoes.items() %}
+            <option value="{{ chave }}">{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="button" id="cad-filtrar">Filtrar</button>
+        <a class="btn btn-primary" href="{{ url_for('batismo_exportar_excel') }}">Exportar Excel</a>
+        <a class="btn btn-ghost-dark" href="{{ url_for('batismo_exportar_pdf') }}">Exportar PDF</a>
+      </div>
+
+      {% if inscricoes %}
+      <div class="cad-tabela-wrap">
+        <table class="cad-tabela">
+          <thead>
+            <tr>
+              <th>Família</th>
+              <th>Pessoas</th>
+              <th>Contato</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="cad-linhas">
+            {% for item in inscricoes %}
+            {% set nomes = [] %}
+            {% for pessoa in item.pessoas_objs or item.filhos_objs or [] if pessoa.nome %}
+              {% set _ = nomes.append(pessoa.nome) %}
+            {% endfor %}
+            {% if item.nome_marido and item.nome_marido not in nomes %}{% set _ = nomes.append(item.nome_marido) %}{% endif %}
+            {% if item.nome_mulher and item.nome_mulher not in nomes %}{% set _ = nomes.append(item.nome_mulher) %}{% endif %}
+            {% if not nomes and item.nome_completo %}{% set _ = nomes.append(item.nome_completo) %}{% endif %}
+            {% set bruto = item.criado_em or '' %}
+            <tr
+              data-status="{{ item.status }}"
+              data-busca="{{ (item.nome_completo ~ ' ' ~ item.telefone ~ ' ' ~ nomes|join(' '))|lower }}"
+            >
+              <td>
+                <strong>{{ item.nome_completo or 'Família' }}</strong>
+                {% if bruto|length >= 10 %}
+                <span>Atualizado em {{ bruto[8:10] }}/{{ bruto[5:7] }}/{{ bruto[0:4] }}</span>
+                {% endif %}
+              </td>
+              <td class="cad-qtd"><b>{{ nomes|length }}</b></td>
+              <td>
+                <span class="cad-fone">{{ item.telefone or '—' }}</span>
+              </td>
+              <td><span class="status-pill status-pill--{{ item.status }}">{{ item.status_texto }}</span></td>
+              <td class="cad-acoes-cell">
+                <button type="button" class="cad-btn" data-abre="ver-{{ item.id }}">Ver cadastro</button>
+                <button type="button" class="cad-btn cad-btn--editar" data-abre="edit-{{ item.id }}">Editar</button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="cad-lista-fim">
+        <p class="cad-rodape" id="cad-rodape"></p>
+        <nav class="cad-paginas" id="cad-paginas" aria-label="Páginas da lista"></nav>
+      </div>
+
+      {% for item in inscricoes %}
+      {% set nomes = [] %}
+      {% for pessoa in item.pessoas_objs or item.filhos_objs or [] if pessoa.nome %}
+        {% set _ = nomes.append(pessoa.nome) %}
+      {% endfor %}
+      {% if item.nome_marido and item.nome_marido not in nomes %}{% set _ = nomes.append(item.nome_marido) %}{% endif %}
+      {% if item.nome_mulher and item.nome_mulher not in nomes %}{% set _ = nomes.append(item.nome_mulher) %}{% endif %}
+      {% if not nomes and item.nome_completo %}{% set _ = nomes.append(item.nome_completo) %}{% endif %}
+      <dialog class="cad-dialog" id="ver-{{ item.id }}">
+        <form method="dialog">
+          <header>
+            <h2>{{ item.nome_completo or 'Família' }}</h2>
+            <button type="submit" aria-label="Fechar">×</button>
+          </header>
+          <p><span class="status-pill status-pill--{{ item.status }}">{{ item.status_texto }}</span></p>
+          <p><strong>Pessoas</strong> {{ nomes|join(', ') if nomes else '—' }}</p>
+          <p><strong>Telefone</strong> {{ item.telefone or '—' }}</p>
+          <p><strong>Pagamento</strong> {{ item.valor_pago_texto if item.tem_pagamento else 'Ainda sem valor' }}</p>
+          <p class="cad-dialog-links">
+            <a href="{{ url_for('batismo_baixar_convite', inscricao_id=item.id) }}">Baixar convite</a>
+            {% if item.tem_pagamento %}
+            <a href="{{ url_for('batismo_baixar_comprovante', inscricao_id=item.id) }}">Baixar comprovante</a>
+            {% endif %}
+          </p>
+        </form>
+      </dialog>
+      <dialog class="cad-dialog" id="edit-{{ item.id }}">
+        <header>
+          <h2>Editar {{ item.nome_completo or 'família' }}</h2>
+          <form method="dialog"><button type="submit" aria-label="Fechar">×</button></form>
+        </header>
+        <form method="post" action="{{ url_for('batismo_atualizar_status', inscricao_id=item.id) }}">
+          <label for="status-{{ item.id }}">Status</label>
+          <select id="status-{{ item.id }}" name="status" aria-label="Status da inscrição">
+            {% for chave, rotulo in status_opcoes.items() %}
+            <option value="{{ chave }}" {% if item.status == chave %}selected{% endif %}>{{ rotulo }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit">Salvar status</button>
+        </form>
+        <form method="post" action="{{ url_for('batismo_atualizar_pagamento', inscricao_id=item.id) }}">
+          <label for="valor-pago-{{ item.id }}">Valor pago (R$)</label>
+          <input
+            id="valor-pago-{{ item.id }}"
+            name="valor_pago"
+            type="text"
+            inputmode="decimal"
+            placeholder="Ex.: 100,00"
+            value="{{ item.valor_pago_texto.replace('R$ ', '') if item.tem_pagamento else '' }}"
+            aria-label="Valor pago da inscrição"
+            autocomplete="off"
+          >
+          <button type="submit">Salvar valor</button>
+        </form>
+        <p>Deixe o valor em branco e salve para remover o pagamento.</p>
+        <form method="post" action="{{ url_for('batismo_apagar_inscricao', inscricao_id=item.id) }}" onsubmit="return confirm('Remover esta família da lista de batismo?');">
+          <button type="submit" class="cad-apagar">Remover família</button>
+        </form>
+      </dialog>
+      {% endfor %}
+      {% else %}
+      <p class="cad-vazio">Nenhuma inscrição recebida ainda. Compartilhe a página de inscrição com as famílias.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const linhas = [...document.querySelectorAll("#cad-linhas tr")];
+  const busca = document.querySelector("#cad-busca");
+  const status = document.querySelector("#cad-status");
+  const filtrar = document.querySelector("#cad-filtrar");
+  const rodape = document.querySelector("#cad-rodape");
+  const paginas = document.querySelector("#cad-paginas");
+  document.querySelectorAll("[data-abre]").forEach((botao) => {
+    botao.addEventListener("click", () => {
+      const caixa = document.getElementById(botao.dataset.abre);
+      if (caixa && typeof caixa.showModal === "function") caixa.showModal();
+    });
+  });
+  if (!linhas.length || !busca || !status || !rodape || !paginas) return;
+  const porPagina = 8;
+  let pagina = 1;
+
+  function visiveis() {
+    const texto = busca.value.trim().toLowerCase();
+    const filtro = status.value;
+    return linhas.filter((linha) => {
+      const okTexto = !texto || (linha.dataset.busca || "").includes(texto);
+      const okStatus = !filtro || linha.dataset.status === filtro;
+      return okTexto && okStatus;
+    });
+  }
+
+  function desenhar() {
+    const lista = visiveis();
+    const totalPaginas = Math.max(1, Math.ceil(lista.length / porPagina));
+    if (pagina > totalPaginas) pagina = totalPaginas;
+    const inicio = (pagina - 1) * porPagina;
+    const fim = inicio + porPagina;
+    linhas.forEach((linha) => { linha.hidden = true; });
+    lista.slice(inicio, fim).forEach((linha) => { linha.hidden = false; });
+    const de = lista.length ? inicio + 1 : 0;
+    const ate = Math.min(fim, lista.length);
+    rodape.textContent = `Mostrando ${de} a ${ate} de ${lista.length} famílias`;
+    paginas.innerHTML = "";
+    if (totalPaginas > 1) {
+      const anterior = document.createElement("button");
+      anterior.type = "button";
+      anterior.textContent = "‹";
+      anterior.disabled = pagina === 1;
+      anterior.addEventListener("click", () => { pagina -= 1; desenhar(); });
+      paginas.appendChild(anterior);
+    }
+    for (let n = 1; n <= totalPaginas; n += 1) {
+      const botao = document.createElement("button");
+      botao.type = "button";
+      botao.textContent = String(n);
+      if (n === pagina) botao.className = "is-active";
+      botao.addEventListener("click", () => { pagina = n; desenhar(); });
+      paginas.appendChild(botao);
+    }
+    if (totalPaginas > 1) {
+      const proxima = document.createElement("button");
+      proxima.type = "button";
+      proxima.textContent = "›";
+      proxima.disabled = pagina === totalPaginas;
+      proxima.addEventListener("click", () => { pagina += 1; desenhar(); });
+      paginas.appendChild(proxima);
+    }
+  }
+
+  busca.addEventListener("input", () => { pagina = 1; desenhar(); });
+  status.addEventListener("change", () => { pagina = 1; desenhar(); });
+  if (filtrar) filtrar.addEventListener("click", () => { pagina = 1; desenhar(); });
+  desenhar();
+})();
+</script>
+{% endblock %}

@@ -122,11 +122,12 @@
       ·
       <a href="{{ url_for('comunicado_obreiros', ano=ano if mes < 12 else ano + 1, mes=mes + 1 if mes < 12 else 1) }}">Próximo mês →</a>
     </p>
-    {% if whatsapp_mes %}
     <p class="escala-share">
+      {% if whatsapp_mes %}
       <a class="btn btn-whatsapp" href="{{ whatsapp_mes }}" target="_blank" rel="noopener noreferrer">Compartilhar mês no WhatsApp</a>
+      {% endif %}
+      <a class="btn btn-ghost-dark" href="{{ url_for('comunicado_escala_pdf', ano=ano, mes=mes) }}">Baixar PDF para imprimir</a>
     </p>
-    {% endif %}
   </div>
 
   {% if escala %}

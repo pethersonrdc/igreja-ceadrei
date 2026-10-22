@@ -1,4 +1,5 @@
 {# Formulario para cada responsavel registrar o proprio evento no calendario #}
+{% set suf = id_suffix|default('') %}
 <section class="section">
   <form class="admin-card {{ card_class|default('') }}" method="post">
     <input type="hidden" name="acao" value="evento">
@@ -13,9 +14,9 @@
       A data aparece no calendário compartilhado para todos os líderes.
     </p>
 
-    <label for="titulo_evento">Título</label>
+    <label for="titulo_evento{{ suf }}">Título</label>
     <input
-      id="titulo_evento"
+      id="titulo_evento{{ suf }}"
       name="titulo"
       type="text"
       value="{{ editar_evento.titulo if editar_evento else info_evento.titulo }}"
@@ -24,9 +25,9 @@
 
     <div class="pessoa-row">
       <div>
-        <label for="data_evento">Data do evento</label>
+        <label for="data_evento{{ suf }}">Data do evento</label>
         <input
-          id="data_evento"
+          id="data_evento{{ suf }}"
           name="data"
           type="date"
           required
@@ -35,19 +36,19 @@
         <p class="admin-help">Escolha a data no calendário.</p>
       </div>
       <div>
-        <label for="horario_evento">Horário</label>
-        <input id="horario_evento" name="horario" type="text" placeholder="Ex.: 19:30" value="{{ editar_evento.horario if editar_evento else '' }}">
+        <label for="horario_evento{{ suf }}">Horário</label>
+        <input id="horario_evento{{ suf }}" name="horario" type="text" placeholder="Ex.: 19:30" value="{{ editar_evento.horario if editar_evento else '' }}">
       </div>
     </div>
 
-    <label for="local_evento">Local</label>
-    <input id="local_evento" name="local" type="text" placeholder="Ex.: Sítio / Templo" value="{{ editar_evento.local if editar_evento else '' }}">
+    <label for="local_evento{{ suf }}">Local</label>
+    <input id="local_evento{{ suf }}" name="local" type="text" placeholder="Ex.: Sítio / Templo" value="{{ editar_evento.local if editar_evento else '' }}">
 
-    <label for="descricao_evento">Descrição</label>
-    <textarea id="descricao_evento" name="descricao" rows="3" placeholder="Detalhes do evento">{{ editar_evento.descricao if editar_evento else '' }}</textarea>
+    <label for="descricao_evento{{ suf }}">Descrição</label>
+    <textarea id="descricao_evento{{ suf }}" name="descricao" rows="3" placeholder="Detalhes do evento">{{ editar_evento.descricao if editar_evento else '' }}</textarea>
 
-    <label for="aviso_evento">Aviso perto da data</label>
-    <input id="aviso_evento" name="aviso" type="text" placeholder="Ex.: Confirmar lista até sexta" value="{{ editar_evento.aviso if editar_evento else '' }}">
+    <label for="aviso_evento{{ suf }}">Aviso perto da data</label>
+    <input id="aviso_evento{{ suf }}" name="aviso" type="text" placeholder="Ex.: Confirmar lista até sexta" value="{{ editar_evento.aviso if editar_evento else '' }}">
 
     <button class="btn btn-primary {{ btn_class|default('') }}" type="submit">
       {% if editar_evento %}Salvar alteração{% else %}Publicar no calendário{% endif %}

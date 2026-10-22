@@ -1,0 +1,63 @@
+{% if erro %}
+<p class="admin-msg admin-msg--erro">{{ erro }}</p>
+{% endif %}
+
+{% if not inscricao_aberta %}
+<div class="insc-card insc-fechada">
+  <h2>Inscrições encerradas</h2>
+  <p>{{ inscricao_encerrada_msg }}</p>
+  <p>Se você já se inscreveu, aguarde o contato do líder do evento.</p>
+</div>
+{% else %}
+<form class="insc-card" method="post" id="form-batismo-desk" action="{{ url_for('batismo_inscricao') }}">
+  <p class="insc-passo"><span>1</span> Dados da família</p>
+
+  <div class="insc-bloco">
+    <h2>Pessoas da família</h2>
+    <p>Adicione quem vai ao batismo: marido, mulher, filhos, tios, primos e demais familiares. Informe nome completo, RG/CPF e sexo.</p>
+    <div class="insc-bloco-pessoas">
+      <div id="pessoas-lista-desk" class="filhos-lista">
+        <div class="filho-row filho-row--sexo">
+          <input name="pessoas" type="text" placeholder="Nome completo" aria-label="Nome completo da pessoa 1" required>
+          <input name="pessoas_doc" type="text" placeholder="RG ou CPF" aria-label="RG ou CPF da pessoa 1">
+          <div class="sexo-field" data-pessoa-sexo-group>
+            <span class="sexo-field-label">Sexo</span>
+            <div class="sexo-picker" role="group" aria-label="Sexo da pessoa">
+              <label class="sexo-option">
+                <input type="radio" value="M" data-pessoa-sexo>
+                <span>M</span>
+              </label>
+              <label class="sexo-option">
+                <input type="radio" value="F" data-pessoa-sexo>
+                <span>F</span>
+              </label>
+            </div>
+            <input type="hidden" name="pessoas_sexo" value="" data-pessoa-sexo-hidden>
+          </div>
+        </div>
+      </div>
+      <div class="insc-add-linha">
+        <button class="insc-add" type="button" id="btn-add-pessoa-desk">Adicionar pessoa</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="insc-bloco">
+    <h2>Telefone de contato</h2>
+    <input id="telefone-desk" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
+    <p>Use um número da família. Ele impede cadastro repetido.</p>
+  </div>
+
+  <fieldset class="insc-confirma">
+    <legend>Confirmação</legend>
+    {% for chave, rotulo in status_opcoes.items() %}
+    <label>
+      <input type="radio" name="status" value="{{ chave }}" {% if chave == 'vou' %}checked{% endif %} required>
+      <span>{{ rotulo }}</span>
+    </label>
+    {% endfor %}
+  </fieldset>
+
+  <button class="insc-enviar" type="submit">Enviar inscrição</button>
+</form>
+{% endif %}

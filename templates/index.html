@@ -2,6 +2,80 @@
 
 {% block title %}{{ igreja.nome }} — Bem-vindo{% endblock %}
 
+{% block head %}
+<meta name="format-detection" content="telephone=no">
+<style>
+  .home-aviso-midia-card .aviso-numero,
+  .home-aviso-midia-card h2 a {
+    color: #122033;
+    text-decoration: none;
+    font-family: Georgia, "Palatino Linotype", "Times New Roman", serif;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 0.92em;
+    letter-spacing: 0.06em;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+  .home-aviso-midia-card h2 a {
+    pointer-events: none;
+    cursor: text;
+  }
+  /* Só o destaque do batismo na página inicial. Os outros carrosséis ficam como estão. */
+  .batismo-home {
+    padding-top: 2.4rem;
+    padding-bottom: 2.4rem;
+  }
+  .batismo-home .section-head {
+    margin-bottom: 1rem;
+  }
+  .batismo-home .carousel {
+    width: 100%;
+    max-width: none;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+    background: #0d2436;
+  }
+  .batismo-home .carousel-track,
+  .batismo-home .carousel-slide {
+    width: 100%;
+    height: 100%;
+  }
+  .batismo-home .carousel-slide {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+  }
+  .batismo-home .carousel-slide img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: none;
+    object-fit: cover;
+    object-position: center;
+    animation: none;
+  }
+  .batismo-home .batismo-videos video {
+    width: 100%;
+    max-height: 420px;
+    border-radius: 18px;
+    background: #000;
+  }
+  @media (max-width: 720px) {
+    .batismo-home {
+      width: min(100% - 1.2rem, 1120px);
+      padding-top: 1.4rem;
+      padding-bottom: 1.4rem;
+    }
+    .batismo-home .carousel {
+      aspect-ratio: 4 / 3;
+      border-radius: 18px;
+    }
+    .batismo-home .section-head h2 {
+      font-size: 1.7rem;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="hero">
   <div class="hero-media">
@@ -438,19 +512,20 @@
   <p class="section-link"><a href="{{ url_for('cultos_page') }}">Ver todos os cultos</a></p>
 </section>
 
-{% if batismo_fotos %}
+{% if batismo_fotos or batismo_videos %}
 <section class="section gallery-home batismo-home">
   <div class="section-head">
     <h2>Destaque — Evento Batismo</h2>
     <p>Evangelista Sueli é a Responsável pelo evento. Confira o local e confirme sua participação.</p>
   </div>
 
+  {% if batismo_fotos %}
   <div class="carousel" data-carousel>
     <div class="carousel-track">
       {% for foto in batismo_fotos %}
       <figure class="carousel-slide{% if loop.first %} is-active{% endif %}">
         <img
-          src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
+          src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}"
           alt="{{ foto.titulo or 'Local do batismo' }}"
           loading="{{ 'eager' if loop.first else 'lazy' }}"
         >
@@ -463,26 +538,23 @@
     <div class="carousel-dots" data-carousel-dots></div>
     {% endif %}
   </div>
+  {% endif %}
+
+  {% if batismo_videos %}
+  <div class="batismo-videos">
+    <h3 style="margin:1.2rem 0 0.6rem">Vídeo do batismo</h3>
+    {% for video in batismo_videos %}
+    <figure>
+      <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}" style="width:100%;max-height:420px;border-radius:14px;background:#000"></video>
+      {% if video.titulo %}<figcaption>{{ video.titulo }}</figcaption>{% endif %}
+    </figure>
+    {% endfor %}
+  </div>
+  {% endif %}
 
   <p class="section-link">
     <a href="{{ url_for('batismo_inscricao') }}">Quem for para o batismo, acesse aqui</a>
   </p>
-</section>
-{% endif %}
-
-{% if onibus_linhas is defined and onibus_mapa is defined %}
-<section class="section onibus-home" id="escala-onibus-home">
-  <div class="section-head">
-    <p class="eyebrow">Evento Batismo</p>
-    <h2>Escala do ônibus</h2>
-    <p>Assentos do Semi Leito 7470 (44 lugares). A Evangelista Sueli organiza após a confirmação do pagamento.</p>
-  </div>
-  {% if whatsapp_onibus %}
-  <p class="hero-actions" style="margin-bottom:1rem">
-    <a class="btn btn-whatsapp" href="{{ whatsapp_onibus }}" target="_blank" rel="noopener noreferrer">Compartilhar escala no WhatsApp</a>
-  </p>
-  {% endif %}
-  {% include 'includes/onibus_mapa.html' %}
 </section>
 {% endif %}
 
@@ -537,8 +609,5 @@
 {% endif %}
 {% if escala_hoje %}
 <script src="{{ url_for('static', filename='js/escala-share.js') }}"></script>
-{% endif %}
-{% if onibus_linhas is defined and onibus_mapa is defined %}
-<script src="{{ url_for('static', filename='js/onibus-share.js') }}"></script>
 {% endif %}
 {% endblock %}

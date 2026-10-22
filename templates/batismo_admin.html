@@ -1,8 +1,34 @@
 {% extends "base.html" %}
 
-{% block body_class %}pagina-fundo tema-batismo-painel{% endblock %}
+{% block body_class %}pagina-fundo tema-batismo-painel cadastro-admin{% endblock %}
 
 {% block title %}Admin Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block head %}
+{% include 'includes/cadastro_desktop_css.html' %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-painel .page-hero,
+  html.js-ready body.tema-batismo-painel main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .cad-videos video {
+    width: 100%;
+    max-height: 360px;
+    border-radius: 12px;
+    background: #000;
+    margin-top: 0.6rem;
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.cadastro-admin .site-header,
+    body.cadastro-admin .site-footer,
+    body.cadastro-admin .fundo-pagina { display: none !important; }
+  }
+</style>
+{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
@@ -15,6 +41,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="so-celular">
 <section class="page-hero pagina-fundo-content">
   <p class="eyebrow">Evento Batismo</p>
   <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
@@ -22,7 +49,9 @@
   <p class="section-link">
     <a href="{{ url_for('batismo_inscricao') }}">Abrir página de inscrição</a>
     ·
-    <a href="{{ url_for('cadastro_onibus') }}">Cadastro / ônibus</a>
+    <a href="{{ url_for('cadastro_batismo') }}">Cadastro do batismo</a>
+    ·
+    <a href="{{ url_for('cadastro_onibus') }}">Escala do ônibus</a>
     ·
     <a href="{{ url_for('home') }}">Ver destaque no início</a>
     ·
@@ -66,7 +95,7 @@
       <div class="admin-thumbs admin-thumbs--batismo">
         {% for foto in fotos %}
         <figure>
-          <img src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+          <img src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
           <figcaption>{{ foto.titulo }}</figcaption>
           <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
             <button class="btn btn-ghost-dark" type="submit">Apagar</button>
@@ -84,17 +113,12 @@
 <section class="section">
   <div class="section-head">
     <h2>Inscrições das famílias</h2>
-    <p>
-      A lista completa (status, valor pago e Excel/PDF) foi movida para
-      <strong>Cadastro / ônibus</strong>.
-    </p>
+    <p>A lista de quem se cadastrou fica só na página de cadastro. A escala do ônibus é outra página.</p>
   </div>
   <div class="hero-actions batismo-export">
-    <a class="btn btn-primary" href="{{ url_for('cadastro_onibus') }}#inscricoes-familias">
-      Abrir Cadastro / ônibus
-    </a>
+    <a class="btn btn-primary" href="{{ url_for('cadastro_batismo') }}">Abrir cadastro do batismo</a>
+    <a class="btn btn-ghost-dark" href="{{ url_for('cadastro_onibus') }}">Abrir escala do ônibus</a>
   </div>
-  <p class="admin-meta">Build: {{ config.get('APP_BUILD', 'onibus-familias-20260911') if false else 'onibus-familias-20260911' }}</p>
 </section>
 
 {% with
@@ -106,4 +130,85 @@
 %}
   {% include 'partials/evento_responsavel_form.html' %}
 {% endwith %}
+</div>
+
+<div class="so-computador">
+<div class="cad-shell">
+  {% with menu_aba='painel' %}
+    {% include 'includes/cadastro_menu_desktop.html' %}
+  {% endwith %}
+      <header class="cad-top">
+        <h1>Painel do batismo</h1>
+        <p>Fotos do sítio, o vídeo e o evento no calendário dos líderes.</p>
+      </header>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for categoria, mensagem in messages %}
+          <p class="admin-msg admin-msg--{{ categoria }}">{{ mensagem }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form class="admin-card admin-upload" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="acao" value="fotos">
+        <h2>Fotos do sítio</h2>
+        <label for="titulo-desk">Título / legenda</label>
+        <input id="titulo-desk" name="titulo" type="text" placeholder="Ex.: Sítio Esperança — área da piscina">
+        <label for="fotos-desk">Fotos do local</label>
+        <input id="fotos-desk" name="fotos" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,image/*" multiple required>
+        <button class="btn btn-primary" type="submit">Publicar fotos</button>
+      </form>
+      {% if fotos %}
+      <div class="admin-card" style="margin-top:1rem">
+        <h2>Fotos publicadas</h2>
+        <div class="admin-thumbs admin-thumbs--batismo">
+          {% for foto in fotos %}
+          <figure>
+            <img src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+            <figcaption>{{ foto.titulo }}</figcaption>
+            <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
+              <button class="cad-apagar" type="submit">Apagar</button>
+            </form>
+          </figure>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+      <form class="admin-card admin-upload" method="post" enctype="multipart/form-data" style="margin-top:1rem">
+        <input type="hidden" name="acao" value="video">
+        <h2>Vídeo do sítio</h2>
+        <p class="admin-help">O vídeo fica separado da galeria de fotos. Ele aparece na página inicial e na inscrição.</p>
+        <label for="titulo-video-desk">Título / legenda</label>
+        <input id="titulo-video-desk" name="titulo_video" type="text" placeholder="Ex.: Caminhada pelo sítio">
+        <label for="video-desk">Arquivo de vídeo</label>
+        <input id="video-desk" name="video" type="file" accept=".mp4,.webm,.ogg,.mov,video/*" required>
+        <button class="btn btn-primary" type="submit">Publicar vídeo</button>
+      </form>
+      {% if videos %}
+      <div class="admin-card cad-videos" style="margin-top:1rem">
+        <h2>Vídeos publicados</h2>
+        {% for video in videos %}
+        <figure>
+          <figcaption>{{ video.titulo }}</figcaption>
+          <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}"></video>
+          <form method="post" action="{{ url_for('batismo_apagar_video', video_id=video.id) }}" onsubmit="return confirm('Apagar este vídeo?');">
+            <button class="cad-apagar" type="submit">Apagar</button>
+          </form>
+        </figure>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% with
+        card_class='',
+        btn_class='',
+        id_suffix='-desk',
+        cancel_url=url_for('batismo_admin'),
+        edit_url_base=url_for('batismo_admin') + '?editar_evento=',
+        delete_url_base=url_for('batismo_admin') + '/evento/'
+      %}
+        {% include 'partials/evento_responsavel_form.html' %}
+      {% endwith %}
+    </div>
+  </div>
+</div>
+</div>
 {% endblock %}

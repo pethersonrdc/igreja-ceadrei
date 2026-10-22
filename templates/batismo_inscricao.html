@@ -1,8 +1,27 @@
 {% extends "base.html" %}
 
-{% block body_class %}pagina-fundo tema-batismo-cadastro{% endblock %}
+{% block body_class %}pagina-fundo tema-batismo-cadastro inscricao-publica{% if session.get('batismo_ok') %} cadastro-admin{% endif %}{% endblock %}
 
 {% block title %}Inscrição Batismo — {{ igreja.nome }}{% endblock %}
+
+{% block head %}
+{% include 'includes/cadastro_desktop_css.html' %}
+{% include 'includes/inscricao_desktop_css.html' %}
+<style>
+  .so-computador { display: none; }
+  html.js-ready body.tema-batismo-cadastro .page-hero,
+  html.js-ready body.tema-batismo-cadastro main > .section {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  @media (min-width: 721px) {
+    .so-celular { display: none !important; }
+    .so-computador { display: block; }
+    body.inscricao-publica .site-header,
+    body.inscricao-publica .site-footer { display: none !important; }
+  }
+</style>
+{% endblock %}
 
 {% block page_bg %}
 <div class="fundo-pagina fundo-pagina--arte" aria-hidden="true">
@@ -15,97 +34,86 @@
 {% endblock %}
 
 {% block content %}
-<section class="page-hero pagina-fundo-content">
-  <p class="eyebrow">Evento Batismo</p>
-  <h1>Evangelista Sueli é a Responsável pelo evento dúvida entre em contato.</h1>
-  <p>Confira o local e confirme a participação da sua família.</p>
-</section>
-
-{% if fotos %}
-<section class="section pagina-fundo-content">
-  <div class="section-head">
-    <h2>Local do batismo</h2>
-    <p>Fotos do sítio alugado para o evento.</p>
+<div class="so-celular">
+  {% include 'includes/batismo_inscricao_celular.html' %}
+</div>
+<div class="so-computador">
+{% if session.get('batismo_ok') %}
+<div class="cad-shell">
+  {% with menu_aba='nova' %}
+    {% include 'includes/cadastro_menu_desktop.html' %}
+  {% endwith %}
+  <header class="cad-top">
+    <h1>Nova inscrição</h1>
+    <p>Quem for para o batismo, acesse e preencha.</p>
+  </header>
+  {% if inscricao_ate_texto and inscricao_aberta %}
+  <p class="insc-prazo">Inscrições abertas até {{ inscricao_ate_texto }}.</p>
+  {% endif %}
+  {% include 'includes/inscricao_card.html' %}
   </div>
-  <div class="gallery-grid">
-    {% for foto in fotos %}
-    <figure>
-      <img
-        src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
-        alt="{{ foto.titulo or 'Local do batismo' }}"
-        loading="{{ 'eager' if loop.first else 'lazy' }}"
-      >
-    </figure>
-    {% endfor %}
-  </div>
-</section>
-{% endif %}
+</div>
+</div>
+{% else %}
+<div class="insc-pagina">
+  <a class="insc-marca" href="{{ url_for('home') }}">
+    <img src="{{ url_for('static', filename='images/emblema.png') }}" alt="" width="64" height="64">
+    <span>
+      <strong>IGREJA CEASDREI</strong>
+      <small>Servindo a Deus · Servindo ao Próximo</small>
+    </span>
+  </a>
 
-<section class="section pagina-fundo-content">
-  <div class="section-head">
-    <h2>Quem for para o batismo, acesse e preencha</h2>
-    <p>Envie os dados da família e a confirmação de participação. O telefone é a chave: mesmo mudando o nome, se o número já existir o site avisa e libera o convite anterior.</p>
-  </div>
-
-  {% if erro %}
-  <p class="admin-msg admin-msg--erro">{{ erro }}</p>
+  <h1>Quem for para o batismo, acesse e preencha</h1>
+  <p class="insc-lead">
+    Envie os dados da família e a confirmação de participação.<br>
+    O telefone é a chave: mesmo mudando o nome, se o número já existir o site avisa e libera o convite anterior.
+  </p>
+  {% if inscricao_ate_texto and inscricao_aberta %}
+  <p class="insc-prazo">Inscrições abertas até {{ inscricao_ate_texto }}.</p>
   {% endif %}
 
-  <form class="admin-card batismo-form" method="post" id="form-batismo">
-    <div class="filhos-block">
-      <label>Pessoas da família</label>
-      <p class="admin-help">
-        Adicione quem vai ao batismo: marido, mulher, filhos, tios, primos e demais familiares.
-        Informe nome completo, RG/CPF e sexo.
-      </p>
-      <div id="pessoas-lista" class="filhos-lista">
-        <div class="filho-row filho-row--sexo">
-          <input name="pessoas" type="text" placeholder="Nome completo" aria-label="Nome completo da pessoa 1" required>
-          <input name="pessoas_doc" type="text" placeholder="RG ou CPF" aria-label="RG ou CPF da pessoa 1">
-          <div class="sexo-field" data-pessoa-sexo-group>
-            <span class="sexo-field-label">Sexo</span>
-            <div class="sexo-picker" role="group" aria-label="Sexo da pessoa">
-              <label class="sexo-option">
-                <input type="radio" value="M" data-pessoa-sexo>
-                <span>M</span>
-              </label>
-              <label class="sexo-option">
-                <input type="radio" value="F" data-pessoa-sexo>
-                <span>F</span>
-              </label>
-            </div>
-            <input type="hidden" name="pessoas_sexo" value="" data-pessoa-sexo-hidden>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn-ghost-dark filhos-add" type="button" id="btn-add-pessoa">Adicionar pessoa</button>
-    </div>
+  {% include 'includes/inscricao_card.html' %}
 
-    <label for="telefone">Telefone de contato</label>
-    <input id="telefone" name="telefone" type="tel" required placeholder="(00) 00000-0000" inputmode="tel" autocomplete="tel">
-    <p class="admin-help">Use um número da família. Ele impede cadastro repetido.</p>
-
-    <fieldset class="batismo-fieldset">
-      <legend>Confirmação</legend>
-      {% for chave, rotulo in status_opcoes.items() %}
-      <label class="check-line">
-        <input type="radio" name="status" value="{{ chave }}" {% if chave == 'vou' %}checked{% endif %} required>
-        <span>{{ rotulo }}</span>
-      </label>
+  {% if fotos %}
+  <section class="insc-fotos">
+    <h2>Local do batismo</h2>
+    <div>
+      {% for foto in fotos %}
+      <figure>
+        <img
+          src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}"
+          alt="{{ foto.titulo or 'Local do batismo' }}"
+          loading="{{ 'eager' if loop.first else 'lazy' }}"
+        >
+      </figure>
       {% endfor %}
-    </fieldset>
+    </div>
+  </section>
+  {% endif %}
 
-    <button class="btn btn-primary" type="submit">Enviar inscrição</button>
-  </form>
-</section>
+  {% if videos %}
+  <section class="insc-videos">
+    <h2>Vídeo do batismo</h2>
+    {% for video in videos %}
+    <figure>
+      <video controls playsinline preload="metadata" src="{{ url_for('servir_upload_midia', filepath='batismo/' + video.arquivo) }}" style="width:100%;max-height:420px;border-radius:14px;background:#000"></video>
+      {% if video.titulo %}<figcaption>{{ video.titulo }}</figcaption>{% endif %}
+    </figure>
+    {% endfor %}
+  </section>
+  {% endif %}
+</div>
+{% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  (() => {
-    const lista = document.getElementById('pessoas-lista');
-    const btn = document.getElementById('btn-add-pessoa');
-    const form = document.getElementById('form-batismo');
+  function ligarFormulario(listaId, btnId, formId) {
+    const lista = document.getElementById(listaId);
+    const btn = document.getElementById(btnId);
+    const form = document.getElementById(formId);
     if (!lista || !btn) return;
 
     function syncPessoaSexo(row) {
@@ -120,7 +128,7 @@
       const group = row.querySelector('[data-pessoa-sexo-group]');
       if (!group) return;
       const radios = group.querySelectorAll('[data-pessoa-sexo]');
-      const name = `pessoas_sexo_opt_${index}`;
+      const name = `${lista.id}_sexo_${index}`;
       radios.forEach((radio) => {
         radio.name = name;
         radio.addEventListener('change', () => syncPessoaSexo(row));
@@ -170,7 +178,7 @@
           </div>
           <input type="hidden" name="pessoas_sexo" value="" data-pessoa-sexo-hidden>
         </div>
-        <button class="btn btn-ghost-dark filho-remove" type="button">Remover</button>
+        <button class="filho-remove" type="button">Remover</button>
       `;
       row.querySelector('.filho-remove').addEventListener('click', () => {
         row.remove();
@@ -189,6 +197,8 @@
 
     btn.addEventListener('click', adicionarPessoa);
     renumerar();
-  })();
+  }
+  ligarFormulario('pessoas-lista', 'btn-add-pessoa', 'form-batismo');
+  ligarFormulario('pessoas-lista-desk', 'btn-add-pessoa-desk', 'form-batismo-desk');
 </script>
 {% endblock %}
