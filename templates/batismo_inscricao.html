@@ -82,7 +82,7 @@
       {% for foto in fotos %}
       <figure>
         <img
-          src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}"
+          src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}"
           alt="{{ foto.titulo or 'Local do batismo' }}"
           loading="{{ 'eager' if loop.first else 'lazy' }}"
         >

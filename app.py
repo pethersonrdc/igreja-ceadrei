@@ -1322,6 +1322,7 @@ def batismo_admin():
             nome_final = f"{uuid.uuid4().hex}{extensao}"
             destino = batismo.UPLOAD_DIR / nome_final
             arquivo.save(destino)
+            persistencia.espelhar_arquivo_upload("batismo", nome_final)
             salvos.append(nome_final)
 
         if not salvos:

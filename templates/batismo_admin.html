@@ -88,7 +88,7 @@
       <div class="admin-thumbs admin-thumbs--batismo">
         {% for foto in fotos %}
         <figure>
-          <img src="{{ url_for('static', filename='uploads/batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+          <img src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
           <figcaption>{{ foto.titulo }}</figcaption>
           <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
             <button class="btn btn-ghost-dark" type="submit">Apagar</button>
@@ -146,14 +146,17 @@
       {% if fotos %}
       <div class="admin-card" style="margin-top:1rem">
         <h2>Fotos publicadas</h2>
-        {% for foto in fotos %}
-        <p>
-          {{ foto.titulo }}
-          <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');" style="display:inline">
-            <button class="cad-apagar" type="submit">Apagar</button>
-          </form>
-        </p>
-        {% endfor %}
+        <div class="admin-thumbs admin-thumbs--batismo">
+          {% for foto in fotos %}
+          <figure>
+            <img src="{{ url_for('servir_upload_midia', filepath='batismo/' + foto.arquivo) }}" alt="{{ foto.titulo }}">
+            <figcaption>{{ foto.titulo }}</figcaption>
+            <form method="post" action="{{ url_for('batismo_apagar_foto', foto_id=foto.id) }}" onsubmit="return confirm('Apagar esta foto?');">
+              <button class="cad-apagar" type="submit">Apagar</button>
+            </form>
+          </figure>
+          {% endfor %}
+        </div>
       </div>
       {% endif %}
       {% with
